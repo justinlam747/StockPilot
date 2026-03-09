@@ -1,0 +1,40 @@
+# Environment
+.env
+.env.local
+.env.production
+
+# Rails
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+config/master.key
+config/credentials/*.key
+
+# Ruby
+/.bundle
+/vendor/bundle
+
+# Node
+/node_modules
+/frontend/node_modules
+
+# Vite
+/public/vite*
+/public/assets
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+/coverage

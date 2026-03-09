@@ -1,0 +1,13 @@
+module Api
+  module V1
+    class SettingsController < AuthenticatedController
+      def show
+        render json: {}
+      end
+
+      def update
+        render json: {}
+      end
+    end
+  end
+end

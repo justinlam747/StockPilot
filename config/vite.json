@@ -1,0 +1,10 @@
+{
+  "all": {
+    "sourceCodeDir": "frontend",
+    "watchAdditionalPaths": []
+  },
+  "development": {
+    "autoBuild": true,
+    "port": 3036
+  }
+}
