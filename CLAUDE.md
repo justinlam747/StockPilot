@@ -99,12 +99,118 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
 
 ### 6. Security Rules
 
-- Validate all user input at the controller boundary
+#### 6a. Authentication & Session Security (Shopify-Specific)
+
+- **Session token validation is mandatory** — use Shopify App Bridge session tokens for all frontend-to-backend requests; never trust URL query params after initial load
+- **HMAC verification on every webhook** — already handled by `ShopifyApp::WebhookVerification`, never bypass it
+- **Token exchange flow** — exchange App Bridge session tokens for access tokens server-side using Shopify's token exchange API; never expose access tokens to the browser
+- **Session expiry** — configure explicit session timeouts (recommend 24h max); re-validate the session's shop matches the requesting shop on every API call to prevent cross-merchant token reuse
+- **OAuth scopes** — request only the minimum scopes needed (currently: `read_products,read_inventory,read_orders,read_customers`); never request `write_` scopes unless the feature demands it
+
+#### 6b. CORS — Restrict Origins (CRITICAL)
+
+- **NEVER use `origins "*"`** — this exposes the API to cross-origin data theft and CSRF
+- Restrict CORS to your app's domain and Shopify admin:
+  ```ruby
+  origins "https://your-app-domain.com", "https://admin.shopify.com"
+  ```
+- Current config in `config/initializers/cors.rb` allows all origins — **this must be fixed before production**
+
+#### 6c. Rate Limiting & Abuse Prevention
+
+- **Implement `rack-attack`** for API rate limiting — protect against brute force, DoS, and abuse of expensive endpoints (especially AI/insights generation)
+- Recommended limits:
+  - General API: 60 requests/minute per shop
+  - AI endpoints: 10 requests/minute per shop
+  - Webhook delivery: 100 requests/minute
+- **Respect Shopify API throttle limits** — already handled in `Shopify::GraphqlClient` with retry logic
+
+#### 6d. Input Validation & Strong Parameters
+
+- **Validate all user input at the controller boundary** — use Rails `strong_parameters` (`.require().permit()`) on every controller action
+- **Never trust client-side validation alone** — always validate server-side
+- Validate data types, lengths, formats, and ranges
 - Use parameterized queries — never interpolate user input into SQL
-- Shopify access tokens must be encrypted at rest (already configured via `encrypts :access_token`)
-- GDPR webhooks must be handled — they are mandatory for Shopify apps
-- Rate-limit awareness: respect Shopify API throttle limits (handled in `Shopify::GraphqlClient`)
-- Sanitize any data before rendering in the frontend
+- Sanitize any data before rendering in the frontend (React auto-escapes JSX, but avoid `dangerouslySetInnerHTML`)
+
+#### 6e. Authorization & Access Control
+
+- **Authentication is not authorization** — verifying a shop session doesn't mean the user can access all resources
+- Implement resource-level authorization (recommend `pundit` gem) for:
+  - Settings modification
+  - Supplier management
+  - Purchase order creation/approval
+  - AI insights generation
+- All queries must be scoped to the current tenant — `acts_as_tenant` handles this, **never bypass it**
+
+#### 6f. Security Headers
+
+Every response must include these headers (configure in `config/environments/production.rb`):
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Force HTTPS |
+| `X-Content-Type-Options` | `nosniff` | Prevent MIME sniffing |
+| `X-Frame-Options` | `ALLOWALL` (embedded apps) | Shopify embeds in iframe |
+| `Content-Security-Policy` | `frame-ancestors https://*.myshopify.com https://admin.shopify.com` | Restrict iframe embedding to Shopify |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disable unused browser APIs |
+
+#### 6g. Data Encryption & Protection
+
+- **At rest:** Shopify access tokens encrypted via `encrypts :access_token` (already in `Shop` model)
+- **In transit:** SSL enforced in production via `config.force_ssl = true`
+- **In the browser:** Never store tokens in `localStorage` or `sessionStorage` — keep all tokens server-side
+- **Redis:** Use TLS connections in production (`rediss://` protocol); Sidekiq job arguments may contain sensitive data — avoid passing raw tokens or PII as job args
+- **Database:** Use `DATABASE_URL` with SSL mode in production (`?sslmode=require`)
+
+#### 6h. API Key & Secret Management
+
+- All secrets via environment variables — never hardcoded
+- **Anthropic API key:** When implementing AI services, never log request/response payloads that contain the API key; implement circuit breakers for API failures; validate and sanitize all AI-generated content before returning to the frontend
+- **Shopify API credentials:** Managed by the `shopify_app` gem via ENV vars
+- **SendGrid API key:** Validate email addresses before sending; rate-limit outbound emails to prevent spam
+- **Rails master key:** Required for credential decryption; never commit `config/master.key`
+
+#### 6i. Logging Security — What NOT to Log
+
+- **Never log:** access tokens, API keys, passwords, session tokens, credit card numbers, full email addresses, Shopify HMAC signatures
+- **Already configured** in `config/initializers/filter_parameter_logging.rb`: filters `:passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :access_token, :api_key`
+- **Also filter:** request headers containing `Authorization`, webhook payloads with merchant PII, AI prompt/response content that includes merchant data
+- Use structured logging with request IDs for audit trails (already configured: `config.log_tags = [:request_id]`)
+
+#### 6j. GDPR & Privacy Compliance
+
+- **Mandatory Shopify requirements** — all apps must handle these webhooks:
+  - `customers/data_request` — export all stored customer data
+  - `customers/redact` — delete all stored customer data
+  - `shop/redact` — delete all stored shop data after uninstall
+- **Current status:** GDPR endpoints in `GdprController` return `200 OK` but don't process data — **these must be fully implemented before app store submission**
+- **Data minimization:** Only collect and store data you actively use; delete data you no longer need
+- **Data retention policy:** Define how long you keep inventory snapshots, customer profiles, and reports; implement automated cleanup (already have `SnapshotCleanupJob`)
+
+#### 6k. Dependency & Supply Chain Security
+
+- **Ruby:** Run `bundle-audit check --update` in CI to detect vulnerable gems
+- **Ruby:** Run `brakeman` static analysis to detect Rails security issues (SQL injection, XSS, mass assignment)
+- **Node.js:** Run `npm audit` in CI; fail builds on high/critical severity
+- **Lock files:** Always commit `Gemfile.lock` and `package-lock.json`; use `bundle install` and `npm ci` (not `npm install`) in CI
+- **Dependency updates:** Enable Dependabot or Renovate for automated security patches
+- **New packages:** Review before adding; prefer well-maintained packages with security track records
+
+#### 6l. Container & Infrastructure Security
+
+- **Dockerfile:** Use minimal base images (currently `ruby:3.3-slim` — good)
+- **No secrets in images:** Never use `ARG` or `ENV` for secrets in Dockerfile; use runtime environment variables
+- **Docker Compose:** Move hardcoded Postgres credentials in `docker-compose.yml` to a `.env` file (even for development)
+- **Non-root execution:** Run the app as a non-root user inside the container
+- **Image scanning:** Add container image vulnerability scanning (Trivy, Snyk Container) to CI
+
+#### 6m. Audit Logging
+
+- **Log all security-relevant events:** login attempts, permission changes, data exports, GDPR requests, failed authentication, rate limit hits
+- **Include:** timestamp, shop ID, action, IP address, user agent, request ID
+- **Store audit logs separately** from application logs — they may need longer retention for compliance
 
 ### 7. Database Rules
 
@@ -174,6 +280,37 @@ See `.env.example` for the full list. Key variables:
 - `RAILS_MASTER_KEY` — Rails credential encryption
 
 **None of these should ever appear in committed code.**
+
+---
+
+## Security Audit Status
+
+Current state of security measures — update as items are resolved:
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Shopify OAuth | Done | `shopify_app` gem v22, scopes properly scoped |
+| Session token validation | Done | `ShopifyApp::EnsureHasSession` on all authenticated routes |
+| Webhook HMAC verification | Done | `ShopifyApp::WebhookVerification` on webhook + GDPR controllers |
+| Access token encryption | Done | `encrypts :access_token` in Shop model |
+| Multi-tenancy isolation | Done | `acts_as_tenant :shop` on all models |
+| SSL in production | Done | `config.force_ssl = true` |
+| Parameter log filtering | Done | Filters tokens, keys, passwords, SSNs |
+| Sentry error tracking | Done | Production + staging |
+| Secrets via ENV vars | Done | No hardcoded credentials in code |
+| `.gitignore` for secrets | Done | `.env`, master key, credentials excluded |
+| CORS restriction | **CRITICAL** | Currently `origins "*"` — must restrict to app domain + Shopify |
+| Rate limiting (`rack-attack`) | **TODO** | No throttling on any endpoint |
+| Security headers (CSP, HSTS) | **TODO** | No headers configured |
+| Input validation / strong params | **TODO** | Controllers are stubs, must add `.permit()` |
+| Authorization (`pundit`) | **TODO** | Only authentication exists, no resource-level authz |
+| GDPR data processing | **TODO** | Endpoints return 200 but don't process/delete data |
+| Audit logging | **TODO** | No security event logging |
+| `brakeman` static analysis | **TODO** | Not in CI pipeline |
+| `npm audit` in CI | **TODO** | Not in CI pipeline |
+| Container image scanning | **TODO** | Not in CI pipeline |
+| Docker Compose credentials | **TODO** | Hardcoded `postgres:postgres` in docker-compose.yml |
+| Session timeout config | **TODO** | No explicit expiry set |
 
 ---
 
