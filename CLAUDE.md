@@ -124,6 +124,7 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
   - AI endpoints: 10 requests/minute per shop
   - Webhook delivery: 100 requests/minute
 - **Respect Shopify API throttle limits** — already handled in `Shopify::GraphqlClient` with retry logic
+- **Alternative:** Rails 7.2+ has built-in rate limiting (`rate_limit to: 10, within: 3.minutes, only: :create`) — useful for simple per-action throttling without extra gems
 
 #### 6d. Input Validation & Strong Parameters
 
@@ -132,6 +133,8 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
 - Validate data types, lengths, formats, and ranges
 - Use parameterized queries — never interpolate user input into SQL
 - Sanitize any data before rendering in the frontend (React auto-escapes JSX, but avoid `dangerouslySetInnerHTML`)
+- **File uploads:** If added later, whitelist allowed extensions AND validate media types; limit file sizes
+- **Never use string interpolation in SQL** — `Project.where("name = '#{name}'")` is injectable; use `where(name: name)` or `sanitize_sql`
 
 #### 6e. Authorization & Access Control
 
@@ -161,7 +164,8 @@ Every response must include these headers (configure in `config/environments/pro
 - **At rest:** Shopify access tokens encrypted via `encrypts :access_token` (already in `Shop` model)
 - **In transit:** SSL enforced in production via `config.force_ssl = true`
 - **In the browser:** Never store tokens in `localStorage` or `sessionStorage` — keep all tokens server-side
-- **Redis:** Use TLS connections in production (`rediss://` protocol); Sidekiq job arguments may contain sensitive data — avoid passing raw tokens or PII as job args
+- **Redis:** Use TLS connections in production (`rediss://` protocol) with `ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_PEER }`; set `maxmemory-policy noeviction` so Redis never silently drops Sidekiq jobs; use **separate Redis instances** for caching (LRU eviction) vs. Sidekiq (no eviction)
+- **Sidekiq job arguments are stored unencrypted in Redis** — never pass tokens, PII, or secrets as job args; pass record IDs and look up sensitive data inside the job
 - **Database:** Use `DATABASE_URL` with SSL mode in production (`?sslmode=require`)
 
 #### 6h. API Key & Secret Management
