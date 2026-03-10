@@ -49,6 +49,9 @@ A production-grade Shopify embedded app with:
 - Branch naming convention: `claude/<description>-<id>` or `<author>/<feature-description>`
 - Write a clear PR title and description explaining *what* and *why*
 - Link the related GitHub Issue in every PR
+- **Every PR description must include:**
+  - **Summary of changes** — bullet list of what was added, changed, or removed and why
+  - **How to test** — step-by-step instructions for reviewers to verify the changes (e.g., commands to run, pages to visit, expected behavior)
 
 ### 3. Create GitHub Issues for Everything
 
