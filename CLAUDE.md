@@ -30,6 +30,47 @@ A production-grade Shopify embedded app with:
 
 ---
 
+## Design System — White & Grey
+
+### Color Palette
+
+| Token | Value | Usage |
+|---|---|---|
+| `--color-bg` | `#FFFFFF` | Page background, card backgrounds, button backgrounds |
+| `--color-bg-hover` | `#F6F6F7` | Hover states, table stripe rows, secondary surfaces |
+| `--color-bg-pressed` | `#EDEEEF` | Active/pressed states, disabled surfaces, dividers |
+| `--color-stroke` | `#C9CCCF` | Borders, button outlines, separators |
+| `--color-stroke-light` | `#E1E3E5` | Subtle borders, input field borders |
+| `--color-text` | `#1A1A1A` | Primary body text (never pure `#000000`) |
+| `--color-text-secondary` | `#6D7175` | Button labels, placeholders, secondary text |
+| `--color-text-disabled` | `#8C9196` | Disabled text |
+| `--color-link` | `#2C6ECB` | Links only — the sole non-grey color allowed |
+| `--color-destructive` | `#D72C0D` | Destructive action text only — no fill |
+
+### Hard Rules
+
+- **No gradients.** Every background is a flat solid — white or grey.
+- **No black buttons.** No filled buttons. No dark buttons. No `tone="primary"` (renders green/black fill).
+- **All buttons:** white background (`#FFFFFF`), 1px grey border (`#C9CCCF`), grey text (`#6D7175`). Hover = `#F6F6F7` bg. Pressed = `#EDEEEF` bg.
+- **Primary vs secondary buttons:** Differentiate with text weight (semibold for primary) or an icon. Never with color fills.
+- **Destructive buttons:** Grey border, `#D72C0D` text, white background. No red fill.
+- **Text:** `#1A1A1A` for body copy. Never pure `#000000`.
+- **No shadows** heavier than Polaris `--p-shadow-100`.
+- **Badges/status indicators:** Use muted Polaris semantic tones (`subdued`, `warning`, `critical`) but keep them understated.
+
+### Polaris Component Mapping
+
+```
+✅ Use: <Button variant="tertiary">   → grey text, no fill
+✅ Use: <Button plain>                → text-only button
+✅ Use: <Card background="bg">        → white card
+❌ Never: <Button variant="primary">  → renders filled/dark
+❌ Never: <Button tone="critical">    → renders red fill
+❌ Never: background gradients, box-shadow beyond --p-shadow-100
+```
+
+---
+
 ## Guardrails — What We Do NOT Do
 
 ### 1. Never Push Secrets
@@ -234,6 +275,48 @@ Every response must include these headers (configure in `config/environments/pro
 
 ---
 
+## Pre-Commit Quality Gate
+
+**Before every commit**, run `/review` on all changed files. The review MUST scan for the following three categories. If any blocking issue is found, **do not commit — fix first.**
+
+### 1. Race Conditions
+
+- [ ] Concurrent Sidekiq jobs operating on the same shop's data — can two `InventorySyncJob`s for the same shop run simultaneously and create duplicate snapshots?
+- [ ] `find_or_create_by` / `find_or_initialize_by` without a matching unique index — will insert duplicates under concurrency
+- [ ] Time-of-check to time-of-use (TOCTOU) — reading a value, making a decision, then writing based on stale data (e.g., checking stock level then creating alert without a lock)
+- [ ] Missing advisory locks or `with_lock` on operations that must be atomic
+- [ ] Counter/balance updates without database-level atomicity (`UPDATE ... SET count = count + 1` is safe, `record.count += 1; record.save` is not)
+
+### 2. Duplication Logic
+
+- [ ] Can the same alert fire twice for the same variant in one run?
+- [ ] Can overlapping sync jobs create duplicate snapshot rows?
+- [ ] Is every background job idempotent — safe to retry without creating duplicate records?
+- [ ] N+1 queries — loading a collection then querying inside a loop (use `includes`/`joins`/subqueries)
+- [ ] Duplicate API calls — is the same Shopify GraphQL query being made multiple times in one request cycle?
+
+### 3. Vulnerabilities at Scale
+
+- [ ] SQL injection via string interpolation — `where("name = '#{input}'")`  must be `where(name: input)`
+- [ ] Mass assignment — every controller action uses `strong_parameters` (`.require().permit()`)
+- [ ] Tenant isolation — every query scoped by `acts_as_tenant` or explicit `shop_id`. No unscoped queries.
+- [ ] Unbounded queries — all list endpoints paginated, all batch operations chunked (`find_each`, `in_batches`)
+- [ ] Webhook HMAC — every inbound Shopify webhook controller includes `ShopifyApp::WebhookVerification`
+- [ ] No secrets in code — tokens/keys come from `ENV` only, never hardcoded
+- [ ] Rate limit handling — all Shopify API calls go through `Shopify::GraphqlClient` with throttle retry
+- [ ] Memory — no unbounded array accumulation (e.g., loading all records into an array instead of streaming)
+
+### How to Run
+
+```bash
+# Review all staged changes before committing:
+# 1. Run /review on the diff
+# 2. Fix any blocking issues flagged above
+# 3. Only then commit
+```
+
+---
+
 ## Development Workflow Summary
 
 ```
@@ -241,11 +324,13 @@ Every response must include these headers (configure in `config/environments/pro
 2. Create a feature branch from main
 3. Write code + tests
 4. Run CI locally (lint, type-check, test, build)
-5. Commit with a descriptive message referencing the Issue
-6. Push branch and open a PR
-7. Get review, address feedback
-8. CI passes → merge
-9. Delete the branch
+5. Run /review on changed files — check for race conditions, duplication, and vulnerabilities
+6. Fix any blocking issues found
+7. Commit with a descriptive message referencing the Issue
+8. Push branch and open a PR
+9. Get review, address feedback
+10. CI passes → merge
+11. Delete the branch
 ```
 
 ---
