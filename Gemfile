@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby "3.3.6"
+ruby ">= 3.3.0"
 
 gem "rails", "~> 7.2.0"
 gem "pg", "~> 1.5"
@@ -19,6 +19,7 @@ gem "blueprinter", "~> 1.0"
 gem "bootsnap", require: false
 gem "tzinfo-data", platforms: %i[windows jruby]
 gem "rack-cors"
+gem "rack-attack", "~> 6.7"
 gem "sentry-ruby", "~> 5.0"
 gem "sentry-rails", "~> 5.0"
 gem "sentry-sidekiq", "~> 5.0"

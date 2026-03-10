@@ -2,8 +2,14 @@ class SnapshotCleanupJob < ApplicationJob
   queue_as :maintenance
 
   RETENTION_DAYS = 90
+  BATCH_SIZE = 10_000
 
   def perform
-    raise NotImplementedError
+    cutoff = RETENTION_DAYS.days.ago
+
+    loop do
+      deleted = InventorySnapshot.where("created_at < ?", cutoff).limit(BATCH_SIZE).delete_all
+      break if deleted < BATCH_SIZE
+    end
   end
 end

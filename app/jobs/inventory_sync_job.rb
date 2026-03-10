@@ -7,6 +7,17 @@ class InventorySyncJob < ApplicationJob
            wait: 30.seconds, attempts: 3
 
   def perform(shop_id)
-    raise NotImplementedError
+    shop = Shop.active.find(shop_id)
+
+    ActsAsTenant.with_tenant(shop) do
+      data = Shopify::InventoryFetcher.new(shop).call
+      Inventory::Persister.new(shop).upsert(data)
+      Inventory::Snapshotter.new(shop).snapshot(data)
+
+      flagged = Inventory::LowStockDetector.new(shop).detect
+      Notifications::AlertSender.new(shop).send_low_stock_alerts(flagged)
+
+      shop.update!(synced_at: Time.current)
+    end
   end
 end

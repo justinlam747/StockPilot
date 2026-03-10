@@ -17,4 +17,70 @@ Feature: MVP Build (ralph/mvp-build)
 - GDPR controllers also include `ShopifyApp::WebhookVerification`
 - Products soft-delete via `deleted_at` column, scope with `.active` (where deleted_at: nil)
 - LowStockDetector uses `DISTINCT ON (variant_id)` subquery — never `.includes(:inventory_snapshots)`
+- All buttons use `variant="tertiary"` or `variant="plain"` — never `variant="primary"`
+- Custom elements like `<ui-nav-menu>` need type declarations in `frontend/src/types/shopify.d.ts`
+---
+
+## 2026-03-10 - US-001 through US-035 (Full MVP Implementation)
+All 35 user stories implemented in one batch:
+
+### Backend Services Implemented:
+- Shopify::GraphqlClient — rate limiting, throttle retry, cursor pagination
+- Shopify::InventoryFetcher — unified GraphQL query for products + variants + inventory levels
+- Shopify::WebhookRegistrar — registers required webhook topics via GraphQL mutation
+- Inventory::Persister — upserts from both GraphQL sync and REST webhook payloads
+- Inventory::Snapshotter — bulk insert_all with multi-location quantity aggregation
+- Inventory::LowStockDetector — DISTINCT ON subquery, no N+1, variant/shop threshold fallback
+- Notifications::AlertSender — daily deduplication, email + outgoing webhook dispatch
+- Reports::WeeklyGenerator — top sellers (snapshot diff), stockouts, reorder suggestions
+- AI::InsightsGenerator — Claude API with Anthropic::Error fallback
+- AI::PoDraftGenerator — Claude API with plain-text fallback template
+
+### Controllers Implemented:
+- HealthController (already existed)
+- AuthenticatedController (already existed)
+- WebhooksController — topic routing, app_uninstalled, products_update, products_delete
+- GdprController — customers_data_request, customers_redact, shop_redact with actual data processing
+- Api::V1::ProductsController — paginated, low_stock/out_of_stock filters
+- Api::V1::AlertsController — paginated list, status update with strong params
+- Api::V1::SettingsController — whitelisted JSONB key update
+- Api::V1::ReportsController — list, show, generate (enqueues job)
+- Api::V1::SuppliersController — full CRUD with strong params
+- Api::V1::PurchaseOrdersController — CRUD, generate_draft, send_email
+- Api::V1::WebhookEndpointsController — full CRUD
+- Api::V1::ShopsController — dashboard summary with LowStockDetector
+- Api::V1::AiController — on-demand insights
+- Api::V1::InventoryController — triggers sync job
+
+### Jobs Implemented:
+- AfterAuthenticateJob — webhook registration + initial sync
+- InventorySyncJob — full pipeline orchestration
+- DailySyncAllShopsJob — fan-out to active shops
+- SnapshotCleanupJob — 90-day retention, 10K batch delete
+- WeeklyReportJob — report generation + AI commentary + email
+- WeeklyReportAllShopsJob — timezone-aware scheduling
+- WebhookDeliveryJob — HTTP POST with retry on timeout
+
+### Mailers:
+- AlertMailer#low_stock with HTML template
+- ReportMailer#weekly_summary with HTML template
+- PurchaseOrderMailer#send_po
+
+### Frontend Pages (React + Polaris, white/grey palette):
+- DashboardPage — 4 summary cards, low-stock DataTable, Sync Now button
+- InventoryPage — tabbed filters (All/Low Stock/Out of Stock), pagination
+- ReportsPage — list + detail view, AI commentary section, generate button
+- SuppliersPage — CRUD with Polaris Modal
+- PurchaseOrdersPage — supplier select, draft generation, editable preview, send
+- SettingsPage — alert config form, webhook endpoints management
+
+### Security:
+- CORS restricted to SHOPIFY_APP_URL + admin.shopify.com
+- rack-attack rate limiting (60/min general, 10/min AI, 100/min webhooks)
+- Security headers (HSTS, CSP frame-ancestors, X-Content-Type-Options, etc.)
+- Strong params on all input-accepting controllers
+
+### Specs Written:
+- 30+ spec files covering jobs, services, controllers, mailers, security headers
+- TypeScript type check passes clean
 ---

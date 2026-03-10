@@ -8,14 +8,63 @@ module Shopify
 
     def initialize(shop)
       @shop = shop
+      @client = ShopifyAPI::Clients::Graphql::Admin.new(
+        session: build_session
+      )
     end
 
     def query(graphql_query, variables: {})
-      raise NotImplementedError
+      retries = 0
+      begin
+        response = @client.query(query: graphql_query, variables: variables)
+
+        if response.body["errors"]
+          errors = response.body["errors"]
+          throttled = errors.any? { |e| e.dig("extensions", "code") == "THROTTLED" }
+          if throttled
+            raise ShopifyThrottledError, "Rate limited by Shopify"
+          else
+            raise ShopifyApiError, errors.map { |e| e["message"] }.join(", ")
+          end
+        end
+
+        response.body["data"]
+      rescue ShopifyThrottledError => e
+        retries += 1
+        if retries <= MAX_RETRIES
+          sleep(THROTTLE_SLEEP * retries)
+          retry
+        end
+        raise e
+      end
     end
 
     def paginate(graphql_query, variables: {}, connection_path:)
-      raise NotImplementedError
+      all_nodes = []
+      cursor = nil
+
+      loop do
+        data = query(graphql_query, variables: variables.merge(cursor: cursor))
+        connection = data.dig(*connection_path)
+        break unless connection
+
+        all_nodes.concat(connection["nodes"] || connection["edges"]&.map { |e| e["node"] } || [])
+
+        page_info = connection["pageInfo"]
+        break unless page_info&.dig("hasNextPage")
+        cursor = page_info["endCursor"]
+      end
+
+      all_nodes
+    end
+
+    private
+
+    def build_session
+      ShopifyAPI::Auth::Session.new(
+        shop: @shop.shop_domain,
+        access_token: @shop.access_token
+      )
     end
   end
 end
