@@ -2,6 +2,8 @@ class AfterAuthenticateJob < ApplicationJob
   queue_as :default
 
   def perform(shop_domain:)
-    raise NotImplementedError
+    shop = Shop.find_by!(shop_domain: shop_domain)
+    Shopify::WebhookRegistrar.call(shop)
+    InventorySyncJob.perform_later(shop.id)
   end
 end

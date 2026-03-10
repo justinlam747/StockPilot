@@ -15,7 +15,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § HealthController for implementation code."
     },
     {
@@ -31,7 +31,7 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Authenticated Base Controller."
     },
     {
@@ -47,7 +47,7 @@
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Shopify::WebhookRegistrar."
     },
     {
@@ -64,7 +64,7 @@
         "Typecheck passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Webhook Controller. handle_products_update will be completed in US-010."
     },
     {
@@ -80,7 +80,7 @@
         "Typecheck passes"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § GDPR Controller."
     },
     {
@@ -98,7 +98,7 @@
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Shopify::GraphqlClient for full implementation."
     },
     {
@@ -114,7 +114,7 @@
         "Typecheck passes"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Shopify::InventoryFetcher for the query and implementation."
     },
     {
@@ -131,7 +131,7 @@
         "Typecheck passes"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Inventory::Persister."
     },
     {
@@ -147,7 +147,7 @@
         "Typecheck passes"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Inventory::Snapshotter."
     },
     {
@@ -161,7 +161,7 @@
         "Typecheck passes"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-004 (WebhooksController) and US-008 (Persister)."
     },
     {
@@ -178,7 +178,7 @@
         "Typecheck passes"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § InventorySyncJob. LowStockDetector/AlertSender are stubs until US-014/US-015."
     },
     {
@@ -194,7 +194,7 @@
         "Typecheck passes"
       ],
       "priority": 12,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § DailySyncAllShopsJob and SnapshotCleanupJob."
     },
     {
@@ -211,7 +211,7 @@
         "Typecheck passes"
       ],
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Products Controller. Uses Kaminari for pagination."
     },
     {
@@ -229,7 +229,7 @@
         "Typecheck passes"
       ],
       "priority": 14,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Inventory::LowStockDetector."
     },
     {
@@ -246,7 +246,7 @@
         "Typecheck passes"
       ],
       "priority": 15,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Notifications::AlertSender."
     },
     {
@@ -263,7 +263,7 @@
         "Typecheck passes"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -279,7 +279,7 @@
         "Typecheck passes"
       ],
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -296,7 +296,7 @@
         "Typecheck passes"
       ],
       "priority": 18,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § Reports::WeeklyGenerator."
     },
     {
@@ -315,7 +315,7 @@
         "Typecheck passes"
       ],
       "priority": 19,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § WeeklyReportJob and WeeklyReportAllShopsJob."
     },
     {
@@ -332,7 +332,7 @@
         "Typecheck passes"
       ],
       "priority": 20,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -349,7 +349,7 @@
         "Typecheck passes"
       ],
       "priority": 21,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -366,7 +366,7 @@
         "Typecheck passes"
       ],
       "priority": 22,
-      "passes": false,
+      "passes": true,
       "notes": "AI-powered draft generation will replace the rule-based template in US-026."
     },
     {
@@ -384,7 +384,7 @@
         "Typecheck passes"
       ],
       "priority": 23,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § WebhookDeliveryJob."
     },
     {
@@ -400,7 +400,7 @@
         "Typecheck passes"
       ],
       "priority": 24,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -417,7 +417,7 @@
         "Typecheck passes"
       ],
       "priority": 25,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § AI::InsightsGenerator."
     },
     {
@@ -435,7 +435,7 @@
         "Typecheck passes"
       ],
       "priority": 26,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § AI::PoDraftGenerator."
     },
     {
@@ -450,7 +450,7 @@
         "Typecheck passes"
       ],
       "priority": 27,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -467,7 +467,7 @@
         "Typecheck passes"
       ],
       "priority": 28,
-      "passes": false,
+      "passes": true,
       "notes": "See shopify-inventory-spec.md § DashboardPage for the implementation."
     },
     {
@@ -484,7 +484,7 @@
         "Typecheck passes"
       ],
       "priority": 29,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -500,7 +500,7 @@
         "Typecheck passes"
       ],
       "priority": 30,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -517,7 +517,7 @@
         "Typecheck passes"
       ],
       "priority": 31,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -534,7 +534,7 @@
         "Typecheck passes"
       ],
       "priority": 32,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -549,7 +549,7 @@
         "Typecheck passes"
       ],
       "priority": 33,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -565,7 +565,7 @@
         "Typecheck passes"
       ],
       "priority": 34,
-      "passes": false,
+      "passes": true,
       "notes": "See CLAUDE.md § Security for requirements."
     },
     {
@@ -581,7 +581,7 @@
         "Typecheck passes"
       ],
       "priority": 35,
-      "passes": false,
+      "passes": true,
       "notes": "See CLAUDE.md § Security Headers table for exact values."
     }
   ]

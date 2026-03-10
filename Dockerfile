@@ -4,6 +4,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    libyaml-dev \
     postgresql-client \
     nodejs \
     npm \
@@ -13,7 +14,7 @@ WORKDIR /app
 
 # Install Ruby dependencies
 COPY Gemfile Gemfile.lock ./
-RUN bundle install --without development test
+RUN bundle install
 
 # Install JS dependencies
 COPY package.json package-lock.json ./

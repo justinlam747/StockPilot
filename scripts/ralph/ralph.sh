@@ -89,18 +89,31 @@ for i in $(seq 1 $MAX_ITERATIONS); do
 
   # Run the selected tool with the ralph prompt
   if [[ "$TOOL" == "amp" ]]; then
-    OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
+    OUTFILE="$SCRIPT_DIR/.iteration-output.txt"
+    cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee "$OUTFILE" || true
+    # Check for completion signal in amp output
+    if grep -q "<promise>COMPLETE</promise>" "$OUTFILE" 2>/dev/null; then
+      echo ""
+      echo "Ralph completed all tasks!"
+      echo "Completed at iteration $i of $MAX_ITERATIONS"
+      rm -f "$OUTFILE"
+      exit 0
+    fi
+    rm -f "$OUTFILE"
   else
-    # Claude Code: use --dangerously-skip-permissions for autonomous operation, --print for output
-    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
-  fi
+    # Claude Code: read prompt from file, stream output to terminal
+    echo "[Ralph] Starting claude..."
+    cat "$SCRIPT_DIR/CLAUDE.md" | claude --dangerously-skip-permissions --print --max-turns 50 || true
+    echo "[Ralph] Claude finished iteration $i"
 
-  # Check for completion signal
-  if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
-    echo ""
-    echo "Ralph completed all tasks!"
-    echo "Completed at iteration $i of $MAX_ITERATIONS"
-    exit 0
+    # Check completion by looking at prd.json — if all stories pass, we're done
+    INCOMPLETE=$(jq '[.userStories[] | select(.passes == false)] | length' "$PRD_FILE" 2>/dev/null || echo "999")
+    if [ "$INCOMPLETE" -eq 0 ]; then
+      echo ""
+      echo "Ralph completed all tasks! All stories in prd.json are passing."
+      echo "Completed at iteration $i of $MAX_ITERATIONS"
+      exit 0
+    fi
   fi
 
   echo "Iteration $i complete. Continuing..."
