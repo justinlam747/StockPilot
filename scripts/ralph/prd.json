@@ -1,0 +1,588 @@
+{
+  "project": "ShopifyInventory",
+  "branchName": "ralph/mvp-build",
+  "description": "Shopify Inventory Intelligence MVP — full backend + frontend implementation per shopify-inventory-spec.md",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Health check endpoint with DB and Redis verification",
+      "description": "As a developer, I want a /health endpoint that verifies DB and Redis connectivity so I can monitor app readiness.",
+      "acceptanceCriteria": [
+        "GET /health returns { status: 'ok', db: true, redis: true } with HTTP 200 when services are up",
+        "GET /health returns { status: 'degraded', error: '...' } with HTTP 503 when a service is down",
+        "Health controller does not require authentication",
+        "Write a request spec for /health endpoint",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § HealthController for implementation code."
+    },
+    {
+      "id": "US-002",
+      "title": "Implement AuthenticatedController with session token JWT",
+      "description": "As a developer, I need a base controller that verifies Shopify App Bridge session tokens and sets the current tenant so all API endpoints are secure.",
+      "acceptanceCriteria": [
+        "AuthenticatedController includes ShopifyApp::EnsureHasSession",
+        "set_tenant finds the shop by session domain and sets ActsAsTenant.current_tenant",
+        "Returns 401 JSON if shop not found or uninstalled",
+        "No X-Shop-Domain header trust — auth comes from JWT only",
+        "Write a controller spec that verifies unauthorized requests get 401",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Authenticated Base Controller."
+    },
+    {
+      "id": "US-003",
+      "title": "Implement AfterAuthenticateJob",
+      "description": "As a developer, I need the post-OAuth job to register webhooks and trigger the initial inventory sync.",
+      "acceptanceCriteria": [
+        "AfterAuthenticateJob#perform accepts shop_domain keyword arg",
+        "Finds the shop by domain, calls Shopify::WebhookRegistrar.call(shop)",
+        "Enqueues InventorySyncJob for the shop",
+        "Handles ActiveRecord::RecordNotFound gracefully (discards job)",
+        "Write a job spec verifying it enqueues InventorySyncJob",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Shopify::WebhookRegistrar."
+    },
+    {
+      "id": "US-004",
+      "title": "Implement WebhooksController with HMAC verification and routing",
+      "description": "As a developer, I need the webhook receiver to verify HMAC signatures and route to the correct handler.",
+      "acceptanceCriteria": [
+        "WebhooksController includes ShopifyApp::WebhookVerification",
+        "receive action routes on params[:topic] to handle_app_uninstalled, handle_products_update, handle_products_delete",
+        "handle_app_uninstalled sets uninstalled_at and clears access_token",
+        "handle_products_delete soft-deletes the product (sets deleted_at)",
+        "Unhandled topics log a warning and return 200",
+        "Write request spec: valid HMAC returns 200, invalid HMAC returns 401",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Webhook Controller. handle_products_update will be completed in US-010."
+    },
+    {
+      "id": "US-005",
+      "title": "Implement GdprController with data processing",
+      "description": "As a developer, I need the GDPR webhook handlers to actually process data, not just return 200.",
+      "acceptanceCriteria": [
+        "GdprController includes ShopifyApp::WebhookVerification",
+        "customers_data_request logs the request with shop domain",
+        "customers_redact finds the shop and destroys matching Customer records using ActsAsTenant",
+        "shop_redact finds the shop and calls shop.destroy! (cascades all associations)",
+        "Write request specs for all three GDPR endpoints",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § GDPR Controller."
+    },
+    {
+      "id": "US-006",
+      "title": "Implement Shopify::GraphqlClient with rate limit handling",
+      "description": "As a developer, I need a GraphQL client that handles Shopify's rate limits with exponential backoff.",
+      "acceptanceCriteria": [
+        "GraphqlClient#query sends a GraphQL query via ShopifyAPI::Clients::Graphql::Admin",
+        "Raises ShopifyThrottledError on THROTTLED responses",
+        "Raises ShopifyApiError on other GraphQL errors",
+        "Retries up to MAX_RETRIES (3) times on throttle with exponential sleep",
+        "GraphqlClient#paginate iterates through a connection using cursor-based pagination and returns all nodes",
+        "Builds session with decrypted access_token from shop",
+        "Write specs: query returns data on success, retries on throttle, raises on error",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Shopify::GraphqlClient for full implementation."
+    },
+    {
+      "id": "US-007",
+      "title": "Implement Shopify::InventoryFetcher with unified GraphQL query",
+      "description": "As a developer, I need to fetch products + variants + inventory levels from Shopify in a single paginated GraphQL query.",
+      "acceptanceCriteria": [
+        "PRODUCTS_QUERY fetches products with nested variants, inventoryItem, inventoryLevels, and quantities",
+        "Uses GraphqlClient#paginate with first: 50 per page",
+        "Returns { products: [...], fetched_at: Time.current }",
+        "No REST API calls — everything is GraphQL",
+        "Write a spec using WebMock to stub the GraphQL response and verify the return structure",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Shopify::InventoryFetcher for the query and implementation."
+    },
+    {
+      "id": "US-008",
+      "title": "Implement Inventory::Persister for upserting products and variants",
+      "description": "As a developer, I need to upsert products and variants from both GraphQL sync and webhook payloads.",
+      "acceptanceCriteria": [
+        "Persister#upsert iterates GraphQL product nodes and upserts products + variants using find_or_initialize_by on shopify IDs",
+        "Persister#upsert_single_product handles REST webhook format (products/update)",
+        "Sets deleted_at to nil on upsert (un-deletes if product reappears)",
+        "Sets synced_at on each product",
+        "Uses ActsAsTenant.with_tenant for tenant scoping",
+        "Write spec: creates new products, updates existing, does not create duplicates",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Inventory::Persister."
+    },
+    {
+      "id": "US-009",
+      "title": "Implement Inventory::Snapshotter for bulk snapshot insertion",
+      "description": "As a developer, I need to create inventory snapshot rows from the GraphQL response, aggregating across locations.",
+      "acceptanceCriteria": [
+        "Snapshotter#snapshot extracts inventory levels from nested GraphQL product nodes",
+        "Aggregates quantities across all locations (available, on_hand, committed, incoming)",
+        "Uses insert_all for bulk efficiency",
+        "Creates one snapshot row per variant",
+        "Write spec: creates correct number of snapshots with correct quantities",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Inventory::Snapshotter."
+    },
+    {
+      "id": "US-010",
+      "title": "Wire WebhooksController#handle_products_update to Persister",
+      "description": "As a developer, I need the products/update webhook to upsert the product via Inventory::Persister.",
+      "acceptanceCriteria": [
+        "handle_products_update finds the shop, sets tenant, calls Persister#upsert_single_product with parsed JSON body",
+        "Returns early if shop not found or not active",
+        "Write request spec: POST with valid HMAC and product payload creates/updates the product in DB",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "Depends on US-004 (WebhooksController) and US-008 (Persister)."
+    },
+    {
+      "id": "US-011",
+      "title": "Implement InventorySyncJob orchestration",
+      "description": "As a developer, I need the sync job to orchestrate fetch → persist → snapshot → detect → alert in sequence.",
+      "acceptanceCriteria": [
+        "InventorySyncJob#perform fetches via InventoryFetcher, persists via Persister, snapshots via Snapshotter",
+        "Calls LowStockDetector and AlertSender for non-ok variants",
+        "Updates shop.synced_at on success",
+        "Uses ActsAsTenant.with_tenant for the entire operation",
+        "Has retry_on for ShopifyThrottledError (5 attempts) and ShopifyApiError (3 attempts)",
+        "Write spec: job calls each service in order (use mocks)",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § InventorySyncJob. LowStockDetector/AlertSender are stubs until US-014/US-015."
+    },
+    {
+      "id": "US-012",
+      "title": "Implement DailySyncAllShopsJob and SnapshotCleanupJob",
+      "description": "As a developer, I need the daily sync fan-out job and the snapshot retention cleanup job.",
+      "acceptanceCriteria": [
+        "DailySyncAllShopsJob enqueues one InventorySyncJob per active shop using find_each",
+        "SnapshotCleanupJob deletes snapshots older than 90 days in batches of 10,000",
+        "SnapshotCleanupJob loops until no more rows to delete",
+        "Write spec for DailySyncAllShopsJob: enqueues correct number of jobs",
+        "Write spec for SnapshotCleanupJob: deletes old snapshots, keeps recent ones",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § DailySyncAllShopsJob and SnapshotCleanupJob."
+    },
+    {
+      "id": "US-013",
+      "title": "Implement ProductsController with pagination and low-stock filter",
+      "description": "As a developer, I need paginated product list and detail endpoints with a low-stock filter.",
+      "acceptanceCriteria": [
+        "GET /api/v1/products returns paginated products with meta (current_page, total_pages, total_count, per_page)",
+        "Accepts page and per_page params, defaults to 25 per page",
+        "filter=low_stock filters to variants below threshold using DISTINCT ON subquery",
+        "GET /api/v1/products/:id returns a single product",
+        "Only returns active (non-deleted) products",
+        "Write request specs for index (with and without filter) and show",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Products Controller. Uses Kaminari for pagination."
+    },
+    {
+      "id": "US-014",
+      "title": "Implement LowStockDetector with efficient subquery",
+      "description": "As a developer, I need to detect low-stock variants using a single efficient query, no N+1.",
+      "acceptanceCriteria": [
+        "Uses DISTINCT ON (variant_id) to get latest snapshot per variant in one query",
+        "Joins variants with latest snapshot subquery",
+        "Excludes soft-deleted products",
+        "Returns array of hashes with :variant, :available, :on_hand, :status, :threshold",
+        "Status is :out_of_stock (available <= 0), :low_stock (available < threshold), or :ok",
+        "Respects variant-level threshold override, falls back to shop-level default",
+        "Write specs: flags low stock, flags out of stock, respects variant override, respects shop default",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Inventory::LowStockDetector."
+    },
+    {
+      "id": "US-015",
+      "title": "Implement AlertSender with deduplication",
+      "description": "As a developer, I need to send low-stock alerts without double-alerting the same variant on the same day.",
+      "acceptanceCriteria": [
+        "Filters out variants already alerted today using Alert.where with triggered_at range",
+        "Sends email via AlertMailer.low_stock if shop has alert_email configured",
+        "Creates Alert records for each alerted variant",
+        "Fires outgoing webhooks for matching webhook_endpoints",
+        "Write spec: does not create duplicate alert for same variant on same day",
+        "Write spec: creates alert and enqueues email when variant is newly low",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Notifications::AlertSender."
+    },
+    {
+      "id": "US-016",
+      "title": "Implement AlertMailer with SendGrid",
+      "description": "As a developer, I need the alert email template that lists low-stock variants.",
+      "acceptanceCriteria": [
+        "AlertMailer.low_stock accepts shop, variants array, and to email",
+        "Email subject includes shop domain and count of low-stock items",
+        "Email body lists each variant with SKU, title, available quantity, and threshold",
+        "Mailer inherits from ApplicationMailer (uses MAIL_FROM env var)",
+        "Create a mailer view template at app/views/alert_mailer/low_stock.html.erb",
+        "Write a mailer spec verifying subject, to, and body content",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Implement AlertsController and SettingsController",
+      "description": "As a developer, I need API endpoints for listing/acknowledging alerts and reading/updating shop settings.",
+      "acceptanceCriteria": [
+        "GET /api/v1/alerts returns paginated alerts for current shop, ordered by triggered_at desc",
+        "PATCH /api/v1/alerts/:id updates alert status (e.g., to 'acknowledged') with strong params",
+        "GET /api/v1/settings returns current shop settings (threshold, alert_email, timezone, weekly_report_day)",
+        "PATCH /api/v1/settings updates settings JSONB with strong params, only whitelisted keys",
+        "Write request specs for all four endpoints",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Implement Reports::WeeklyGenerator",
+      "description": "As a developer, I need the weekly report generator that computes top sellers, stockouts, low stock count, and reorder suggestions.",
+      "acceptanceCriteria": [
+        "WeeklyGenerator#generate returns a hash with :top_sellers, :stockouts, :low_sku_count, :reorder_suggestions",
+        "top_sellers uses snapshot comparison (week start vs week end) to compute units sold, returns top 10",
+        "stockouts queries alerts of type out_of_stock within the week",
+        "low_sku_count uses LowStockDetector",
+        "reorder_suggestions groups low-stock variants by supplier with suggested quantities",
+        "Write specs for each metric method",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § Reports::WeeklyGenerator."
+    },
+    {
+      "id": "US-019",
+      "title": "Implement WeeklyReportJob and timezone-aware scheduling",
+      "description": "As a developer, I need the weekly report job and the timezone-aware all-shops dispatcher.",
+      "acceptanceCriteria": [
+        "WeeklyReportJob creates/updates a WeeklyReport record with generated payload",
+        "Sends email via ReportMailer if shop has alert_email",
+        "Sets emailed_at timestamp after successful email",
+        "Uses find_or_initialize_by for idempotency (same shop + week_start)",
+        "WeeklyReportAllShopsJob checks each shop's timezone — only enqueues if it's the configured report day at 8am in their timezone",
+        "Skips if report already exists for that week",
+        "Write spec: WeeklyReportAllShopsJob only enqueues for correct timezone/day",
+        "Write spec: idempotent — does not create duplicate reports",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § WeeklyReportJob and WeeklyReportAllShopsJob."
+    },
+    {
+      "id": "US-020",
+      "title": "Implement ReportMailer and ReportsController",
+      "description": "As a developer, I need the report email template and the API endpoints for listing/viewing/generating reports.",
+      "acceptanceCriteria": [
+        "ReportMailer.weekly_summary accepts report and to, renders a summary email with top sellers, stockouts, reorder suggestions",
+        "Create mailer view at app/views/report_mailer/weekly_summary.html.erb",
+        "GET /api/v1/reports returns paginated list of weekly reports",
+        "GET /api/v1/reports/:id returns single report with full payload",
+        "POST /api/v1/reports/generate enqueues WeeklyReportJob for current shop",
+        "Write request specs for all three report endpoints",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Implement SuppliersController with full CRUD",
+      "description": "As a developer, I need CRUD API endpoints for suppliers with strong params.",
+      "acceptanceCriteria": [
+        "GET /api/v1/suppliers returns paginated suppliers for current shop",
+        "GET /api/v1/suppliers/:id returns single supplier",
+        "POST /api/v1/suppliers creates supplier with strong params (name, email, contact_name, lead_time_days, notes)",
+        "PATCH /api/v1/suppliers/:id updates supplier",
+        "DELETE /api/v1/suppliers/:id destroys supplier (restricted if has POs)",
+        "Write request specs for all five actions",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Implement PurchaseOrdersController with draft generation and email",
+      "description": "As a developer, I need PO endpoints including auto-generating draft line items from low-stock data and sending the PO email.",
+      "acceptanceCriteria": [
+        "Standard CRUD (index, show, create, update, destroy) with strong params including nested line_items_attributes",
+        "POST /api/v1/purchase_orders/generate_draft accepts supplier_id, queries low-stock variants for that supplier, creates PO with pre-filled line items",
+        "POST /api/v1/purchase_orders/:id/send_email sends the PO draft_body to the supplier's email via a PurchaseOrderMailer",
+        "Updates PO status to 'sent' and sets sent_at on successful send",
+        "Create PurchaseOrderMailer with a basic template",
+        "Write request specs for generate_draft and send_email",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": "AI-powered draft generation will replace the rule-based template in US-026."
+    },
+    {
+      "id": "US-023",
+      "title": "Implement WebhookEndpointsController and WebhookDeliveryJob",
+      "description": "As a developer, I need CRUD for merchant outgoing webhook endpoints and a delivery job with retries.",
+      "acceptanceCriteria": [
+        "Full CRUD for webhook_endpoints with strong params (url, event_type, is_active)",
+        "WebhookDeliveryJob#perform POSTs JSON payload to endpoint URL with 10s timeout",
+        "Updates endpoint's last_fired_at and last_status_code",
+        "Raises on non-success HTTP response (triggers retry_on)",
+        "Has retry_on for Net::OpenTimeout and HTTParty::Error with 5 attempts",
+        "Write spec: delivery job records status code, retries on timeout",
+        "Write request specs for webhook endpoints CRUD",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § WebhookDeliveryJob."
+    },
+    {
+      "id": "US-024",
+      "title": "Implement ShopsController for dashboard data",
+      "description": "As a developer, I need a /api/v1/shop endpoint that returns dashboard summary data.",
+      "acceptanceCriteria": [
+        "GET /api/v1/shop returns total_skus, low_stock_count, out_of_stock_count, synced_at, and top 5 low_stock_items",
+        "Uses LowStockDetector for counts",
+        "low_stock_items includes id, sku, title, available, threshold",
+        "PATCH /api/v1/shop updates shop fields (plan, settings) with strong params",
+        "Write request spec for show endpoint",
+        "Typecheck passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Implement AI::InsightsGenerator with error fallback",
+      "description": "As a developer, I need the AI insights service that calls Claude API and falls back gracefully on failure.",
+      "acceptanceCriteria": [
+        "InsightsGenerator#generate builds metrics hash from LowStockDetector data",
+        "Calls Anthropic::Client with claude-sonnet-4-20250514 model, structured system prompt, metrics as user message",
+        "Returns the text response (3-5 bullet points)",
+        "Rescues Anthropic::Error and returns 'AI insights temporarily unavailable.'",
+        "Write spec: returns bullets on success (mock Anthropic client)",
+        "Write spec: returns fallback string on Anthropic::Error",
+        "Typecheck passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § AI::InsightsGenerator."
+    },
+    {
+      "id": "US-026",
+      "title": "Implement AI::PoDraftGenerator with fallback template",
+      "description": "As a developer, I need the AI PO draft generator that calls Claude API and falls back to a plain-text template.",
+      "acceptanceCriteria": [
+        "PoDraftGenerator#generate accepts supplier, line_items, shop kwargs",
+        "Builds a prompt with supplier name, line items (sku, product, qty), and target delivery date",
+        "Calls Anthropic::Client with system prompt for professional PO email",
+        "Returns the generated email body text",
+        "On Anthropic::Error, falls back to fallback_draft method that generates a plain-text template",
+        "Write spec: returns AI-generated draft on success",
+        "Write spec: returns plain-text fallback on API failure",
+        "Typecheck passes"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § AI::PoDraftGenerator."
+    },
+    {
+      "id": "US-027",
+      "title": "Wire AI into WeeklyReportJob and AiController",
+      "description": "As a developer, I need AI insights wired into the weekly report payload and available on-demand via the API.",
+      "acceptanceCriteria": [
+        "WeeklyReportJob calls InsightsGenerator after generating report data, stores result in payload['ai_commentary']",
+        "Handles AI failure gracefully — report still saves without ai_commentary",
+        "GET /api/v1/ai/insights calls InsightsGenerator for current shop and returns JSON with insights text",
+        "Write request spec for /api/v1/ai/insights",
+        "Typecheck passes"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-028",
+      "title": "Build DashboardPage with summary cards and sync button",
+      "description": "As a developer, I need the dashboard page to fetch /api/v1/shop and display real data.",
+      "acceptanceCriteria": [
+        "Fetches /api/v1/shop on mount using useAuthenticatedFetch",
+        "Displays 4 summary cards: Total SKUs, Low Stock count, Out of Stock count, Last Sync timestamp",
+        "Sync Now button POSTs to /api/v1/inventory/sync and shows loading state",
+        "DataTable shows top 5 low-stock items with SKU, Product, Available, Threshold, Status badge",
+        "Uses Polaris components only, white/grey palette per CLAUDE.md design rules",
+        "No gradients, no black buttons, buttons have grey text + grey border",
+        "Typecheck passes"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": "See shopify-inventory-spec.md § DashboardPage for the implementation."
+    },
+    {
+      "id": "US-029",
+      "title": "Build InventoryPage with paginated table and filters",
+      "description": "As a developer, I need the inventory page to display a paginated, filterable product list.",
+      "acceptanceCriteria": [
+        "Fetches /api/v1/products with page param",
+        "Filter bar with tabs: All, Low Stock, Out of Stock",
+        "Clicking a filter refetches with filter=low_stock or filter=out_of_stock",
+        "DataTable with columns: Product, SKU, Available, On Hand, Incoming, Status badge",
+        "Pagination controls using Polaris Pagination component",
+        "Uses white/grey palette, no gradients, no black buttons",
+        "Typecheck passes"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-030",
+      "title": "Build ReportsPage with list and detail view",
+      "description": "As a developer, I need the reports page to list past reports and show detail on click.",
+      "acceptanceCriteria": [
+        "Fetches /api/v1/reports and displays a list with week_start, low_sku_count",
+        "Clicking a report fetches /api/v1/reports/:id and shows detail sections: top sellers, stockouts, reorder suggestions",
+        "Shows AI commentary section if payload.ai_commentary exists",
+        "Generate Report button POSTs to /api/v1/reports/generate",
+        "Uses white/grey palette, no gradients, no black buttons",
+        "Typecheck passes"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-031",
+      "title": "Build SuppliersPage with CRUD modal",
+      "description": "As a developer, I need the suppliers page to list suppliers and support add/edit via modal.",
+      "acceptanceCriteria": [
+        "Fetches /api/v1/suppliers and displays list with name, email, lead time",
+        "Add Supplier button opens a Polaris Modal with form: name, email, contact_name, lead_time_days, notes",
+        "Submitting the form POSTs to /api/v1/suppliers and refreshes the list",
+        "Edit button on each row opens the modal pre-filled, PATCHes on save",
+        "Delete button with confirmation, calls DELETE endpoint",
+        "Uses white/grey palette, no gradients, no black buttons",
+        "Typecheck passes"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-032",
+      "title": "Build PurchaseOrdersPage with draft flow",
+      "description": "As a developer, I need the PO page with supplier selection, draft generation, preview, and send.",
+      "acceptanceCriteria": [
+        "Supplier dropdown to select which supplier to generate a PO for",
+        "Generate Draft button POSTs to /api/v1/purchase_orders/generate_draft with supplier_id",
+        "Shows generated PO with editable line items table (sku, title, qty_ordered, unit_price)",
+        "Draft email preview in an editable TextField",
+        "Send button POSTs to /api/v1/purchase_orders/:id/send_email with confirmation",
+        "Uses white/grey palette, no gradients, no black buttons",
+        "Typecheck passes"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-033",
+      "title": "Build SettingsPage with all configuration options",
+      "description": "As a developer, I need the settings page for threshold, email, timezone, and webhook management.",
+      "acceptanceCriteria": [
+        "Form fields: alert_email (TextField), low_stock_threshold (number input), weekly_report_day (Select), timezone (Select)",
+        "Save button PATCHes /api/v1/settings",
+        "Webhook endpoints section: list existing endpoints, add new (url + event_type), delete",
+        "Uses white/grey palette, no gradients, no black buttons",
+        "Typecheck passes"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-034",
+      "title": "Fix CORS and add rack-attack rate limiting",
+      "description": "As a developer, I need to restrict CORS origins and add API rate limiting for production security.",
+      "acceptanceCriteria": [
+        "CORS origins restricted to SHOPIFY_APP_URL env var and https://admin.shopify.com",
+        "Add rack-attack gem to Gemfile",
+        "Configure throttle: 60 req/min per shop for general API",
+        "Configure throttle: 10 req/min per shop for /api/v1/ai/* endpoints",
+        "Write a spec or initializer test verifying CORS is not wildcard",
+        "Typecheck passes"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": "See CLAUDE.md § Security for requirements."
+    },
+    {
+      "id": "US-035",
+      "title": "Add security headers and strong params audit",
+      "description": "As a developer, I need production security headers and verified strong params on all input-accepting controllers.",
+      "acceptanceCriteria": [
+        "Add middleware or after_action for: Strict-Transport-Security, X-Content-Type-Options, Content-Security-Policy (frame-ancestors), Referrer-Policy, Permissions-Policy",
+        "X-Frame-Options set to ALLOWALL for Shopify embedding",
+        "Audit all controllers: every create/update action uses .require().permit() with explicit whitelisted fields",
+        "No mass assignment vulnerabilities",
+        "Write a request spec verifying security headers are present in responses",
+        "Typecheck passes"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": "See CLAUDE.md § Security Headers table for exact values."
+    }
+  ]
+}

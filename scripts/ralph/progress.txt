@@ -1,3 +1,20 @@
 # Ralph Progress Log
 Started: 2026-03-09
+Feature: MVP Build (ralph/mvp-build)
+---
+
+## Codebase Patterns
+- All service implementations are in shopify-inventory-spec.md — use as copy-paste reference
+- Models use `acts_as_tenant :shop` — always set tenant via `ActsAsTenant.with_tenant(shop)` in jobs and service calls
+- Controllers inherit from `AuthenticatedController` (not ApplicationController) for authenticated endpoints
+- Jobs use `retry_on` (ActiveJob), never `sidekiq_options`
+- All Shopify API calls go through `Shopify::GraphqlClient` — no REST
+- Access tokens are encrypted: `encrypts :access_token` on Shop model
+- Frontend: white/grey palette only, no gradients, no black buttons, buttons use grey text + grey border
+- Frontend: App Bridge v4 — use `shopify.idToken()` global, `<ui-nav-menu>` for nav, no Provider wrapper
+- Pagination: use Kaminari `.page(params[:page]).per(params[:per_page] || 25)`
+- Webhook controllers include `ShopifyApp::WebhookVerification` for HMAC
+- GDPR controllers also include `ShopifyApp::WebhookVerification`
+- Products soft-delete via `deleted_at` column, scope with `.active` (where deleted_at: nil)
+- LowStockDetector uses `DISTINCT ON (variant_id)` subquery — never `.includes(:inventory_snapshots)`
 ---
