@@ -10,11 +10,10 @@ import {
   TextField,
   Select,
   DataTable,
-  Spinner,
-  Box,
   Banner,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import { PageSpinner } from "../components";
 
 interface WebhookEndpoint {
   id: number;
@@ -116,13 +115,7 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <Page title="Settings">
-        <Box padding="800">
-          <InlineStack align="center"><Spinner size="large" /></InlineStack>
-        </Box>
-      </Page>
-    );
+    return <PageSpinner title="Settings" />;
   }
 
   const endpointRows = endpoints.map((ep) => [

@@ -1,19 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Page,
-  Card,
-  Text,
-  BlockStack,
-  InlineStack,
-  Button,
   DataTable,
   Modal,
   FormLayout,
   TextField,
-  Spinner,
-  Box,
+  Button,
+  InlineStack,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import { PageSpinner, CardSection, EmptyState } from "../components";
 
 interface Supplier {
   id: number;
@@ -85,13 +81,7 @@ export default function SuppliersPage() {
   };
 
   if (loading) {
-    return (
-      <Page title="Suppliers">
-        <Box padding="800">
-          <InlineStack align="center"><Spinner size="large" /></InlineStack>
-        </Box>
-      </Page>
-    );
+    return <PageSpinner title="Suppliers" />;
   }
 
   const rows = suppliers.map((s) => [
@@ -107,23 +97,17 @@ export default function SuppliersPage() {
 
   return (
     <Page title="Suppliers">
-      <Card>
-        <BlockStack gap="400">
-          <InlineStack align="space-between">
-            <Text as="h2" variant="headingMd">Suppliers</Text>
-            <Button variant="tertiary" onClick={openAddModal}>Add Supplier</Button>
-          </InlineStack>
-          {rows.length > 0 ? (
-            <DataTable
-              columnContentTypes={["text", "text", "text", "numeric", "text"]}
-              headings={["Name", "Email", "Contact", "Lead Time (days)", ""]}
-              rows={rows}
-            />
-          ) : (
-            <Text as="p" variant="bodyMd" tone="subdued">No suppliers yet.</Text>
-          )}
-        </BlockStack>
-      </Card>
+      <CardSection title="Suppliers" action={{ content: "Add Supplier", onAction: openAddModal }}>
+        {rows.length > 0 ? (
+          <DataTable
+            columnContentTypes={["text", "text", "text", "numeric", "text"]}
+            headings={["Name", "Email", "Contact", "Lead Time (days)", ""]}
+            rows={rows}
+          />
+        ) : (
+          <EmptyState message="No suppliers yet." />
+        )}
+      </CardSection>
 
       <Modal
         open={modalOpen}

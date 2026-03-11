@@ -2,17 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Page,
   Layout,
-  Card,
-  Text,
-  BlockStack,
-  InlineStack,
-  Badge,
   DataTable,
-  Button,
-  Spinner,
-  Box,
+  InlineStack,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import { PageSpinner, StatCard, CardSection, EmptyState, StatusBadge } from "../components";
 
 interface LowStockItem {
   id: number;
@@ -59,30 +53,15 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return (
-      <Page title="Dashboard">
-        <Box padding="800">
-          <InlineStack align="center">
-            <Spinner size="large" />
-          </InlineStack>
-        </Box>
-      </Page>
-    );
+    return <PageSpinner title="Dashboard" />;
   }
-
-  const statusBadge = (item: LowStockItem) => {
-    if (item.available <= 0) {
-      return <Badge tone="critical">Out of Stock</Badge>;
-    }
-    return <Badge tone="warning">Low Stock</Badge>;
-  };
 
   const rows = (data?.low_stock_items || []).map((item) => [
     item.sku,
     item.title,
     String(item.available),
     String(item.threshold),
-    statusBadge(item),
+    <StatusBadge key={item.id} status={item.available <= 0 ? "out_of_stock" : "low_stock"} />,
   ]);
 
   return (
@@ -90,71 +69,31 @@ export default function DashboardPage() {
       <Layout>
         <Layout.Section>
           <InlineStack gap="400" wrap>
-            <Box minWidth="200px">
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="p" variant="bodySm" tone="subdued">Total SKUs</Text>
-                  <Text as="p" variant="headingLg">{data?.total_skus ?? 0}</Text>
-                </BlockStack>
-              </Card>
-            </Box>
-            <Box minWidth="200px">
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="p" variant="bodySm" tone="subdued">Low Stock</Text>
-                  <Text as="p" variant="headingLg">{data?.low_stock_count ?? 0}</Text>
-                </BlockStack>
-              </Card>
-            </Box>
-            <Box minWidth="200px">
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="p" variant="bodySm" tone="subdued">Out of Stock</Text>
-                  <Text as="p" variant="headingLg">{data?.out_of_stock_count ?? 0}</Text>
-                </BlockStack>
-              </Card>
-            </Box>
-            <Box minWidth="200px">
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="p" variant="bodySm" tone="subdued">Last Sync</Text>
-                  <Text as="p" variant="headingLg">
-                    {data?.synced_at
-                      ? new Date(data.synced_at).toLocaleString()
-                      : "Never"}
-                  </Text>
-                </BlockStack>
-              </Card>
-            </Box>
+            <StatCard label="Total SKUs" value={data?.total_skus ?? 0} />
+            <StatCard label="Low Stock" value={data?.low_stock_count ?? 0} />
+            <StatCard label="Out of Stock" value={data?.out_of_stock_count ?? 0} />
+            <StatCard
+              label="Last Sync"
+              value={data?.synced_at ? new Date(data.synced_at).toLocaleString() : "Never"}
+            />
           </InlineStack>
         </Layout.Section>
 
         <Layout.Section>
-          <Card>
-            <BlockStack gap="400">
-              <InlineStack align="space-between">
-                <Text as="h2" variant="headingMd">Low Stock Items</Text>
-                <Button
-                  variant="tertiary"
-                  loading={syncing}
-                  onClick={handleSync}
-                >
-                  Sync Now
-                </Button>
-              </InlineStack>
-              {rows.length > 0 ? (
-                <DataTable
-                  columnContentTypes={["text", "text", "numeric", "numeric", "text"]}
-                  headings={["SKU", "Product", "Available", "Threshold", "Status"]}
-                  rows={rows}
-                />
-              ) : (
-                <Text as="p" variant="bodyMd" tone="subdued">
-                  No low-stock items detected.
-                </Text>
-              )}
-            </BlockStack>
-          </Card>
+          <CardSection
+            title="Low Stock Items"
+            action={{ content: "Sync Now", onAction: handleSync, loading: syncing }}
+          >
+            {rows.length > 0 ? (
+              <DataTable
+                columnContentTypes={["text", "text", "numeric", "numeric", "text"]}
+                headings={["SKU", "Product", "Available", "Threshold", "Status"]}
+                rows={rows}
+              />
+            ) : (
+              <EmptyState message="No low-stock items detected." />
+            )}
+          </CardSection>
         </Layout.Section>
       </Layout>
     </Page>

@@ -3,15 +3,15 @@ import {
   Page,
   Card,
   DataTable,
-  Badge,
   Tabs,
   Pagination,
   Spinner,
-  Box,
   InlineStack,
   BlockStack,
+  Box,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import { StatusBadge } from "../components";
 
 interface Variant {
   id: number;
@@ -74,11 +74,7 @@ export default function InventoryPage() {
       product.title,
       variant.sku || "—",
       variant.title,
-      product.status === "active" ? (
-        <Badge tone="success">Active</Badge>
-      ) : (
-        <Badge>Inactive</Badge>
-      ),
+      <StatusBadge key={variant.id} status={product.status === "active" ? "active" : "inactive"} />,
     ])
   );
 
