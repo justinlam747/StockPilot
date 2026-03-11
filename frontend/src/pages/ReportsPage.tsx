@@ -4,13 +4,11 @@ import {
   Card,
   Text,
   BlockStack,
-  InlineStack,
-  Button,
   DataTable,
-  Spinner,
-  Box,
+  Button,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import { PageSpinner, CardSection, EmptyState } from "../components";
 
 interface Report {
   id: number;
@@ -71,13 +69,7 @@ export default function ReportsPage() {
   };
 
   if (loading) {
-    return (
-      <Page title="Reports">
-        <Box padding="800">
-          <InlineStack align="center"><Spinner size="large" /></InlineStack>
-        </Box>
-      </Page>
-    );
+    return <PageSpinner title="Reports" />;
   }
 
   if (selectedReport) {
@@ -141,27 +133,20 @@ export default function ReportsPage() {
 
   return (
     <Page title="Reports">
-      <Card>
-        <BlockStack gap="400">
-          <InlineStack align="space-between">
-            <Text as="h2" variant="headingMd">Weekly Reports</Text>
-            <Button variant="tertiary" loading={generating} onClick={handleGenerate}>
-              Generate Report
-            </Button>
-          </InlineStack>
-          {rows.length > 0 ? (
-            <DataTable
-              columnContentTypes={["text", "text", "text", "text"]}
-              headings={["Week", "Created", "Emailed", ""]}
-              rows={rows}
-            />
-          ) : (
-            <Text as="p" variant="bodyMd" tone="subdued">
-              No reports yet.
-            </Text>
-          )}
-        </BlockStack>
-      </Card>
+      <CardSection
+        title="Weekly Reports"
+        action={{ content: "Generate Report", onAction: handleGenerate, loading: generating }}
+      >
+        {rows.length > 0 ? (
+          <DataTable
+            columnContentTypes={["text", "text", "text", "text"]}
+            headings={["Week", "Created", "Emailed", ""]}
+            rows={rows}
+          />
+        ) : (
+          <EmptyState message="No reports yet." />
+        )}
+      </CardSection>
     </Page>
   );
 }

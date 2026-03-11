@@ -9,11 +9,9 @@ import {
   DataTable,
   Select,
   TextField,
-  Spinner,
-  Box,
-  Badge,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import { PageSpinner, CardSection, EmptyState, StatusBadge } from "../components";
 
 interface Supplier {
   id: number;
@@ -93,13 +91,7 @@ export default function PurchaseOrdersPage() {
   };
 
   if (loading) {
-    return (
-      <Page title="Purchase Orders">
-        <Box padding="800">
-          <InlineStack align="center"><Spinner size="large" /></InlineStack>
-        </Box>
-      </Page>
-    );
+    return <PageSpinner title="Purchase Orders" />;
   }
 
   const supplierOptions = suppliers.map((s) => ({
@@ -107,23 +99,12 @@ export default function PurchaseOrdersPage() {
     value: String(s.id),
   }));
 
-  const statusBadge = (status: string) => {
-    switch (status) {
-      case "sent":
-        return <Badge tone="success">Sent</Badge>;
-      case "draft":
-        return <Badge>Draft</Badge>;
-      default:
-        return <Badge tone="info">{status}</Badge>;
-    }
-  };
-
   const rows = purchaseOrders.map((po) => [
     `#${po.id}`,
     po.supplier.name,
     po.order_date,
     po.expected_delivery || "—",
-    statusBadge(po.status),
+    <StatusBadge key={`status-${po.id}`} status={po.status} />,
     <Button variant="plain" key={po.id} onClick={() => { setActivePO(po); setDraftBody(po.draft_body || ""); }}>
       View
     </Button>,
@@ -132,24 +113,21 @@ export default function PurchaseOrdersPage() {
   return (
     <Page title="Purchase Orders">
       <BlockStack gap="400">
-        <Card>
-          <BlockStack gap="300">
-            <Text as="h2" variant="headingMd">Generate Draft PO</Text>
-            <InlineStack gap="300" blockAlign="end">
-              {supplierOptions.length > 0 && (
-                <Select
-                  label="Supplier"
-                  options={supplierOptions}
-                  value={selectedSupplier}
-                  onChange={setSelectedSupplier}
-                />
-              )}
-              <Button variant="tertiary" loading={generating} onClick={handleGenerateDraft}>
-                Generate Draft
-              </Button>
-            </InlineStack>
-          </BlockStack>
-        </Card>
+        <CardSection title="Generate Draft PO">
+          <InlineStack gap="300" blockAlign="end">
+            {supplierOptions.length > 0 && (
+              <Select
+                label="Supplier"
+                options={supplierOptions}
+                value={selectedSupplier}
+                onChange={setSelectedSupplier}
+              />
+            )}
+            <Button variant="tertiary" loading={generating} onClick={handleGenerateDraft}>
+              Generate Draft
+            </Button>
+          </InlineStack>
+        </CardSection>
 
         {activePO && (
           <Card>
@@ -181,20 +159,17 @@ export default function PurchaseOrdersPage() {
           </Card>
         )}
 
-        <Card>
-          <BlockStack gap="300">
-            <Text as="h2" variant="headingMd">Past Orders</Text>
-            {rows.length > 0 ? (
-              <DataTable
-                columnContentTypes={["text", "text", "text", "text", "text", "text"]}
-                headings={["ID", "Supplier", "Date", "Expected", "Status", ""]}
-                rows={rows}
-              />
-            ) : (
-              <Text as="p" variant="bodyMd" tone="subdued">No purchase orders yet.</Text>
-            )}
-          </BlockStack>
-        </Card>
+        <CardSection title="Past Orders">
+          {rows.length > 0 ? (
+            <DataTable
+              columnContentTypes={["text", "text", "text", "text", "text", "text"]}
+              headings={["ID", "Supplier", "Date", "Expected", "Status", ""]}
+              rows={rows}
+            />
+          ) : (
+            <EmptyState message="No purchase orders yet." />
+          )}
+        </CardSection>
       </BlockStack>
     </Page>
   );
