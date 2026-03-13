@@ -42,7 +42,9 @@ Rails.application.routes.draw do
       resources :webhook_endpoints
 
       # V2
-      get "/ai/insights", to: "ai#insights"
+      get  "/ai/insights",     to: "ai#insights"
+      get  "/ai/agent_status",  to: "ai#agent_status"
+      post "/ai/run_agent",     to: "ai#run_agent"
       resources :customers, only: [:index, :show]
     end
   end

@@ -16,6 +16,15 @@ module ShopifyInventory
     config.load_defaults 7.2
     config.api_only = true
 
+    # shopify_app gem's engine references config.assets, which doesn't
+    # exist in API-only mode. Provide a minimal stub so the initializer
+    # doesn't crash.
+    unless config.respond_to?(:assets)
+      config.assets = ActiveSupport::OrderedOptions.new
+      config.assets.precompile = []
+      config.assets.paths = []
+    end
+
     # Sidekiq as ActiveJob backend
     config.active_job.queue_adapter = :sidekiq
 

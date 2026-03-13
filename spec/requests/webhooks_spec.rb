@@ -49,4 +49,44 @@ RSpec.describe "Webhooks", type: :request do
       expect(product.reload.deleted_at).to be_present
     end
   end
+
+  describe "POST /api/webhooks/products_update" do
+    it "calls the Persister to upsert product data" do
+      persister = instance_double(Inventory::Persister)
+      allow(Inventory::Persister).to receive(:new).with(shop).and_return(persister)
+      allow(persister).to receive(:upsert_single_product)
+
+      body = { "id" => 67890, "title" => "Updated Product" }.to_json
+
+      post "/api/webhooks/products_update",
+           params: body,
+           headers: {
+             "Content-Type" => "application/json",
+             "X-Shopify-Shop-Domain" => shop.shop_domain,
+             "X-Shopify-Hmac-SHA256" => hmac_header(body)
+           }
+
+      expect(response).to have_http_status(:ok)
+      expect(persister).to have_received(:upsert_single_product)
+    end
+  end
+
+  describe "POST /api/webhooks/:topic (unhandled topic)" do
+    it "returns 200 and logs a warning for unhandled topics" do
+      body = { "data" => "test" }.to_json
+
+      allow(Rails.logger).to receive(:warn)
+
+      post "/api/webhooks/some_unknown_topic",
+           params: body,
+           headers: {
+             "Content-Type" => "application/json",
+             "X-Shopify-Shop-Domain" => shop.shop_domain,
+             "X-Shopify-Hmac-SHA256" => hmac_header(body)
+           }
+
+      expect(response).to have_http_status(:ok)
+      expect(Rails.logger).to have_received(:warn).with(/[Uu]nhandled topic/)
+    end
+  end
 end

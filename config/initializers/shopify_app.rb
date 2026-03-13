@@ -9,7 +9,6 @@ ShopifyApp.configure do |config|
 
   config.api_key  = ENV.fetch("SHOPIFY_API_KEY", "")
   config.secret   = ENV.fetch("SHOPIFY_API_SECRET", "")
-  config.host     = ENV.fetch("SHOPIFY_APP_URL", "")
 
   config.webhooks = [
     { topic: "app/uninstalled",        address: "api/webhooks/app_uninstalled" },

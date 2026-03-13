@@ -1,19 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Page,
-  Card,
-  Text,
-  BlockStack,
   InlineStack,
-  Button,
   FormLayout,
   TextField,
   Select,
   DataTable,
-  Banner,
 } from "@shopify/polaris";
+import {
+  Settings as SettingsIcon,
+  Email,
+  Time,
+  Api,
+} from "@carbon/icons-react";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
-import { PageSpinner } from "../components";
+import {
+  StatusBadge,
+  PageHeader,
+  PageLoading,
+  CardHeader,
+  KPISidebar,
+  Toast,
+} from "../components/ui";
 
 interface WebhookEndpoint {
   id: number;
@@ -44,7 +51,7 @@ export default function SettingsPage() {
   const fetch = useAuthenticatedFetch();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const [alertEmail, setAlertEmail] = useState("");
   const [threshold, setThreshold] = useState("10");
@@ -78,7 +85,6 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    setSaved(false);
     try {
       await fetch("/settings", {
         method: "PATCH",
@@ -91,7 +97,7 @@ export default function SettingsPage() {
           },
         }),
       });
-      setSaved(true);
+      setToast("Settings saved successfully");
     } finally {
       setSaving(false);
     }
@@ -106,35 +112,51 @@ export default function SettingsPage() {
       }),
     });
     setNewUrl("");
+    setToast("Webhook endpoint added");
     await loadSettings();
   };
 
   const handleDeleteEndpoint = async (id: number) => {
     await fetch(`/webhook_endpoints/${id}`, { method: "DELETE" });
+    setToast("Webhook endpoint removed");
     await loadSettings();
   };
 
-  if (loading) {
-    return <PageSpinner title="Settings" />;
-  }
+  if (loading) return <PageLoading title="Settings" />;
+
+  const kpis = [
+    { icon: Email, label: "Alert Email", value: alertEmail || "Not set" },
+    { icon: SettingsIcon, label: "Threshold", value: `${threshold} units` },
+    { icon: Time, label: "Timezone", value: timezone.split("/").pop() || "UTC" },
+    { icon: Api, label: "Webhooks", value: String(endpoints.length) },
+  ];
 
   const endpointRows = endpoints.map((ep) => [
-    ep.url,
-    ep.event_type,
-    ep.is_active ? "Active" : "Inactive",
-    <Button variant="plain" tone="critical" key={ep.id} onClick={() => handleDeleteEndpoint(ep.id)}>
-      Delete
-    </Button>,
+    <span className="mono-sm" key={ep.id + "u"}>{ep.url}</span>,
+    <StatusBadge tone={ep.event_type === "low_stock" ? "warning" : "critical"} key={ep.id + "t"}>
+      {ep.event_type.replace("_", " ").toUpperCase()}
+    </StatusBadge>,
+    ep.is_active
+      ? <StatusBadge tone="ok" key={ep.id + "s"}>Active</StatusBadge>
+      : <StatusBadge tone="neutral" key={ep.id + "s"}>Inactive</StatusBadge>,
+    <button className="grid-btn--plain" style={{ color: "var(--color-destructive)" }} key={ep.id} onClick={() => handleDeleteEndpoint(ep.id)}>Delete</button>,
   ]);
 
   return (
-    <Page title="Settings">
-      <BlockStack gap="400">
-        {saved && <Banner tone="success" onDismiss={() => setSaved(false)}>Settings saved.</Banner>}
+    <div className="bento-page">
+      <PageHeader title="Settings">
+        <button className="grid-btn grid-btn--primary" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save Settings"}
+        </button>
+      </PageHeader>
 
-        <Card>
-          <BlockStack gap="300">
-            <Text as="h2" variant="headingMd">Alert Settings</Text>
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+
+      <div className="invg-layout">
+        <div className="invg-main">
+          {/* Alert & Report Settings */}
+          <div className="grid-card">
+            <CardHeader title="Alert & Report Settings" description="Configure notifications, thresholds, and report schedule" />
             <FormLayout>
               <TextField
                 label="Alert Email"
@@ -142,6 +164,7 @@ export default function SettingsPage() {
                 value={alertEmail}
                 onChange={setAlertEmail}
                 autoComplete="off"
+                helpText="Receives low-stock and out-of-stock alerts"
               />
               <TextField
                 label="Low Stock Threshold"
@@ -149,59 +172,50 @@ export default function SettingsPage() {
                 value={threshold}
                 onChange={setThreshold}
                 autoComplete="off"
+                helpText="Products below this count trigger an alert"
               />
-              <Select
-                label="Timezone"
-                options={TIMEZONE_OPTIONS}
-                value={timezone}
-                onChange={setTimezone}
-              />
-              <Select
-                label="Weekly Report Day"
-                options={DAY_OPTIONS}
-                value={reportDay}
-                onChange={setReportDay}
-              />
+              <Select label="Timezone" options={TIMEZONE_OPTIONS} value={timezone} onChange={setTimezone} />
+              <Select label="Weekly Report Day" options={DAY_OPTIONS} value={reportDay} onChange={setReportDay} />
             </FormLayout>
-            <InlineStack align="end">
-              <Button variant="tertiary" loading={saving} onClick={handleSave}>
-                Save
-              </Button>
-            </InlineStack>
-          </BlockStack>
-        </Card>
+          </div>
 
-        <Card>
-          <BlockStack gap="300">
-            <Text as="h2" variant="headingMd">Webhook Endpoints</Text>
+          {/* Webhooks */}
+          <div className="grid-card">
+            <CardHeader title="Webhook Endpoints" description="Real-time notifications for stock events" />
             {endpointRows.length > 0 && (
-              <DataTable
-                columnContentTypes={["text", "text", "text", "text"]}
-                headings={["URL", "Event", "Status", ""]}
-                rows={endpointRows}
-              />
+              <div style={{ marginBottom: 16 }}>
+                <DataTable
+                  columnContentTypes={["text", "text", "text", "text"]}
+                  headings={["Endpoint URL", "Event", "Status", ""]}
+                  rows={endpointRows}
+                />
+              </div>
             )}
-            <InlineStack gap="300" blockAlign="end">
-              <TextField
-                label="URL"
-                value={newUrl}
-                onChange={setNewUrl}
-                autoComplete="off"
-              />
-              <Select
-                label="Event Type"
-                options={[
-                  { label: "Low Stock", value: "low_stock" },
-                  { label: "Out of Stock", value: "out_of_stock" },
-                ]}
-                value={newEventType}
-                onChange={setNewEventType}
-              />
-              <Button variant="tertiary" onClick={handleAddEndpoint}>Add</Button>
-            </InlineStack>
-          </BlockStack>
-        </Card>
-      </BlockStack>
-    </Page>
+            <div className="grid-form-area">
+              <div className="grid-form-label">Add New Endpoint</div>
+              <InlineStack gap="300" blockAlign="end">
+                <div style={{ flex: 1 }}>
+                  <TextField label="URL" value={newUrl} onChange={setNewUrl} autoComplete="off" placeholder="https://hooks.slack.com/..." />
+                </div>
+                <Select
+                  label="Event Type"
+                  options={[
+                    { label: "Low Stock", value: "low_stock" },
+                    { label: "Out of Stock", value: "out_of_stock" },
+                  ]}
+                  value={newEventType}
+                  onChange={setNewEventType}
+                />
+                <button className="grid-btn grid-btn--primary" onClick={handleAddEndpoint}>
+                  + Add
+                </button>
+              </InlineStack>
+            </div>
+          </div>
+        </div>
+
+        <KPISidebar title="Current Config" items={kpis} />
+      </div>
+    </div>
   );
 }

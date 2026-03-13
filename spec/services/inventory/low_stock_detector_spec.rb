@@ -55,4 +55,39 @@ RSpec.describe Inventory::LowStockDetector do
     results = detector.detect
     expect(results).to be_empty
   end
+
+  it "handles multiple variants with mixed statuses" do
+    product = create(:product, shop: shop)
+    low_variant = create(:variant, shop: shop, product: product)
+    InventorySnapshot.create!(shop: shop, variant: low_variant, available: 3, on_hand: 3)
+
+    oos_variant = create(:variant, shop: shop, product: product)
+    InventorySnapshot.create!(shop: shop, variant: oos_variant, available: 0, on_hand: 0)
+
+    ok_variant = create(:variant, shop: shop, product: product)
+    InventorySnapshot.create!(shop: shop, variant: ok_variant, available: 50, on_hand: 50)
+
+    results = detector.detect
+    expect(results.size).to eq(2)
+    statuses = results.map { |r| r[:status] }
+    expect(statuses).to include(:low_stock, :out_of_stock)
+  end
+
+  it "does not flag variant when available equals threshold exactly" do
+    product = create(:product, shop: shop)
+    variant = create(:variant, shop: shop, product: product)
+    InventorySnapshot.create!(shop: shop, variant: variant, available: 10, on_hand: 10)
+
+    results = detector.detect
+    expect(results).to be_empty
+  end
+
+  it "returns empty when no snapshots exist" do
+    product = create(:product, shop: shop)
+    create(:variant, shop: shop, product: product)
+    # No snapshots created
+
+    results = detector.detect
+    expect(results).to be_empty
+  end
 end

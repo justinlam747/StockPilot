@@ -1,15 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Page,
   DataTable,
   Modal,
   FormLayout,
   TextField,
-  Button,
-  InlineStack,
 } from "@shopify/polaris";
+import {
+  UserMultiple,
+  Time,
+  Delivery,
+} from "@carbon/icons-react";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
-import { PageSpinner, CardSection, EmptyState } from "../components";
+import {
+  StatusBadge,
+  PageHeader,
+  PageLoading,
+  CardHeader,
+  EmptyState,
+  KPISidebar,
+  Toast,
+} from "../components/ui";
+import type { StatusTone } from "../components/ui";
 
 interface Supplier {
   id: number;
@@ -22,6 +33,12 @@ interface Supplier {
 
 const emptySupplier = { name: "", email: "", contact_name: "", lead_time_days: 14, notes: "" };
 
+function leadTimeTone(days: number): StatusTone {
+  if (days <= 7) return "ok";
+  if (days <= 14) return "warning";
+  return "neutral";
+}
+
 export default function SuppliersPage() {
   const fetch = useAuthenticatedFetch();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -29,6 +46,7 @@ export default function SuppliersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptySupplier);
+  const [toast, setToast] = useState<string | null>(null);
 
   const loadSuppliers = useCallback(async () => {
     setLoading(true);
@@ -70,44 +88,71 @@ export default function SuppliersPage() {
       await fetch("/suppliers", { method: "POST", body: JSON.stringify(body) });
     }
     setModalOpen(false);
+    setToast(editingId ? "Supplier updated" : "Supplier added");
     await loadSuppliers();
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("Delete this supplier?")) {
-      await fetch(`/suppliers/${id}`, { method: "DELETE" });
-      await loadSuppliers();
-    }
+    await fetch(`/suppliers/${id}`, { method: "DELETE" });
+    setToast("Supplier deleted");
+    await loadSuppliers();
   };
 
-  if (loading) {
-    return <PageSpinner title="Suppliers" />;
-  }
+  if (loading) return <PageLoading title="Suppliers" />;
+
+  const avgLeadTime = suppliers.length > 0
+    ? Math.round(suppliers.reduce((sum, s) => sum + (s.lead_time_days || 0), 0) / suppliers.length)
+    : 0;
+
+  const fastest = suppliers.length > 0
+    ? suppliers.reduce((a, b) => a.lead_time_days < b.lead_time_days ? a : b).name
+    : "\u2014";
+
+  const kpis = [
+    { icon: UserMultiple, label: "Suppliers", value: String(suppliers.length) },
+    { icon: Time, label: "Avg Lead Time", value: `${avgLeadTime}d` },
+    { icon: Delivery, label: "Fastest", value: fastest },
+  ];
 
   const rows = suppliers.map((s) => [
     s.name,
-    s.email || "—",
-    s.contact_name || "—",
-    String(s.lead_time_days ?? "—"),
-    <InlineStack gap="200" key={s.id}>
-      <Button variant="plain" onClick={() => openEditModal(s)}>Edit</Button>
-      <Button variant="plain" tone="critical" onClick={() => handleDelete(s.id)}>Delete</Button>
-    </InlineStack>,
+    <span className="mono-sm" key={s.id + "e"}>{s.email || "\u2014"}</span>,
+    s.contact_name || "\u2014",
+    <span className="lead-time" key={s.id + "lt"}>
+      <StatusBadge tone={leadTimeTone(s.lead_time_days)}>{s.lead_time_days} days</StatusBadge>
+    </span>,
+    <div className="inline-actions" key={s.id}>
+      <button className="grid-btn--plain" onClick={() => openEditModal(s)}>Edit</button>
+      <button className="grid-btn--plain" style={{ color: "var(--color-destructive)" }} onClick={() => handleDelete(s.id)}>Delete</button>
+    </div>,
   ]);
 
   return (
-    <Page title="Suppliers">
-      <CardSection title="Suppliers" action={{ content: "Add Supplier", onAction: openAddModal }}>
-        {rows.length > 0 ? (
-          <DataTable
-            columnContentTypes={["text", "text", "text", "numeric", "text"]}
-            headings={["Name", "Email", "Contact", "Lead Time (days)", ""]}
-            rows={rows}
-          />
-        ) : (
-          <EmptyState message="No suppliers yet." />
-        )}
-      </CardSection>
+    <div className="bento-page">
+      <PageHeader title="Suppliers">
+        <button className="grid-btn grid-btn--primary" onClick={openAddModal}>
+          + Add Supplier
+        </button>
+      </PageHeader>
+
+      <div className="invg-layout">
+        <div className="invg-main">
+          <div className="grid-card">
+            <CardHeader title="Supplier Directory" description="All vendors and their contact details" />
+            {rows.length > 0 ? (
+              <DataTable
+                columnContentTypes={["text", "text", "text", "text", "text"]}
+                headings={["Name", "Email", "Contact", "Lead Time", ""]}
+                rows={rows}
+              />
+            ) : (
+              <EmptyState message="No suppliers yet. Add your first supplier to get started." />
+            )}
+          </div>
+        </div>
+
+        <KPISidebar title="Overview" items={kpis} />
+      </div>
 
       <Modal
         open={modalOpen}
@@ -118,42 +163,16 @@ export default function SuppliersPage() {
       >
         <Modal.Section>
           <FormLayout>
-            <TextField
-              label="Name"
-              value={form.name}
-              onChange={(v) => setForm({ ...form, name: v })}
-              autoComplete="off"
-            />
-            <TextField
-              label="Email"
-              type="email"
-              value={form.email}
-              onChange={(v) => setForm({ ...form, email: v })}
-              autoComplete="off"
-            />
-            <TextField
-              label="Contact Name"
-              value={form.contact_name}
-              onChange={(v) => setForm({ ...form, contact_name: v })}
-              autoComplete="off"
-            />
-            <TextField
-              label="Lead Time (days)"
-              type="number"
-              value={String(form.lead_time_days)}
-              onChange={(v) => setForm({ ...form, lead_time_days: parseInt(v, 10) || 0 })}
-              autoComplete="off"
-            />
-            <TextField
-              label="Notes"
-              value={form.notes}
-              onChange={(v) => setForm({ ...form, notes: v })}
-              multiline={3}
-              autoComplete="off"
-            />
+            <TextField label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} autoComplete="off" />
+            <TextField label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} autoComplete="off" />
+            <TextField label="Contact Name" value={form.contact_name} onChange={(v) => setForm({ ...form, contact_name: v })} autoComplete="off" />
+            <TextField label="Lead Time (days)" type="number" value={String(form.lead_time_days)} onChange={(v) => setForm({ ...form, lead_time_days: parseInt(v, 10) || 0 })} autoComplete="off" />
+            <TextField label="Notes" value={form.notes} onChange={(v) => setForm({ ...form, notes: v })} multiline={3} autoComplete="off" />
           </FormLayout>
         </Modal.Section>
       </Modal>
-    </Page>
+
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+    </div>
   );
 }
