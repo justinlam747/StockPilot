@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd C:/Users/gamin/ShopifyInventory && npx tsc --noEmit 2>&1 | head -30)",
+      "Bash(cd C:/Users/gamin/ShopifyInventory && npx vite build 2>&1 | tail -10)",
+      "Bash(mkdir -p C:/Users/gamin/ShopifyInventory/public/images && cp \"c:/Users/gamin/OneDrive/Desktop/memorabilia/download \\(1\\).png\" C:/Users/gamin/ShopifyInventory/public/images/shopify-bag.png && cp \"c:/Users/gamin/OneDrive/Desktop/memorabilia/download \\(2\\).png\" C:/Users/gamin/ShopifyInventory/public/images/plane.png && cp \"c:/Users/gamin/OneDrive/Desktop/memorabilia/download \\(3\\).png\" C:/Users/gamin/ShopifyInventory/public/images/cloud-small.png && cp \"c:/Users/gamin/OneDrive/Desktop/memorabilia/download \\(4\\).png\" C:/Users/gamin/ShopifyInventory/public/images/cloud-large.png)",
+      "Bash(cd C:/Users/gamin/ShopifyInventory && npx tsc --noEmit 2>&1 | head -20)",
+      "Bash(cd C:/Users/gamin/ShopifyInventory && npx tsc --noEmit 2>&1 | head -15)",
+      "Bash(npm ls:*)"
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
+}

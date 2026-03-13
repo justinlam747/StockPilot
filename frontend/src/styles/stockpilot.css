@@ -1,0 +1,676 @@
+/* ═══════════════════════════════════════════════════
+   STOCK PILOT — Landing Page
+   Dotted-line grid · expanding hero · sticky frames
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap');
+
+:root {
+  --sp-white: #FFFFFF;
+  --sp-bg: #FBFCFE;
+  --sp-text: #1A1A1A;
+  --sp-text-secondary: #6D7175;
+  --sp-text-muted: #8C9196;
+  --sp-blue: #4A90D9;
+  --sp-blue-muted: #B8D4F0;
+  --sp-blue-light: #EBF3FB;
+  --sp-stroke: #D5DAE0;
+  --sp-stroke-light: #E8ECF0;
+  --sp-dot-color: rgba(74, 144, 217, 0.18);
+}
+
+/* ── Base ── */
+
+.sp {
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--sp-text);
+  background: var(--sp-bg);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ── Dotted grid overlay ── */
+
+.sp-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sp-grid__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--sp-dot-color);
+}
+
+.sp-grid__line--1 { left: 8%; }
+.sp-grid__line--2 { left: 33%; }
+.sp-grid__line--3 { left: 66%; }
+.sp-grid__line--4 { right: 8%; left: auto; }
+
+.sp-grid__hline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed var(--sp-dot-color);
+}
+
+.sp-grid__hline--1 { top: 25%; }
+.sp-grid__hline--2 { top: 50%; }
+.sp-grid__hline--3 { top: 75%; }
+
+/* ── Skip link ── */
+
+.sp-skip {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 200;
+  padding: 12px 24px;
+  background: var(--sp-text);
+  color: var(--sp-white);
+  font-family: 'Satoshi', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  transition: top 150ms;
+}
+
+.sp-skip:focus { top: 0; }
+
+/* ── Navigation ── */
+
+.sp-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(251, 252, 254, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px dashed var(--sp-stroke-light);
+}
+
+.sp-nav__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 48px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sp-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--sp-text);
+}
+
+.sp-nav__wordmark {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sp-nav__links {
+  display: flex;
+  gap: 32px;
+}
+
+.sp-nav__links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sp-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.sp-nav__links a:hover {
+  color: var(--sp-text);
+}
+
+/* ── Buttons ── */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  border: 1px solid var(--sp-stroke);
+  background: var(--sp-white);
+  color: var(--sp-text-secondary);
+}
+
+.sp-btn:hover {
+  background: #F4F6F8;
+  color: var(--sp-text);
+}
+
+.sp-btn--primary {
+  border-color: var(--sp-blue);
+  color: var(--sp-blue);
+  font-weight: 700;
+}
+
+.sp-btn--primary:hover {
+  background: var(--sp-blue-light);
+  color: var(--sp-blue);
+}
+
+.sp-btn--sm {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+/* ── Pill badge ── */
+
+.sp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 6px 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 28px;
+}
+
+.sp-pill__icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* ── Section helpers ── */
+
+.sp-label {
+  display: inline-block;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sp-blue);
+  border: 1px dashed var(--sp-blue-muted);
+  border-radius: 4px;
+  padding: 4px 12px;
+  margin-bottom: 20px;
+}
+
+.sp-heading {
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--sp-text);
+  margin: 0 0 40px;
+}
+
+/* ── Divider ── */
+
+.sp-divider {
+  width: 100%;
+  height: 0;
+  border-top: 1px dashed var(--sp-stroke);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   HERO — Expanding image → fade out
+   ═══════════════════════════════════════════════════ */
+
+.sp-hero {
+  position: relative;
+  z-index: 2;
+  /* Scroll runway: enough to expand image + hold + fade */
+  height: 250vh;
+}
+
+/* Pins the viewport so image + text stay on screen while scrolling */
+.sp-hero__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Image container — scales up from centered card to fullscreen */
+.sp-hero__bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-origin: center center;
+  will-change: transform, border-radius, opacity;
+}
+
+.sp-hero__bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sp-hero__bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.32) 0%,
+    rgba(0, 0, 0, 0.08) 45%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  pointer-events: none;
+}
+
+/* Text centered over the image */
+.sp-hero__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 3;
+  padding: 80px 48px;
+  pointer-events: none;
+}
+
+.sp-hero__content > * {
+  pointer-events: auto;
+}
+
+.sp-hero__title {
+  font-family: 'Love Ya Like A Sister', cursive;
+  font-size: clamp(52px, 8vw, 108px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  color: #FFFFFF;
+  margin: 0 0 20px;
+  text-shadow: 0 3px 30px rgba(0, 0, 0, 0.2);
+}
+
+.sp-hero__sub {
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 36px;
+  max-width: 480px;
+}
+
+.sp-hero__actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.sp-btn--hero {
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  color: var(--sp-text);
+  font-weight: 700;
+}
+
+.sp-btn--hero:hover {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--sp-text);
+}
+
+.sp-btn--hero-secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #FFFFFF;
+}
+
+.sp-btn--hero-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #FFFFFF;
+}
+
+.sp-hero__proof {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  padding-top: 20px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════
+   STICKY FRAMES — panels slide up over each other
+   ═══════════════════════════════════════════════════ */
+
+.sp-frames {
+  position: relative;
+  z-index: 3;
+  /* Each frame gets ~100vh of scroll runway */
+  height: 300vh;
+}
+
+.sp-frames__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.sp-frame {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sp-bg);
+  border-top: 1px dashed var(--sp-stroke);
+  will-change: transform, opacity;
+}
+
+.sp-frame__inner {
+  max-width: 1100px;
+  width: 100%;
+  padding: 48px;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   FEATURES (inside frame)
+   ═══════════════════════════════════════════════════ */
+
+.sp-features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--sp-stroke-light);
+  border: 1px dashed var(--sp-stroke);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sp-feature {
+  padding: 32px 28px;
+  background: var(--sp-white);
+  text-align: left;
+}
+
+.sp-feature__num {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sp-blue);
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.sp-feature__title {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--sp-text);
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+.sp-feature__desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--sp-text-secondary);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   STEPS (inside frame)
+   ═══════════════════════════════════════════════════ */
+
+.sp-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+}
+
+.sp-step {
+  position: relative;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.sp-step__num {
+  width: 40px;
+  height: 40px;
+  border: 1px dashed var(--sp-blue-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sp-blue);
+  margin: 0 auto 20px;
+  background: var(--sp-white);
+  position: relative;
+  z-index: 2;
+}
+
+.sp-step__connector {
+  position: absolute;
+  top: 20px;
+  left: calc(50% + 28px);
+  width: calc(100% - 56px);
+  height: 0;
+  border-top: 1px dashed var(--sp-stroke);
+  z-index: 1;
+}
+
+.sp-step__title {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sp-text);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.sp-step__desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--sp-text-secondary);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   CTA (inside frame)
+   ═══════════════════════════════════════════════════ */
+
+.sp-cta {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.sp-cta__plane {
+  width: 80px;
+  height: auto;
+  margin-bottom: 28px;
+  filter: drop-shadow(0 6px 16px rgba(74, 144, 217, 0.12));
+}
+
+.sp-cta__sub {
+  font-size: 16px;
+  color: var(--sp-text-secondary);
+  margin: 0 0 32px;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════ */
+
+.sp-footer {
+  position: relative;
+  z-index: 4;
+  border-top: 1px dashed var(--sp-stroke);
+  padding: 32px 48px;
+  background: var(--sp-bg);
+}
+
+.sp-footer__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sp-footer__inner p {
+  font-size: 13px;
+  color: var(--sp-text-muted);
+  margin: 0;
+}
+
+.sp-footer__inner nav {
+  display: flex;
+  gap: 24px;
+}
+
+.sp-footer__inner nav a {
+  font-size: 13px;
+  color: var(--sp-text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.sp-footer__inner nav a:hover {
+  color: var(--sp-text);
+}
+
+/* ═══════════════════════════════════════════════════
+   FOCUS & A11Y
+   ═══════════════════════════════════════════════════ */
+
+.sp a:focus-visible,
+.sp button:focus-visible,
+.sp input:focus-visible {
+  outline: 2px solid var(--sp-blue);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .sp *,
+  .sp *::before,
+  .sp *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .sp-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sp-steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+  }
+
+  .sp-step__connector {
+    display: none;
+  }
+
+  .sp-grid__line--2,
+  .sp-grid__line--3 {
+    display: none;
+  }
+
+  .sp-grid__hline--2 {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .sp-grid {
+    display: none;
+  }
+
+  .sp-nav__links {
+    display: none;
+  }
+
+  .sp-nav__inner,
+  .sp-footer {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .sp-hero__content {
+    padding: 60px 24px;
+  }
+
+  .sp-frame__inner {
+    padding: 32px 24px;
+  }
+
+  .sp-features {
+    grid-template-columns: 1fr;
+  }
+
+  .sp-steps {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .sp-footer__inner {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sp-hero__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .sp-hero__actions .sp-btn {
+    width: 100%;
+  }
+}

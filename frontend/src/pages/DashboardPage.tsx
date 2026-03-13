@@ -1,12 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
+import { DataTable } from "@shopify/polaris";
 import {
-  Page,
-  Layout,
-  DataTable,
-  InlineStack,
-} from "@shopify/polaris";
+  Catalog,
+  Box,
+  WarningAlt,
+  Currency,
+} from "@carbon/icons-react";
 import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
-import { PageSpinner, StatCard, CardSection, EmptyState, StatusBadge } from "../components";
+import {
+  StatusBadge,
+  PageHeader,
+  PageLoading,
+  CardHeader,
+  EmptyState,
+  CountBadge,
+  Toast,
+} from "../components/ui";
 
 interface LowStockItem {
   id: number;
@@ -29,6 +38,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -47,55 +57,115 @@ export default function DashboardPage() {
     setSyncing(true);
     try {
       await fetch("/inventory/sync", { method: "POST" });
+      setToast("Inventory synced successfully");
     } finally {
       setSyncing(false);
     }
   };
 
-  if (loading) {
-    return <PageSpinner title="Dashboard" />;
-  }
+  if (loading) return <PageLoading title="Dashboard" />;
+
+  const needsAttention = (data?.low_stock_count ?? 0) + (data?.out_of_stock_count ?? 0);
 
   const rows = (data?.low_stock_items || []).map((item) => [
-    item.sku,
+    <span className="mono-sm" key={item.id + "s"}>{item.sku}</span>,
     item.title,
-    String(item.available),
-    String(item.threshold),
-    <StatusBadge key={item.id} status={item.available <= 0 ? "out_of_stock" : "low_stock"} />,
+    <span className="mono-sm" key={item.id + "a"}>{item.available}</span>,
+    <span className="mono-sm" key={item.id + "t"}>{item.threshold}</span>,
+    item.available <= 0
+      ? <StatusBadge tone="critical" key={item.id}>Out of Stock</StatusBadge>
+      : <StatusBadge tone="warning" key={item.id}>Low Stock</StatusBadge>,
   ]);
 
-  return (
-    <Page title="Dashboard">
-      <Layout>
-        <Layout.Section>
-          <InlineStack gap="400" wrap>
-            <StatCard label="Total SKUs" value={data?.total_skus ?? 0} />
-            <StatCard label="Low Stock" value={data?.low_stock_count ?? 0} />
-            <StatCard label="Out of Stock" value={data?.out_of_stock_count ?? 0} />
-            <StatCard
-              label="Last Sync"
-              value={data?.synced_at ? new Date(data.synced_at).toLocaleString() : "Never"}
-            />
-          </InlineStack>
-        </Layout.Section>
+  const syncLabel = data?.synced_at
+    ? `Synced ${new Date(data.synced_at).toLocaleString()}`
+    : "Never synced";
 
-        <Layout.Section>
-          <CardSection
-            title="Low Stock Items"
-            action={{ content: "Sync Now", onAction: handleSync, loading: syncing }}
-          >
-            {rows.length > 0 ? (
-              <DataTable
-                columnContentTypes={["text", "text", "numeric", "numeric", "text"]}
-                headings={["SKU", "Product", "Available", "Threshold", "Status"]}
-                rows={rows}
-              />
-            ) : (
-              <EmptyState message="No low-stock items detected." />
-            )}
-          </CardSection>
-        </Layout.Section>
-      </Layout>
-    </Page>
+  const kpis = [
+    { icon: Catalog, label: "Total Products", value: String(data?.total_skus ?? 0) },
+    { icon: Box, label: "Total Units", value: "---" },
+    { icon: WarningAlt, label: "Needs Attention", value: String(needsAttention) },
+    { icon: Currency, label: "Inventory Value", value: "$---" },
+  ];
+
+  return (
+    <div className="bento-page">
+      <PageHeader title="Dashboard">
+        <span className="bento-sync-status">{syncLabel}</span>
+        <button
+          className="grid-btn grid-btn--primary"
+          disabled={syncing}
+          onClick={handleSync}
+        >
+          {syncing ? "Syncing\u2026" : "Sync Now"}
+        </button>
+      </PageHeader>
+
+      <div className="bento-layout">
+        {/* Left: tall KPI list card */}
+        <div className="bento-card bento-kpi-list">
+          {kpis.map((kpi) => {
+            const Icon = kpi.icon;
+            return (
+              <div className="bento-kpi-row" key={kpi.label}>
+                <span className="bento-kpi-icon">
+                  <Icon size={20} />
+                </span>
+                <div className="bento-kpi-content">
+                  <div className="stat-label">{kpi.label}</div>
+                  <div className="stat-value">{kpi.value}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right: 2x2 metric grid */}
+        <div className="bento-metrics">
+          <div className="bento-card bento-metric-card">
+            <div className="stat-label">Low Stock</div>
+            <div className="stat-value">{data?.low_stock_count ?? 0}</div>
+            <div className="stat-desc">Below reorder threshold</div>
+          </div>
+          <div className="bento-card bento-metric-card">
+            <div className="stat-label">Out of Stock</div>
+            <div className="stat-value">{data?.out_of_stock_count ?? 0}</div>
+            <div className="stat-desc">Zero units available</div>
+          </div>
+          <div className="bento-card bento-metric-card">
+            <div className="stat-label">Healthy Stock</div>
+            <div className="stat-value">
+              {(data?.total_skus ?? 0) - (data?.low_stock_count ?? 0) - (data?.out_of_stock_count ?? 0)}
+            </div>
+            <div className="stat-desc">Above threshold</div>
+          </div>
+          <div className="bento-card bento-metric-card">
+            <div className="stat-label">Sync Status</div>
+            <div className="stat-value mono-sm" style={{ fontSize: 14, marginTop: 4 }}>
+              {data?.synced_at ? new Date(data.synced_at).toLocaleDateString() : "Never"}
+            </div>
+            <div className="stat-desc">Last inventory sync</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Full-width low stock table */}
+      <div className="bento-card" style={{ marginTop: 10 }}>
+        <CardHeader title="Low Stock Items" description={`Products below their reorder threshold \u2014 ${rows.length} items`}>
+          <CountBadge count={rows.length} label="alerts" zeroText="All clear" />
+        </CardHeader>
+        {rows.length > 0 ? (
+          <DataTable
+            columnContentTypes={["text", "text", "numeric", "numeric", "text"]}
+            headings={["SKU", "Product", "Available", "Threshold", "Status"]}
+            rows={rows}
+          />
+        ) : (
+          <EmptyState message="All products are above their reorder thresholds." />
+        )}
+      </div>
+
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+    </div>
   );
 }

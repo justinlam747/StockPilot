@@ -48,4 +48,31 @@ RSpec.describe "GDPR Webhooks", type: :request do
       expect(Shop.find_by(id: shop.id)).to be_nil
     end
   end
+
+  describe "POST /api/webhooks/customers_redact with non-existent shop" do
+    it "still returns 200 for an unknown shop domain" do
+      body = {
+        "shop_domain" => "nonexistent-shop.myshopify.com",
+        "customer" => { "id" => "12345" }
+      }.to_json
+
+      post "/api/webhooks/customers_redact",
+           params: body,
+           headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
+  describe "POST /api/webhooks/shop_redact with non-existent shop" do
+    it "still returns 200 for an unknown shop domain" do
+      body = { "shop_domain" => "nonexistent-shop.myshopify.com" }.to_json
+
+      post "/api/webhooks/shop_redact",
+           params: body,
+           headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

@@ -1,0 +1,512 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe "Race conditions and idempotency", type: :model do
+  let(:shop) do
+    create(:shop, settings: {
+      "low_stock_threshold" => 10,
+      "timezone" => "America/Toronto",
+      "alert_email" => "owner@example.com"
+    })
+  end
+
+  let(:product) do
+    create(:product, shop: shop, shopify_product_id: 5001, title: "Widget Pro", status: "active")
+  end
+
+  let(:variant) do
+    create(:variant,
+      shop: shop,
+      product: product,
+      shopify_variant_id: 6001,
+      sku: "WGT-PRO-001",
+      title: "Default",
+      price: 29.99
+    )
+  end
+
+  # --------------------------------------------------------------------------
+  # 1. AlertSender deduplication
+  # --------------------------------------------------------------------------
+  describe "AlertSender deduplication" do
+    let(:flagged_variants) do
+      [
+        {
+          variant: variant,
+          available: 3,
+          on_hand: 5,
+          status: :low_stock,
+          threshold: 10
+        }
+      ]
+    end
+
+    before do
+      # Create a snapshot so the variant has inventory data
+      ActsAsTenant.with_tenant(shop) do
+        create(:inventory_snapshot, shop: shop, variant: variant, available: 3, on_hand: 5)
+      end
+    end
+
+    it "creates exactly one alert when called twice with the same flagged variant" do
+      ActsAsTenant.with_tenant(shop) do
+        sender = Notifications::AlertSender.new(shop)
+
+        # Stub mailer and webhook delivery to isolate DB behavior
+        allow(AlertMailer).to receive_message_chain(:low_stock, :deliver_later)
+        allow(WebhookDeliveryJob).to receive(:perform_later)
+
+        # First call -- should create 1 alert
+        sender.send_low_stock_alerts(flagged_variants)
+        expect(Alert.where(variant: variant).count).to eq(1)
+
+        # Second call -- should skip because variant was already alerted today
+        sender.send_low_stock_alerts(flagged_variants)
+        expect(Alert.where(variant: variant).count).to eq(1)
+      end
+    end
+
+    it "does not send a second email when called twice" do
+      ActsAsTenant.with_tenant(shop) do
+        mailer_double = double("mailer", deliver_later: nil)
+        allow(AlertMailer).to receive(:low_stock).and_return(mailer_double)
+        allow(WebhookDeliveryJob).to receive(:perform_later)
+
+        sender = Notifications::AlertSender.new(shop)
+        sender.send_low_stock_alerts(flagged_variants)
+        sender.send_low_stock_alerts(flagged_variants)
+
+        # AlertMailer.low_stock should only be called once (second call returns early)
+        expect(AlertMailer).to have_received(:low_stock).once
+      end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # 2. SnapshotCleanupJob idempotency
+  # --------------------------------------------------------------------------
+  describe "SnapshotCleanupJob idempotency" do
+    before do
+      ActsAsTenant.with_tenant(shop) do
+        # Create old snapshots (beyond retention period)
+        3.times do
+          create(:inventory_snapshot,
+            shop: shop,
+            variant: variant,
+            created_at: 100.days.ago,
+            snapshotted_at: 100.days.ago
+          )
+        end
+
+        # Create recent snapshots (within retention period)
+        2.times do
+          create(:inventory_snapshot,
+            shop: shop,
+            variant: variant,
+            created_at: 10.days.ago,
+            snapshotted_at: 10.days.ago
+          )
+        end
+      end
+    end
+
+    it "deletes old snapshots on first run and succeeds with no-op on second run" do
+      # First run -- deletes the 3 old snapshots
+      SnapshotCleanupJob.new.perform
+      expect(InventorySnapshot.count).to eq(2)
+
+      # Second run -- nothing to delete, should not raise
+      expect { SnapshotCleanupJob.new.perform }.not_to raise_error
+      expect(InventorySnapshot.count).to eq(2)
+    end
+
+    it "preserves recent snapshots across multiple runs" do
+      3.times { SnapshotCleanupJob.new.perform }
+
+      remaining = InventorySnapshot.where(variant: variant)
+      expect(remaining.count).to eq(2)
+      expect(remaining.pluck(:created_at)).to all(be > 91.days.ago)
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # 3. Inventory::Persister upsert idempotency
+  # --------------------------------------------------------------------------
+  describe "Inventory::Persister upsert idempotency" do
+    let(:graphql_data) do
+      {
+        products: [
+          {
+            "legacyResourceId" => "5001",
+            "title" => "Widget Pro",
+            "productType" => "Gadgets",
+            "vendor" => "WidgetCo",
+            "status" => "ACTIVE",
+            "variants" => {
+              "nodes" => [
+                {
+                  "legacyResourceId" => "6001",
+                  "sku" => "WGT-PRO-001",
+                  "title" => "Default",
+                  "price" => "29.99"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    end
+
+    it "creates product and variant on first upsert, updates on second without duplicates" do
+      ActsAsTenant.with_tenant(shop) do
+        persister = Inventory::Persister.new(shop)
+
+        # First upsert -- creates records
+        persister.upsert(graphql_data)
+        expect(Product.count).to eq(1)
+        expect(Variant.count).to eq(1)
+
+        product_record = Product.find_by(shopify_product_id: "5001")
+        expect(product_record.title).to eq("Widget Pro")
+
+        # Second upsert with same data -- no duplicates
+        persister.upsert(graphql_data)
+        expect(Product.count).to eq(1)
+        expect(Variant.count).to eq(1)
+      end
+    end
+
+    it "updates attributes on re-upsert without creating new rows" do
+      ActsAsTenant.with_tenant(shop) do
+        persister = Inventory::Persister.new(shop)
+        persister.upsert(graphql_data)
+
+        first_synced_at = Product.find_by(shopify_product_id: "5001").synced_at
+
+        # Upsert again with updated title
+        updated_data = graphql_data.deep_dup
+        updated_data[:products][0]["title"] = "Widget Pro v2"
+
+        travel_to(1.minute.from_now) do
+          persister.upsert(updated_data)
+        end
+
+        expect(Product.count).to eq(1)
+        product_record = Product.find_by(shopify_product_id: "5001")
+        expect(product_record.title).to eq("Widget Pro v2")
+        expect(product_record.synced_at).to be > first_synced_at
+      end
+    end
+
+    it "handles upsert_single_product idempotently" do
+      ActsAsTenant.with_tenant(shop) do
+        persister = Inventory::Persister.new(shop)
+
+        shopify_data = {
+          "id" => "7001",
+          "title" => "Single Widget",
+          "product_type" => "Gadgets",
+          "vendor" => "WidgetCo",
+          "status" => "active",
+          "variants" => [
+            { "id" => "8001", "sku" => "SNG-001", "title" => "Default", "price" => "15.00" }
+          ]
+        }
+
+        persister.upsert_single_product(shopify_data)
+        expect(Product.where(shopify_product_id: "7001").count).to eq(1)
+        expect(Variant.where(shopify_variant_id: "8001").count).to eq(1)
+
+        # Second call -- same data, no duplicates
+        persister.upsert_single_product(shopify_data)
+        expect(Product.where(shopify_product_id: "7001").count).to eq(1)
+        expect(Variant.where(shopify_variant_id: "8001").count).to eq(1)
+      end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # 4. WeeklyReportJob idempotency (find_or_initialize_by)
+  # --------------------------------------------------------------------------
+  describe "WeeklyReportJob idempotency" do
+    let(:week_start) { Time.current.beginning_of_week(:monday) }
+
+    before do
+      # Create snapshot data so the report generator has something to work with
+      ActsAsTenant.with_tenant(shop) do
+        create(:inventory_snapshot,
+          shop: shop,
+          variant: variant,
+          available: 50,
+          on_hand: 55,
+          snapshotted_at: week_start + 1.hour
+        )
+      end
+    end
+
+    it "creates only one report when the job runs twice for the same shop and week" do
+      ActsAsTenant.with_tenant(shop) do
+        # Stub AI insights to avoid external API calls
+        allow_any_instance_of(AI::InsightsGenerator).to receive(:generate).and_return("Test insight")
+
+        # Stub mailer
+        mailer_double = double("mailer", deliver_later: nil)
+        allow(ReportMailer).to receive(:weekly_summary).and_return(mailer_double)
+
+        # First run -- creates the report
+        WeeklyReportJob.new.perform(shop.id)
+        expect(WeeklyReport.where(shop: shop, week_start: week_start.to_date).count).to eq(1)
+
+        first_report = WeeklyReport.find_by(shop: shop, week_start: week_start.to_date)
+        first_payload = first_report.payload
+
+        # Second run -- should update the same report, not create a new one
+        WeeklyReportJob.new.perform(shop.id)
+        expect(WeeklyReport.where(shop: shop, week_start: week_start.to_date).count).to eq(1)
+
+        # The report is the same record (same ID)
+        second_report = WeeklyReport.find_by(shop: shop, week_start: week_start.to_date)
+        expect(second_report.id).to eq(first_report.id)
+      end
+    end
+
+    it "only sends the email once even if job runs twice" do
+      ActsAsTenant.with_tenant(shop) do
+        allow_any_instance_of(AI::InsightsGenerator).to receive(:generate).and_return("Test insight")
+
+        mailer_double = double("mailer", deliver_later: nil)
+        allow(ReportMailer).to receive(:weekly_summary).and_return(mailer_double)
+
+        WeeklyReportJob.new.perform(shop.id)
+        WeeklyReportJob.new.perform(shop.id)
+
+        # Email is only sent when emailed_at is nil -- second run sees it's already set
+        expect(ReportMailer).to have_received(:weekly_summary).once
+      end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # 5. DailySyncAllShopsJob -- no duplicate enqueues per run
+  # --------------------------------------------------------------------------
+  describe "DailySyncAllShopsJob" do
+    let!(:shop_a) { create(:shop) }
+    let!(:shop_b) { create(:shop) }
+    let!(:uninstalled_shop) { create(:shop, uninstalled_at: 1.day.ago) }
+
+    before do
+      allow(InventorySyncJob).to receive(:perform_later)
+    end
+
+    it "enqueues one sync job per active shop per run" do
+      DailySyncAllShopsJob.new.perform
+
+      expect(InventorySyncJob).to have_received(:perform_later).with(shop_a.id).once
+      expect(InventorySyncJob).to have_received(:perform_later).with(shop_b.id).once
+    end
+
+    it "does not enqueue for uninstalled shops" do
+      DailySyncAllShopsJob.new.perform
+
+      expect(InventorySyncJob).not_to have_received(:perform_later).with(uninstalled_shop.id)
+    end
+
+    it "enqueues independently across separate runs (stateless)" do
+      DailySyncAllShopsJob.new.perform
+      DailySyncAllShopsJob.new.perform
+
+      # Each run enqueues independently -- 2 calls per shop across 2 runs
+      expect(InventorySyncJob).to have_received(:perform_later).with(shop_a.id).twice
+      expect(InventorySyncJob).to have_received(:perform_later).with(shop_b.id).twice
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # 6. WebhookDeliveryJob retry safety
+  # --------------------------------------------------------------------------
+  describe "WebhookDeliveryJob retry safety" do
+    let(:endpoint) do
+      ActsAsTenant.with_tenant(shop) do
+        create(:webhook_endpoint,
+          shop: shop,
+          url: "https://hooks.example.com/inventory",
+          event_type: "low_stock",
+          is_active: true
+        )
+      end
+    end
+
+    let(:payload_json) do
+      { event: "low_stock", shop: shop.shop_domain, variants: [] }.to_json
+    end
+
+    it "updates endpoint status correctly on successful delivery" do
+      stub_request(:post, "https://hooks.example.com/inventory")
+        .to_return(status: 200, body: "OK")
+
+      WebhookDeliveryJob.new.perform(endpoint.id, payload_json)
+
+      endpoint.reload
+      expect(endpoint.last_status_code).to eq(200)
+      expect(endpoint.last_fired_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "updates endpoint status even on HTTP failure before raising" do
+      stub_request(:post, "https://hooks.example.com/inventory")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect {
+        WebhookDeliveryJob.new.perform(endpoint.id, payload_json)
+      }.to raise_error(RuntimeError, /failed with status 500/)
+
+      endpoint.reload
+      expect(endpoint.last_status_code).to eq(500)
+      expect(endpoint.last_fired_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "does not corrupt state when delivered successfully twice" do
+      stub_request(:post, "https://hooks.example.com/inventory")
+        .to_return(status: 200, body: "OK")
+
+      WebhookDeliveryJob.new.perform(endpoint.id, payload_json)
+      first_fired_at = endpoint.reload.last_fired_at
+
+      travel_to(30.seconds.from_now) do
+        WebhookDeliveryJob.new.perform(endpoint.id, payload_json)
+      end
+
+      endpoint.reload
+      expect(endpoint.last_status_code).to eq(200)
+      expect(endpoint.last_fired_at).to be > first_fired_at
+    end
+
+    it "correctly reflects the latest status after failure then success" do
+      # First attempt fails
+      stub_request(:post, "https://hooks.example.com/inventory")
+        .to_return(status: 502, body: "Bad Gateway")
+
+      expect {
+        WebhookDeliveryJob.new.perform(endpoint.id, payload_json)
+      }.to raise_error(RuntimeError)
+      expect(endpoint.reload.last_status_code).to eq(502)
+
+      # Retry succeeds
+      stub_request(:post, "https://hooks.example.com/inventory")
+        .to_return(status: 200, body: "OK")
+
+      WebhookDeliveryJob.new.perform(endpoint.id, payload_json)
+      expect(endpoint.reload.last_status_code).to eq(200)
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # 7. InventorySyncJob updates synced_at atomically
+  # --------------------------------------------------------------------------
+  describe "InventorySyncJob synced_at" do
+    let(:graphql_response) do
+      {
+        products: [
+          {
+            "legacyResourceId" => product.shopify_product_id.to_s,
+            "title" => product.title,
+            "productType" => "Gadgets",
+            "vendor" => "WidgetCo",
+            "status" => "ACTIVE",
+            "variants" => {
+              "nodes" => [
+                {
+                  "legacyResourceId" => variant.shopify_variant_id.to_s,
+                  "sku" => variant.sku,
+                  "title" => variant.title,
+                  "price" => variant.price.to_s,
+                  "inventoryItem" => {
+                    "inventoryLevels" => {
+                      "nodes" => [
+                        {
+                          "quantities" => [
+                            { "name" => "available", "quantity" => 50 },
+                            { "name" => "on_hand", "quantity" => 55 },
+                            { "name" => "committed", "quantity" => 5 },
+                            { "name" => "incoming", "quantity" => 0 }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    end
+
+    before do
+      # Ensure variant exists before sync (the factory creates it with associations)
+      variant
+
+      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:call).and_return(graphql_response)
+      allow_any_instance_of(Notifications::AlertSender).to receive(:send_low_stock_alerts)
+    end
+
+    it "updates synced_at after the full pipeline completes" do
+      expect(shop.synced_at).to be_nil
+
+      ActsAsTenant.with_tenant(shop) do
+        InventorySyncJob.new.perform(shop.id)
+      end
+
+      shop.reload
+      expect(shop.synced_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "does not update synced_at if the fetcher raises" do
+      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:call).and_raise(
+        Shopify::GraphqlClient::ShopifyApiError.new("API down")
+      )
+
+      expect {
+        ActsAsTenant.with_tenant(shop) do
+          InventorySyncJob.new.perform(shop.id)
+        end
+      }.to raise_error(Shopify::GraphqlClient::ShopifyApiError)
+
+      shop.reload
+      expect(shop.synced_at).to be_nil
+    end
+
+    it "updates synced_at to the latest time on successive successful syncs" do
+      ActsAsTenant.with_tenant(shop) do
+        InventorySyncJob.new.perform(shop.id)
+      end
+      first_synced_at = shop.reload.synced_at
+
+      travel_to(5.minutes.from_now) do
+        ActsAsTenant.with_tenant(shop) do
+          InventorySyncJob.new.perform(shop.id)
+        end
+      end
+
+      shop.reload
+      expect(shop.synced_at).to be > first_synced_at
+    end
+
+    it "persists products, variants, and snapshots during sync" do
+      ActsAsTenant.with_tenant(shop) do
+        InventorySyncJob.new.perform(shop.id)
+      end
+
+      ActsAsTenant.with_tenant(shop) do
+        expect(Product.count).to be >= 1
+        expect(Variant.count).to be >= 1
+        expect(InventorySnapshot.count).to be >= 1
+
+        snapshot = InventorySnapshot.last
+        expect(snapshot.available).to eq(50)
+        expect(snapshot.on_hand).to eq(55)
+        expect(snapshot.committed).to eq(5)
+      end
+    end
+  end
+end

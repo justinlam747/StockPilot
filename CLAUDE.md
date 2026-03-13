@@ -26,6 +26,7 @@ A production-grade Shopify embedded app with:
 | AI | Anthropic Claude API |
 | Build | Vite 6 + Vite Ruby 3 |
 | Containers | Docker + docker-compose |
+| PR Workflow | Graphite (PR stacking) |
 | Error Tracking | Sentry |
 
 ---
@@ -83,13 +84,51 @@ A production-grade Shopify embedded app with:
   - Any file containing `SHOPIFY_API_SECRET`, `ANTHROPIC_API_KEY`, `SENTRY_DSN`, or database passwords
 - If you accidentally commit a secret, **rotate it immediately** — git history is forever
 
-### 2. Never Push Directly — Open a PR
+### 2. Never Push Directly — Use Graphite PR Stacks
 
 - **No direct pushes to `main`** — every change goes through a pull request
+- **Use Graphite (`gt`) for all PR workflows** — PR stacking is the default
 - PRs require at least one review before merge
 - Branch naming convention: `claude/<description>-<id>` or `<author>/<feature-description>`
 - Write a clear PR title and description explaining *what* and *why*
 - Link the related GitHub Issue in every PR
+
+#### Graphite Commands
+
+```bash
+gt create -m "feat: short description"   # Create a stacked branch + PR
+gt modify                                 # Amend the current stack level
+gt submit                                 # Push all stacked PRs to GitHub
+gt sync                                   # Rebase stack on latest main
+gt log                                    # View your current stack
+```
+
+#### PR Sizing Rules (MANDATORY)
+
+- **Every PRD user story change = its own PR** — never bundle multiple stories into one PR
+- **Target 200–300 lines of new logic** per PR. This is the sweet spot for reviewability.
+- **Hard max: 500 lines** — only when a single logical unit genuinely can't be split smaller (e.g., a large migration + model + tests). If you hit 500, justify it in the PR description.
+- **Generated code, tests, and config don't count** toward the line limit — only new business logic and glue code count.
+- **Functions must be under 50 lines** — if a function exceeds 50 lines, break it into smaller composable functions.
+- **Slice PRs by commit** — each commit should be a reviewable, deployable slice:
+  1. **Schema/migration** — DB changes only
+  2. **Model + validations** — ActiveRecord model, scopes, associations
+  3. **Service/job logic** — business logic layer
+  4. **Controller/API** — endpoint wiring
+  5. **Frontend component** — React UI
+  6. **Tests** — can be bundled with each slice or as a final PR in the stack
+- **Stack PRs using Graphite** — a single user story may become 2–5 stacked PRs, each independently reviewable and mergeable.
+
+#### Example: Implementing US-010 (Supplier CRUD)
+
+```
+Stack:
+  PR 1: feat(US-010): add suppliers migration + model (150 lines)
+  PR 2: feat(US-010): add supplier service + validations (200 lines)
+  PR 3: feat(US-010): add supplier API endpoints (180 lines)
+  PR 4: feat(US-010): add supplier list + form UI (280 lines)
+  PR 5: feat(US-010): add supplier integration tests (250 lines)
+```
 
 ### 3. Create GitHub Issues for Everything
 
@@ -321,16 +360,19 @@ Every response must include these headers (configure in `config/environments/pro
 
 ```
 1. Pick or create a GitHub Issue
-2. Create a feature branch from main
-3. Write code + tests
-4. Run CI locally (lint, type-check, test, build)
-5. Run /review on changed files — check for race conditions, duplication, and vulnerabilities
-6. Fix any blocking issues found
-7. Commit with a descriptive message referencing the Issue
-8. Push branch and open a PR
-9. Get review, address feedback
-10. CI passes → merge
-11. Delete the branch
+2. gt sync — rebase on latest main
+3. Plan your PR stack slices (schema → model → service → controller → UI → tests)
+4. For each slice:
+   a. Write code (keep new logic to 200–300 lines, max 500)
+   b. Keep functions under 50 lines
+   c. Run CI locally (lint, type-check, test, build)
+   d. Run /review on changed files — check for race conditions, duplication, and vulnerabilities
+   e. Fix any blocking issues found
+   f. gt create -m "feat(US-XXX): descriptive message"
+5. gt submit — push entire stack to GitHub as linked PRs
+6. Get review, address feedback
+7. CI passes → merge (Graphite handles cascading merges)
+8. gt sync — clean up merged branches
 ```
 
 ---
@@ -400,6 +442,44 @@ Current state of security measures — update as items are resolved:
 | Container image scanning | **TODO** | Not in CI pipeline |
 | Docker Compose credentials | **TODO** | Hardcoded `postgres:postgres` in docker-compose.yml |
 | Session timeout config | **TODO** | No explicit expiry set |
+
+---
+
+## Design Context
+
+### Users
+
+Broad Shopify merchant base — from solo store owners managing a few hundred SKUs to mid-market operations teams with thousands. They range in technical sophistication but share one thing: they're busy, time-pressured, and need to make inventory decisions fast. The app lives inside Shopify Admin, so it must feel native and require zero learning curve.
+
+### Brand Personality
+
+**Smart, modern, efficient** — like a sharp SaaS tool that feels cutting-edge but never flashy. The interface should convey intelligence (AI-powered insights) without complexity. Every interaction should feel fast, precise, and respectful of the merchant's time.
+
+### Aesthetic Direction
+
+**References:** Notion (generous whitespace, warm professionalism, readable density) and Stripe (polished details, monochrome restraint, confident typography). The existing White & Grey system aligns well — flat surfaces, no gradients, grey-on-white with minimal accent color.
+
+**Anti-references:** Cluttered dashboards with too many colors. Generic Shopify apps that look like Bootstrap templates. Overly dark/moody interfaces. Anything with gradients, heavy shadows, or neon accents.
+
+**Theme:** Light mode only. The palette is intentionally neutral — data and status indicators provide the only color, making important information stand out naturally against the quiet grey canvas.
+
+### Design Principles
+
+1. **Data first, chrome second** — Every pixel of decoration must earn its place. If a border, shadow, or label doesn't help the merchant read data faster, remove it.
+2. **Quiet confidence** — The interface should feel authoritative without shouting. Use typography weight and spacing to create hierarchy, not color or size extremes.
+3. **Native feel** — Respect Shopify Polaris conventions so merchants feel at home. Deviate only when it meaningfully improves the experience.
+4. **Accessible by default** — Target WCAG AAA (7:1 contrast ratios, full keyboard navigation, reduced motion support, screen reader excellence). Accessibility is not a feature — it's the baseline.
+5. **Progressive density** — Show summary-level information by default, let merchants drill into detail on demand. Avoid overwhelming first impressions while supporting power-user depth.
+
+### Accessibility Standards (WCAG AAA)
+
+- **Contrast:** 7:1 minimum for normal text, 4.5:1 for large text (18px+ or 14px bold)
+- **Keyboard:** Full keyboard navigation with visible focus indicators on all interactive elements
+- **Motion:** Respect `prefers-reduced-motion` — disable all animations and transitions when set
+- **Screen readers:** Semantic HTML, ARIA labels on all icons/interactive elements, live regions for dynamic content (toasts, alerts, loading states)
+- **Color independence:** Never convey information through color alone — always pair with text, icons, or patterns
+- **Focus management:** Logical tab order, focus trapping in modals, return focus after dismissal
+- **Text sizing:** Support browser zoom to 200% without layout breakage
 
 ---
 

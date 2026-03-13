@@ -23,8 +23,8 @@ RUN npm ci
 # Copy application code
 COPY . .
 
-# Build frontend via Vite Ruby
-RUN bundle exec vite build
+# Build frontend assets
+RUN npx vite build
 
 EXPOSE 3000
 

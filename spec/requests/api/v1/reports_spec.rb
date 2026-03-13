@@ -41,4 +41,33 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(response).to have_http_status(:accepted)
     end
   end
+
+  describe "GET /api/v1/reports/:id (non-existent)" do
+    it "returns 404 for a non-existent report" do
+      get "/api/v1/reports/999999"
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "GET /api/v1/reports (empty)" do
+    it "returns an empty list when no reports exist" do
+      get "/api/v1/reports"
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["reports"]).to eq([])
+      expect(body["meta"]["total_count"]).to eq(0)
+    end
+  end
+
+  describe "POST /api/v1/reports/generate response" do
+    it "returns correct queued status in response body" do
+      post "/api/v1/reports/generate"
+
+      expect(response).to have_http_status(:accepted)
+      body = JSON.parse(response.body)
+      expect(body["status"]).to eq("queued")
+    end
+  end
 end
