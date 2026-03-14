@@ -1,0 +1,28 @@
+<a href="/purchase_orders">&larr; Back to Purchase Orders</a>
+<h1>Purchase Order #<%= @purchase_order.id %></h1>
+
+<p><strong>Supplier:</strong> <%= @purchase_order.supplier&.name %></p>
+<p><strong>Status:</strong> <mark><%= @purchase_order.status %></mark></p>
+<p><strong>Created:</strong> <%= @purchase_order.created_at.strftime("%b %d, %Y %H:%M") %></p>
+
+<% if @purchase_order.status == "draft" %>
+  <%= button_to "Mark as Sent", mark_sent_purchase_order_path(@purchase_order), method: :patch %>
+<% elsif @purchase_order.status == "sent" %>
+  <%= button_to "Mark as Received", mark_received_purchase_order_path(@purchase_order), method: :patch %>
+<% end %>
+
+<h2>Line Items</h2>
+<table>
+  <thead>
+    <tr><th>Variant</th><th>Quantity</th><th>Unit Cost</th></tr>
+  </thead>
+  <tbody>
+    <% @purchase_order.purchase_order_line_items.each do |li| %>
+      <tr>
+        <td><%= li.variant&.title || li.variant&.sku %></td>
+        <td><%= li.quantity %></td>
+        <td><%= number_to_currency(li.unit_cost) if li.respond_to?(:unit_cost) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

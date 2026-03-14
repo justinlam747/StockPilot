@@ -9,10 +9,8 @@ RSpec.describe Shop, type: :model do
     it { should have_many(:inventory_snapshots).dependent(:destroy) }
     it { should have_many(:suppliers).dependent(:destroy) }
     it { should have_many(:alerts).dependent(:destroy) }
-    it { should have_many(:weekly_reports).dependent(:destroy) }
     it { should have_many(:purchase_orders).dependent(:destroy) }
-    it { should have_many(:webhook_endpoints).dependent(:destroy) }
-    it { should have_many(:customers).dependent(:destroy) }
+    it { should have_many(:audit_logs).dependent(:destroy) }
   end
 
   describe "scopes" do

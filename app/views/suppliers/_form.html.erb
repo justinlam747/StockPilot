@@ -1,0 +1,8 @@
+<form hx-post="<%= url %>" hx-target="#supplier-list" hx-swap="innerHTML">
+  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+  <label>Name <input type="text" name="supplier[name]" value="<%= supplier.name %>" required></label>
+  <label>Email <input type="email" name="supplier[email]" value="<%= supplier.email %>" required></label>
+  <label>Phone <input type="tel" name="supplier[phone]" value="<%= supplier.phone %>"></label>
+  <label>Lead Time (days) <input type="number" name="supplier[lead_time_days]" value="<%= supplier.lead_time_days %>" min="1"></label>
+  <button type="submit">Save Supplier</button>
+</form>

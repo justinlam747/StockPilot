@@ -1,0 +1,17 @@
+<h1><%= @product.title %></h1>
+<a href="/inventory">&larr; Back to inventory</a>
+
+<table>
+  <thead>
+    <tr><th>Variant</th><th>SKU</th><th>Stock</th></tr>
+  </thead>
+  <tbody>
+    <% @product.variants.each do |v| %>
+      <tr>
+        <td><%= v.title %></td>
+        <td><%= v.sku %></td>
+        <td><%= v.inventory_quantity %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

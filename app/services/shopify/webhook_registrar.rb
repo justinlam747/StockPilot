@@ -49,7 +49,7 @@ module Shopify
 
     def webhook_url(topic)
       host = ENV.fetch("SHOPIFY_APP_URL", "https://localhost:3000")
-      "#{host}/api/webhooks/#{topic.tr('/', '_')}"
+      "#{host}/webhooks/#{topic.tr('/', '_')}"
     end
   end
 end

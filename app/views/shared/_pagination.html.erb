@@ -1,0 +1,7 @@
+<% if collection.respond_to?(:total_pages) && collection.total_pages > 1 %>
+  <nav aria-label="Pagination">
+    <%= link_to "Previous", url_for(page: collection.prev_page), class: "sp-btn" if collection.prev_page %>
+    <span>Page <%= collection.current_page %> of <%= collection.total_pages %></span>
+    <%= link_to "Next", url_for(page: collection.next_page), class: "sp-btn" if collection.next_page %>
+  </nav>
+<% end %>

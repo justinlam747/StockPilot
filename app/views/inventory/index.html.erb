@@ -1,0 +1,15 @@
+<h1>Inventory</h1>
+
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+  <button hx-get="/inventory?filter=all" hx-target="#product-table" hx-push-url="true">All</button>
+  <button hx-get="/inventory?filter=low_stock" hx-target="#product-table" hx-push-url="true">Low Stock</button>
+  <button hx-get="/inventory?filter=out_of_stock" hx-target="#product-table" hx-push-url="true">Out of Stock</button>
+</div>
+
+<input type="search" name="q" placeholder="Search by name or SKU..."
+       hx-get="/inventory" hx-target="#product-table"
+       hx-trigger="input changed delay:300ms" hx-push-url="true">
+
+<div id="product-table">
+  <%= render "table", products: @products %>
+</div>

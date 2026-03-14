@@ -1,0 +1,43 @@
+<h2>Alerts</h2>
+
+<% if @alerts.any? %>
+  <table role="grid">
+    <thead>
+      <tr>
+        <th>Severity</th>
+        <th>Message</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @alerts.each do |alert| %>
+        <tr id="alert-<%= alert.id %>">
+          <td>
+            <mark class="alert-severity--<%= alert.severity || 'warning' %>">
+              <%= (alert.severity || "warning").capitalize %>
+            </mark>
+          </td>
+          <td><%= alert.message %></td>
+          <td><%= alert.created_at.strftime("%b %d, %Y %H:%M") %></td>
+          <td>
+            <% unless alert.dismissed? %>
+              <button hx-patch="<%= dismiss_alert_path(alert) %>"
+                      hx-target="#alert-<%= alert.id %>"
+                      hx-swap="outerHTML"
+                      aria-label="Dismiss alert: <%= alert.message %>">
+                Dismiss
+              </button>
+            <% else %>
+              <span class="text-secondary">Dismissed</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%= render "shared/pagination", collection: @alerts %>
+<% else %>
+  <p>No alerts to display.</p>
+<% end %>

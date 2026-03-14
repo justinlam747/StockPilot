@@ -1,0 +1,8 @@
+<% if results.present? %>
+  <div style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--pico-muted-border-color); border-radius: 8px;">
+    <p><strong>Last run:</strong> <%= results["ran_at"] || @last_run_at&.strftime("%b %d, %H:%M") %></p>
+    <p><strong>Low stock items found:</strong> <%= results["low_stock_count"] || 0 %></p>
+  </div>
+<% else %>
+  <p style="color: var(--pico-muted-color);">No agent runs yet. Click "Run Agent Now" to start.</p>
+<% end %>

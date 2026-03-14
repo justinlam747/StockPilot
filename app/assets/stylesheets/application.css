@@ -1,0 +1,4 @@
+/* app/assets/stylesheets/application.css */
+/* Pico CSS loaded from CDN in layout */
+/* This file is for app-wide overrides only */
+@import "overrides.css";

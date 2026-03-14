@@ -1,10 +1,13 @@
-class WebhooksController < ActionController::API
-  include ShopifyApp::WebhookVerification
+class WebhooksController < ActionController::Base
+  skip_before_action :verify_authenticity_token
+  before_action :verify_shopify_hmac
 
   def receive
     topic = params[:topic]
     shop_domain = request.headers["X-Shopify-Shop-Domain"]
     body = request.body.read
+
+    AuditLog.record(action: "webhook_received", metadata: { topic: topic, shop_domain: shop_domain })
 
     case topic
     when "app_uninstalled"
@@ -21,6 +24,18 @@ class WebhooksController < ActionController::API
   end
 
   private
+
+  def verify_shopify_hmac
+    body = request.body.read
+    hmac = request.headers["HTTP_X_SHOPIFY_HMAC_SHA256"]
+    return head :unauthorized unless hmac.present?
+    digest = OpenSSL::HMAC.digest("sha256", ENV.fetch("SHOPIFY_API_SECRET"), body)
+    expected = Base64.strict_encode64(digest)
+    unless ActiveSupport::SecurityUtils.secure_compare(expected, hmac)
+      AuditLog.record(action: "webhook_hmac_failed", request: request)
+      head :unauthorized
+    end
+  end
 
   def handle_app_uninstalled(shop_domain)
     shop = Shop.find_by(shop_domain: shop_domain)

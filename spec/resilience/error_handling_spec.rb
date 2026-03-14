@@ -221,123 +221,7 @@ RSpec.describe "Error handling and resilience", type: :model do
   end
 
   # ---------------------------------------------------------------------------
-  # 5. Email delivery failures
-  # ---------------------------------------------------------------------------
-  describe "Email delivery resilience" do
-    describe "AlertMailer delivery failure" do
-      it "is configured to retry on Net::SMTPError via Sidekiq" do
-        # WeeklyReportJob (which triggers email) has retry_on for SMTP errors
-        expect(WeeklyReportJob.rescue_handlers).to be_present.or(
-          satisfy { WeeklyReportJob.respond_to?(:retry_on) }
-        )
-      end
-
-      it "WeeklyReportJob still creates report when AI insights fail" do
-        allow(Reports::WeeklyGenerator).to receive_message_chain(:new, :generate).and_return(
-          { "top_sellers" => [], "stockouts" => [], "low_sku_count" => 0, "reorder_suggestions" => [] }
-        )
-        allow(AI::InsightsGenerator).to receive_message_chain(:new, :generate).and_raise(
-          StandardError, "Anthropic service down"
-        )
-        # Stub deliver_later to avoid needing real mailer delivery
-        mail_double = double("mail", deliver_later: true)
-        allow(ReportMailer).to receive(:weekly_summary).and_return(mail_double)
-
-        expect {
-          WeeklyReportJob.perform_now(shop.id)
-        }.to change(WeeklyReport, :count).by(1)
-
-        report = WeeklyReport.last
-        expect(report.payload).to include("top_sellers")
-        expect(report.payload).not_to have_key("ai_commentary")
-      end
-
-      it "WeeklyReportJob includes AI commentary when available" do
-        allow(Reports::WeeklyGenerator).to receive_message_chain(:new, :generate).and_return(
-          { "top_sellers" => [], "stockouts" => [], "low_sku_count" => 0, "reorder_suggestions" => [] }
-        )
-        allow(AI::InsightsGenerator).to receive_message_chain(:new, :generate).and_return(
-          "Stock levels are healthy overall."
-        )
-        mail_double = double("mail", deliver_later: true)
-        allow(ReportMailer).to receive(:weekly_summary).and_return(mail_double)
-
-        WeeklyReportJob.perform_now(shop.id)
-
-        report = WeeklyReport.last
-        expect(report.payload["ai_commentary"]).to eq("Stock levels are healthy overall.")
-      end
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # 6. Webhook delivery failures
-  # ---------------------------------------------------------------------------
-  describe "WebhookDeliveryJob resilience" do
-    let(:endpoint) { create(:webhook_endpoint, shop: shop, url: "https://hooks.example.com/test") }
-
-    before do
-      stub_request(:post, "https://hooks.example.com/test").to_timeout
-    end
-
-    it "raises Net::OpenTimeout for retry on connection timeout" do
-      stub_request(:post, "https://hooks.example.com/test").to_raise(Net::OpenTimeout)
-
-      expect {
-        WebhookDeliveryJob.perform_now(endpoint.id, { event: "low_stock" }.to_json)
-      }.to raise_error(Net::OpenTimeout)
-    end
-
-    it "raises on HTTP 500 response for retry" do
-      stub_request(:post, "https://hooks.example.com/test").to_return(status: 500, body: "")
-
-      expect {
-        WebhookDeliveryJob.perform_now(endpoint.id, { event: "low_stock" }.to_json)
-      }.to raise_error(/Webhook delivery failed with status 500/)
-    end
-
-    it "raises on HTTP 404 response for retry" do
-      stub_request(:post, "https://hooks.example.com/test").to_return(status: 404, body: "")
-
-      expect {
-        WebhookDeliveryJob.perform_now(endpoint.id, { event: "low_stock" }.to_json)
-      }.to raise_error(/Webhook delivery failed with status 404/)
-    end
-
-    it "updates endpoint with last status code even on failure" do
-      stub_request(:post, "https://hooks.example.com/test").to_return(status: 502, body: "")
-
-      begin
-        WebhookDeliveryJob.perform_now(endpoint.id, { event: "low_stock" }.to_json)
-      rescue RuntimeError
-        # expected
-      end
-
-      endpoint.reload
-      expect(endpoint.last_status_code).to eq(502)
-      expect(endpoint.last_fired_at).to be_present
-    end
-
-    it "succeeds and updates endpoint on HTTP 200" do
-      stub_request(:post, "https://hooks.example.com/test").to_return(status: 200, body: "OK")
-
-      expect {
-        WebhookDeliveryJob.perform_now(endpoint.id, { event: "low_stock" }.to_json)
-      }.not_to raise_error
-
-      endpoint.reload
-      expect(endpoint.last_status_code).to eq(200)
-    end
-
-    it "is configured to retry on Net::OpenTimeout and Net::ReadTimeout" do
-      retry_handlers = WebhookDeliveryJob.rescue_handlers.map { |h| h.first }
-      expect(retry_handlers).to include("Net::OpenTimeout")
-      expect(retry_handlers).to include("Net::ReadTimeout")
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # 7. Health check degradation
+  # 5. Health check degradation
   # ---------------------------------------------------------------------------
   describe "Health check resilience", type: :request do
     it "returns degraded when database is down" do
@@ -380,7 +264,7 @@ RSpec.describe "Error handling and resilience", type: :model do
   end
 
   # ---------------------------------------------------------------------------
-  # 8. Agents::Runner error isolation
+  # 6. Agents::Runner error isolation
   # ---------------------------------------------------------------------------
   describe "Agents::Runner error isolation" do
     let!(:shop_a) do

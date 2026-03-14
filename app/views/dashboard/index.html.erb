@@ -1,0 +1,21 @@
+<h1>Dashboard</h1>
+
+<%= render "kpi_cards" %>
+
+<section>
+  <h2>Recent Alerts</h2>
+  <div id="alerts-list">
+    <%= render "alerts" %>
+  </div>
+</section>
+
+<section>
+  <h2>Agent Results</h2>
+  <button hx-post="/agents/run" hx-target="#agent-results" hx-indicator="#agent-spinner">
+    Run Agent Now
+  </button>
+  <span id="agent-spinner" class="htmx-indicator">Analyzing inventory...</span>
+  <div id="agent-results">
+    <%= render "agent_results", results: @last_run %>
+  </div>
+</section>

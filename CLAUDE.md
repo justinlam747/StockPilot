@@ -19,13 +19,11 @@ A production-grade Shopify embedded app with:
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Ruby on Rails 7.2 (API mode) |
-| Frontend | React 18 + TypeScript 5.6 + Shopify Polaris 13 |
+| Backend | Ruby on Rails 7.2 |
+| Frontend | Server-rendered ERB + Propshaft |
 | Database | PostgreSQL 16 |
 | Cache / Queue | Redis 7 + Sidekiq 7 |
 | AI | Anthropic Claude API |
-| Build | Vite 6 + Vite Ruby 3 |
-| Containers | Docker + docker-compose |
 | PR Workflow | Graphite (PR stacking) |
 | Error Tracking | Sentry |
 
@@ -151,15 +149,10 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
 | Stage | Tool | What It Does | Added Date |
 |-------|------|-------------|------------|
 | Lint (Ruby) | RuboCop (Rails Omakase) | Enforces Ruby style and Rails best practices | 2026-03-09 |
-| Lint (JS/TS) | ESLint | Enforces TypeScript/React code standards | 2026-03-09 |
-| Type Check | TypeScript (`tsc --noEmit`) | Catches type errors before runtime | 2026-03-09 |
 | Unit Tests (Backend) | RSpec 7 | Runs model, service, and job specs | 2026-03-09 |
-| Unit Tests (Frontend) | Vitest 2.1 | Runs React component and hook tests | 2026-03-09 |
 | Request Tests | RSpec (request specs) | Tests full API endpoint behavior | 2026-03-09 |
 | Security Scan | `bundler-audit` | Checks gems for known CVEs | 2026-03-09 |
 | Secret Detection | `git-secrets` / CI check | Prevents accidental credential commits | 2026-03-09 |
-| Build | Vite (`vite build`) | Ensures frontend compiles cleanly | 2026-03-09 |
-| Docker Build | `docker build` | Validates the container image builds | 2026-03-09 |
 
 #### CI Pipeline Iteration Rules
 
@@ -171,11 +164,10 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
 
 ### 5. Code Quality Standards
 
-- **No `any` types in TypeScript** — use proper types or `unknown`
 - **No skipped tests** — `xit`, `xdescribe`, `.skip` require an Issue link explaining why
 - **No `TODO` without an Issue** — every TODO comment must reference a GitHub Issue number
 - **No dead code** — remove unused imports, functions, and variables
-- **No console.log in production code** — use proper logging (Sentry, Rails logger)
+- **No `puts`/`p` in production code** — use proper logging (Sentry, Rails logger)
 
 ### 6. Security Rules
 
@@ -212,7 +204,7 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
 - **Never trust client-side validation alone** — always validate server-side
 - Validate data types, lengths, formats, and ranges
 - Use parameterized queries — never interpolate user input into SQL
-- Sanitize any data before rendering in the frontend (React auto-escapes JSX, but avoid `dangerouslySetInnerHTML`)
+- Sanitize any data before rendering in views (use Rails `sanitize` helper or `html_escape`)
 - **File uploads:** If added later, whitelist allowed extensions AND validate media types; limit file sizes
 - **Never use string interpolation in SQL** — `Project.where("name = '#{name}'")` is injectable; use `where(name: name)` or `sanitize_sql`
 
@@ -277,20 +269,11 @@ Every response must include these headers (configure in `config/environments/pro
 
 - **Ruby:** Run `bundle-audit check --update` in CI to detect vulnerable gems
 - **Ruby:** Run `brakeman` static analysis to detect Rails security issues (SQL injection, XSS, mass assignment)
-- **Node.js:** Run `npm audit` in CI; fail builds on high/critical severity
-- **Lock files:** Always commit `Gemfile.lock` and `package-lock.json`; use `bundle install` and `npm ci` (not `npm install`) in CI
+- **Lock files:** Always commit `Gemfile.lock`; use `bundle install` in CI
 - **Dependency updates:** Enable Dependabot or Renovate for automated security patches
 - **New packages:** Review before adding; prefer well-maintained packages with security track records
 
-#### 6l. Container & Infrastructure Security
-
-- **Dockerfile:** Use minimal base images (currently `ruby:3.3-slim` — good)
-- **No secrets in images:** Never use `ARG` or `ENV` for secrets in Dockerfile; use runtime environment variables
-- **Docker Compose:** Move hardcoded Postgres credentials in `docker-compose.yml` to a `.env` file (even for development)
-- **Non-root execution:** Run the app as a non-root user inside the container
-- **Image scanning:** Add container image vulnerability scanning (Trivy, Snyk Container) to CI
-
-#### 6m. Audit Logging
+#### 6l. Audit Logging
 
 - **Log all security-relevant events:** login attempts, permission changes, data exports, GDPR requests, failed authentication, rate limit hits
 - **Include:** timestamp, shop ID, action, IP address, user agent, request ID
@@ -379,22 +362,26 @@ Every response must include these headers (configure in `config/environments/pro
 
 ## Running the Project Locally
 
+Prerequisites: PostgreSQL 16 and Redis 7 running locally.
+
 ```bash
-# Start all services (Rails, Sidekiq, PostgreSQL, Redis)
-docker-compose up
+# Install dependencies
+bundle install
+
+# Set up database
+bundle exec rails db:prepare
+
+# Start the Rails server
+bundle exec rails server
+
+# Start Sidekiq (separate terminal)
+bundle exec sidekiq -C config/sidekiq.yml
 
 # Run backend tests
 bundle exec rspec
 
-# Run frontend tests
-npx vitest run
-
 # Lint
 bundle exec rubocop
-npx eslint frontend/
-
-# Type check
-npx tsc --noEmit
 ```
 
 ---
@@ -438,9 +425,6 @@ Current state of security measures — update as items are resolved:
 | GDPR data processing | **TODO** | Endpoints return 200 but don't process/delete data |
 | Audit logging | **TODO** | No security event logging |
 | `brakeman` static analysis | **TODO** | Not in CI pipeline |
-| `npm audit` in CI | **TODO** | Not in CI pipeline |
-| Container image scanning | **TODO** | Not in CI pipeline |
-| Docker Compose credentials | **TODO** | Hardcoded `postgres:postgres` in docker-compose.yml |
 | Session timeout config | **TODO** | No explicit expiry set |
 
 ---

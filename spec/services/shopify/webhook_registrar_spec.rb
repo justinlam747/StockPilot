@@ -101,7 +101,7 @@ RSpec.describe Shopify::WebhookRegistrar do
         anything,
         variables: hash_including(
           webhookSubscription: hash_including(
-            callbackUrl: "#{host}/api/webhooks/app_uninstalled"
+            callbackUrl: "#{host}/webhooks/app_uninstalled"
           )
         )
       )

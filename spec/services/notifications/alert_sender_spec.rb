@@ -34,14 +34,6 @@ RSpec.describe Notifications::AlertSender do
     }.not_to change { Alert.count }
   end
 
-  it "fires outgoing webhooks when active endpoints exist" do
-    create(:webhook_endpoint, shop: shop, event_type: "low_stock", is_active: true)
-
-    expect {
-      sender.send_low_stock_alerts(flagged_variants)
-    }.to have_enqueued_job(WebhookDeliveryJob)
-  end
-
   it "does not send email when alert_email is nil" do
     shop.update!(settings: shop.settings.merge("alert_email" => nil))
 

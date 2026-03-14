@@ -1,0 +1,32 @@
+<table>
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>SKU</th>
+      <th>Stock</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% products.each do |product| %>
+      <% product.variants.each do |variant| %>
+        <tr>
+          <td><a href="/inventory/<%= product.id %>"><%= product.title %></a></td>
+          <td><%= variant.sku %></td>
+          <td><%= variant.inventory_quantity %></td>
+          <td>
+            <% if variant.inventory_quantity == 0 %>
+              <mark>Out of Stock</mark>
+            <% elsif variant.inventory_quantity <= 10 %>
+              <mark>Low</mark>
+            <% else %>
+              In Stock
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>
+
+<%= render "shared/pagination", collection: products %>

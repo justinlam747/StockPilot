@@ -1,0 +1,38 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Lead Time</th>
+      <th>Rating</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% suppliers.each do |s| %>
+      <tr>
+        <td><%= s.name %></td>
+        <td><%= s.email %></td>
+        <td><%= s.lead_time_days %> days</td>
+        <td>
+          <span class="star-rating" role="group" aria-label="Rating for <%= s.name %>: <%= s.star_rating || 0 %> out of 5 stars">
+            <% 5.times do |i| %>
+              <span hx-patch="/suppliers/<%= s.id %>"
+                    hx-vals='{"supplier": {"star_rating": <%= i + 1 %>}}'
+                    hx-target="#supplier-list"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Rate <%= s.name %> <%= i + 1 %> star<%= i + 1 > 1 ? 's' : '' %>"
+                    class="<%= i < (s.star_rating || 0) ? 'filled' : 'empty' %>">&#9733;</span>
+            <% end %>
+          </span>
+        </td>
+        <td>
+          <button hx-delete="/suppliers/<%= s.id %>"
+                  hx-target="#supplier-list"
+                  hx-confirm="Delete <%= s.name %>?">Delete</button>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

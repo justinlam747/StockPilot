@@ -1,0 +1,10 @@
+<h1>Suppliers</h1>
+
+<details>
+  <summary role="button" class="outline">Add Supplier</summary>
+  <%= render "form", supplier: @supplier, url: suppliers_path, method: :post %>
+</details>
+
+<div id="supplier-list">
+  <%= render "list", suppliers: @suppliers %>
+</div>

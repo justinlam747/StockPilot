@@ -1,0 +1,12 @@
+<h1>Purchase Orders</h1>
+
+<button hx-post="/purchase_orders/generate_draft" hx-target="#draft-area" hx-indicator="#draft-spinner">
+  Generate Draft PO
+</button>
+<span id="draft-spinner" class="htmx-indicator">Generating with AI...</span>
+
+<div id="draft-area"></div>
+
+<div id="po-list">
+  <%= render "list", purchase_orders: @purchase_orders %>
+</div>

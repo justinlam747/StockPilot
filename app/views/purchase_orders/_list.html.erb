@@ -1,0 +1,26 @@
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Supplier</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% purchase_orders.each do |po| %>
+      <tr>
+        <td><a href="/purchase_orders/<%= po.id %>">#<%= po.id %></a></td>
+        <td><%= po.supplier&.name %></td>
+        <td><mark><%= po.status %></mark></td>
+        <td><%= po.created_at.strftime("%b %d, %Y") %></td>
+        <td>
+          <a href="/purchase_orders/<%= po.id %>">View</a>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= render "shared/pagination", collection: purchase_orders %>
