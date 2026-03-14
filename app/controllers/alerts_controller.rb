@@ -5,7 +5,7 @@ class AlertsController < ApplicationController
 
   def dismiss
     alert = Alert.find(params[:id])
-    alert.update!(dismissed: true)
+    alert.update!(status: "dismissed")
     head :ok
   end
 end

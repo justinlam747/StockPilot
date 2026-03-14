@@ -3,9 +3,9 @@ FactoryBot.define do
     shop
     variant
     alert_type { "low_stock" }
+    channel { "email" }
     status { "active" }
-    threshold { 10 }
-    current_quantity { 3 }
+    metadata { { threshold: 10, current_quantity: 3 } }
     triggered_at { Time.current }
   end
 end

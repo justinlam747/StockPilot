@@ -8,11 +8,6 @@ Sidekiq.configure_server do |config|
         "class" => "DailySyncAllShopsJob",
         "description" => "Sync inventory for all active shops"
       },
-      "weekly_reports" => {
-        "cron" => "0 * * * *",
-        "class" => "WeeklyReportAllShopsJob",
-        "description" => "Enqueue weekly reports (timezone-aware)"
-      },
       "snapshot_cleanup" => {
         "cron" => "0 3 * * *",
         "class" => "SnapshotCleanupJob",

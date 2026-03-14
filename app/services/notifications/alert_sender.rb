@@ -21,9 +21,9 @@ module Notifications
           shop: @shop,
           variant: fv[:variant],
           alert_type: fv[:status].to_s,
+          channel: "email",
           status: "active",
-          threshold: fv[:threshold],
-          current_quantity: fv[:available],
+          metadata: { threshold: fv[:threshold], current_quantity: fv[:available] },
           triggered_at: Time.current
         )
       end

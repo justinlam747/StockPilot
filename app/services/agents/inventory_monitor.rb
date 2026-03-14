@@ -212,7 +212,7 @@ module Agents
       return "No alerts sent today yet." if recent.empty?
 
       lines = recent.map do |a|
-        "  - #{a.variant.sku} (#{a.alert_type}): #{a.current_quantity} available, alerted at #{a.triggered_at.strftime('%H:%M')}"
+        "  - #{a.variant.sku} (#{a.alert_type}): #{a.metadata&.dig('current_quantity') || 'N/A'} available, alerted at #{a.triggered_at.strftime('%H:%M')}"
       end
 
       "#{recent.size} alert(s) sent today:\n#{lines.join("\n")}"
@@ -229,8 +229,7 @@ module Agents
       po = PurchaseOrder.create!(
         shop: @shop,
         supplier: supplier,
-        status: "draft",
-        total_amount: 0
+        status: "draft"
       )
 
       total = 0
@@ -241,13 +240,11 @@ module Agents
           purchase_order: po,
           variant: fv[:variant],
           sku: fv[:variant].sku,
-          quantity_ordered: qty,
+          qty_ordered: qty,
           unit_price: price
         )
         total += qty * price
       end
-
-      po.update!(total_amount: total)
 
       "Drafted PO ##{po.id} for #{supplier.name}: #{low_variants.size} line item(s), total $#{'%.2f' % total}. Status: draft (awaiting approval)."
     end

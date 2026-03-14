@@ -19,12 +19,28 @@ class InventoryController < ApplicationController
   def apply_filter(scope)
     case params[:filter]
     when "low_stock"
-      scope.joins(:variants).where("variants.inventory_quantity > 0 AND variants.inventory_quantity <= 10").distinct
+      latest = latest_snapshot_subquery
+      scope.joins(:variants)
+           .joins("INNER JOIN (#{latest}) latest ON latest.variant_id = variants.id")
+           .where("latest.available > 0 AND latest.available <= COALESCE(variants.low_stock_threshold, ?)", current_shop.low_stock_threshold)
+           .distinct
     when "out_of_stock"
-      scope.joins(:variants).where(variants: { inventory_quantity: 0 }).distinct
+      latest = latest_snapshot_subquery
+      scope.joins(:variants)
+           .joins("INNER JOIN (#{latest}) latest ON latest.variant_id = variants.id")
+           .where("latest.available <= 0")
+           .distinct
     else
       scope
     end
+  end
+
+  def latest_snapshot_subquery
+    InventorySnapshot
+      .select("DISTINCT ON (variant_id) variant_id, available")
+      .where(shop_id: current_shop.id)
+      .order("variant_id, created_at DESC")
+      .to_sql
   end
 
   def apply_search(scope)
