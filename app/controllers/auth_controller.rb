@@ -15,6 +15,17 @@ class AuthController < ApplicationController
     redirect_to "/dashboard"
   end
 
+  def dev_login
+    return head :not_found unless Rails.env.development?
+
+    shop = Shop.find_or_create_by!(shop_domain: "dev-store.myshopify.com") do |s|
+      s.access_token = "dev-token"
+      s.installed_at = Time.current
+    end
+    session[:shop_id] = shop.id
+    redirect_to "/dashboard"
+  end
+
   def failure
     AuditLog.record(action: "login_failed", request: request,
                     metadata: { reason: params[:message] })

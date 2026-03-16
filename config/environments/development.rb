@@ -21,4 +21,9 @@ Rails.application.configure do
   config.active_record.verbose_query_logs = true
 
   config.active_job.verbose_enqueue_logs = true
+
+  # Active Record Encryption keys for development
+  config.active_record.encryption.primary_key = "dev-primary-key-for-local-only"
+  config.active_record.encryption.deterministic_key = "dev-deterministic-key-local-only"
+  config.active_record.encryption.key_derivation_salt = "dev-key-derivation-salt-local"
 end

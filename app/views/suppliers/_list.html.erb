@@ -1,38 +1,49 @@
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Lead Time</th>
-      <th>Rating</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% suppliers.each do |s| %>
+<% if suppliers.any? %>
+  <table>
+    <thead>
       <tr>
-        <td><%= s.name %></td>
-        <td><%= s.email %></td>
-        <td><%= s.lead_time_days %> days</td>
-        <td>
-          <span class="star-rating" role="group" aria-label="Rating for <%= s.name %>: <%= s.star_rating || 0 %> out of 5 stars">
-            <% 5.times do |i| %>
-              <span hx-patch="/suppliers/<%= s.id %>"
-                    hx-vals='{"supplier": {"star_rating": <%= i + 1 %>}}'
-                    hx-target="#supplier-list"
-                    role="button"
-                    tabindex="0"
-                    aria-label="Rate <%= s.name %> <%= i + 1 %> star<%= i + 1 > 1 ? 's' : '' %>"
-                    class="<%= i < (s.star_rating || 0) ? 'filled' : 'empty' %>">&#9733;</span>
-            <% end %>
-          </span>
-        </td>
-        <td>
-          <button hx-delete="/suppliers/<%= s.id %>"
-                  hx-target="#supplier-list"
-                  hx-confirm="Delete <%= s.name %>?">Delete</button>
-        </td>
+        <th>Supplier</th>
+        <th>Contact</th>
+        <th>Lead Time</th>
+        <th>Rating</th>
+        <th style="text-align: right;">Actions</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% suppliers.each do |s| %>
+        <tr>
+          <td>
+            <div class="cell-primary"><%= s.name %></div>
+            <div class="cell-secondary"><%= s.email %></div>
+          </td>
+          <td class="text-secondary"><%= s.contact_name %></td>
+          <td><span class="badge badge--neutral"><%= s.lead_time_days %> days</span></td>
+          <td>
+            <span class="star-rating" role="group" aria-label="Rating: <%= s.star_rating || 0 %>/5">
+              <% 5.times do |i| %>
+                <span hx-patch="/suppliers/<%= s.id %>"
+                      hx-vals='{"supplier": {"star_rating": <%= i + 1 %>}}'
+                      hx-target="#supplier-list"
+                      role="button"
+                      tabindex="0"
+                      aria-label="Rate <%= i + 1 %> star<%= i + 1 > 1 ? 's' : '' %>"
+                      class="<%= i < (s.star_rating || 0) ? 'filled' : 'empty' %>">&#9733;</span>
+              <% end %>
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <button class="btn btn--sm btn--danger"
+                    hx-delete="/suppliers/<%= s.id %>"
+                    hx-target="#supplier-list"
+                    hx-confirm="Delete <%= s.name %>?">Delete</button>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="empty-state">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--app-text-3); margin-bottom: 0.5rem;"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+    <div>No suppliers yet. Add your first supplier above.</div>
+  </div>
+<% end %>

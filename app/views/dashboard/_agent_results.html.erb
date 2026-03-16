@@ -1,8 +1,31 @@
 <% if results.present? %>
-  <div style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--pico-muted-border-color); border-radius: 8px;">
-    <p><strong>Last run:</strong> <%= results["ran_at"] || @last_run_at&.strftime("%b %d, %H:%M") %></p>
-    <p><strong>Low stock items found:</strong> <%= results["low_stock_count"] || 0 %></p>
+  <div class="agent-summary">
+    <div class="detail-row">
+      <span class="detail-row__label">Last run</span>
+      <span class="detail-row__value"><%= @last_run_at&.strftime("%b %d, %Y at %H:%M") || results["ran_at"] %></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-row__label">Variants scanned</span>
+      <span class="detail-row__value"><%= results["total_variants_scanned"] || 0 %></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-row__label">Alerts generated</span>
+      <span class="detail-row__value"><%= results["alerts_generated"] || 0 %></span>
+    </div>
   </div>
+  <% if results["recommendations"].present? %>
+    <div class="agent-recs">
+      <h3 class="agent-recs__title">Recommendations</h3>
+      <ul class="agent-recs__list">
+        <% results["recommendations"].each do |rec| %>
+          <li><%= rec %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 <% else %>
-  <p style="color: var(--pico-muted-color);">No agent runs yet. Click "Run Agent Now" to start.</p>
+  <div class="empty-state">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--app-text-3); margin-bottom: 0.5rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div>No agent runs yet. Click "Run Agent Now" to start.</div>
+  </div>
 <% end %>

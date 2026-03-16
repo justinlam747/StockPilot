@@ -6,10 +6,10 @@ Rails.application.config.action_dispatch.default_headers = {
   "Permissions-Policy" => "camera=(), microphone=(), geolocation=()",
   "Content-Security-Policy" => [
     "default-src 'self'",
-    "script-src 'self' https://unpkg.com",
-    "style-src 'self' https://unpkg.com 'unsafe-inline'",
+    "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net",
+    "style-src 'self' https://unpkg.com https://api.fontshare.com https://fonts.googleapis.com 'unsafe-inline'",
     "img-src 'self' data:",
-    "font-src 'self'",
+    "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
     "connect-src 'self'",
     "frame-ancestors https://*.myshopify.com https://admin.shopify.com",
     "base-uri 'self'",

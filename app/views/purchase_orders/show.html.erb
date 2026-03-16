@@ -1,28 +1,60 @@
-<a href="/purchase_orders">&larr; Back to Purchase Orders</a>
-<h1>Purchase Order #<%= @purchase_order.id %></h1>
-
-<p><strong>Supplier:</strong> <%= @purchase_order.supplier&.name %></p>
-<p><strong>Status:</strong> <mark><%= @purchase_order.status %></mark></p>
-<p><strong>Created:</strong> <%= @purchase_order.created_at.strftime("%b %d, %Y %H:%M") %></p>
-
-<% if @purchase_order.status == "draft" %>
-  <%= button_to "Mark as Sent", mark_sent_purchase_order_path(@purchase_order), method: :patch %>
-<% elsif @purchase_order.status == "sent" %>
-  <%= button_to "Mark as Received", mark_received_purchase_order_path(@purchase_order), method: :patch %>
+<% content_for :breadcrumbs do %>
+  <a href="/dashboard">Dashboard</a>
+  <span class="separator">/</span>
+  <a href="/purchase_orders">Purchase Orders</a>
+  <span class="separator">/</span>
+  <span>#<%= @purchase_order.id %></span>
 <% end %>
 
-<h2>Line Items</h2>
-<table>
-  <thead>
-    <tr><th>Variant</th><th>Quantity</th><th>Unit Cost</th></tr>
-  </thead>
-  <tbody>
-    <% @purchase_order.purchase_order_line_items.each do |li| %>
-      <tr>
-        <td><%= li.variant&.title || li.variant&.sku %></td>
-        <td><%= li.quantity %></td>
-        <td><%= number_to_currency(li.unit_cost) if li.respond_to?(:unit_cost) %></td>
-      </tr>
+<% content_for :page_header do %>
+  <h1>Purchase Order #<%= @purchase_order.id %></h1>
+  <div class="btn-group">
+    <% if @purchase_order.status == "draft" %>
+      <%= button_to "Mark as Sent", mark_sent_purchase_order_path(@purchase_order), method: :patch, class: "btn btn--primary" %>
+    <% elsif @purchase_order.status == "sent" %>
+      <%= button_to "Mark as Received", mark_received_purchase_order_path(@purchase_order), method: :patch, class: "btn btn--primary" %>
     <% end %>
-  </tbody>
-</table>
+    <a href="/purchase_orders" class="btn">&larr; Back</a>
+  </div>
+<% end %>
+
+<div class="card" style="margin-bottom: 1.25rem;">
+  <div class="detail-row">
+    <span class="detail-row__label">Supplier</span>
+    <span class="detail-row__value"><%= @purchase_order.supplier&.name %></span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-row__label">Status</span>
+    <span class="detail-row__value">
+      <% status_class = case @purchase_order.status
+           when "draft" then "badge--neutral"
+           when "sent" then "badge--warning"
+           when "received" then "badge--success"
+           else "badge--neutral"
+         end %>
+      <span class="badge <%= status_class %>"><%= @purchase_order.status.capitalize %></span>
+    </span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-row__label">Created</span>
+    <span class="detail-row__value"><%= @purchase_order.created_at.strftime("%b %d, %Y %H:%M") %></span>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="card__title" style="margin-bottom: 1rem;">Line Items</h2>
+  <table>
+    <thead>
+      <tr><th>Variant</th><th>Quantity</th><th>Unit Cost</th></tr>
+    </thead>
+    <tbody>
+      <% @purchase_order.purchase_order_line_items.each do |li| %>
+        <tr>
+          <td><%= li.variant&.title || li.variant&.sku %></td>
+          <td><%= li.quantity %></td>
+          <td><%= number_to_currency(li.unit_cost) if li.respond_to?(:unit_cost) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

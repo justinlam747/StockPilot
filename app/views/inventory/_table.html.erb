@@ -1,26 +1,32 @@
+<% filter = local_assigns[:filter] || "all" %>
 <table>
   <thead>
     <tr>
       <th>Product</th>
+      <th>Variant</th>
       <th>SKU</th>
-      <th>Stock</th>
+      <th style="text-align: right;">Stock</th>
       <th>Status</th>
     </tr>
   </thead>
   <tbody>
     <% products.each do |product| %>
       <% product.variants.each do |variant| %>
+        <% qty = variant.inventory_quantity %>
+        <% next if filter == "low_stock" && !(qty.between?(1, 10)) %>
+        <% next if filter == "out_of_stock" && qty != 0 %>
         <tr>
           <td><a href="/inventory/<%= product.id %>"><%= product.title %></a></td>
-          <td><%= variant.sku %></td>
-          <td><%= variant.inventory_quantity %></td>
+          <td class="text-secondary"><%= variant.title %></td>
+          <td><code class="sku-code"><%= variant.sku %></code></td>
+          <td style="text-align: right; font-variant-numeric: tabular-nums;"><%= qty %></td>
           <td>
-            <% if variant.inventory_quantity == 0 %>
-              <mark>Out of Stock</mark>
-            <% elsif variant.inventory_quantity <= 10 %>
-              <mark>Low</mark>
+            <% if qty == 0 %>
+              <span class="badge badge--danger">Out of Stock</span>
+            <% elsif qty <= 10 %>
+              <span class="badge badge--warning">Low Stock</span>
             <% else %>
-              In Stock
+              <span class="badge badge--success">In Stock</span>
             <% end %>
           </td>
         </tr>

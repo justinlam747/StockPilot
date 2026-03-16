@@ -1,12 +1,23 @@
-<h1>Purchase Orders</h1>
+<% content_for :breadcrumbs do %>
+  <a href="/dashboard">Dashboard</a>
+  <span class="separator">/</span>
+  <span>Purchase Orders</span>
+<% end %>
 
-<button hx-post="/purchase_orders/generate_draft" hx-target="#draft-area" hx-indicator="#draft-spinner">
-  Generate Draft PO
-</button>
-<span id="draft-spinner" class="htmx-indicator">Generating with AI...</span>
+<% content_for :page_header do %>
+  <h1>Purchase Orders</h1>
+  <div class="btn-group">
+    <button class="btn btn--primary" hx-post="/purchase_orders/generate_draft" hx-target="#draft-area" hx-indicator="#draft-spinner">
+      Generate Draft PO
+    </button>
+    <span id="draft-spinner" class="htmx-indicator">Generating with AI...</span>
+  </div>
+<% end %>
 
 <div id="draft-area"></div>
 
-<div id="po-list">
-  <%= render "list", purchase_orders: @purchase_orders %>
+<div class="card">
+  <div id="po-list">
+    <%= render "list", purchase_orders: @purchase_orders %>
+  </div>
 </div>

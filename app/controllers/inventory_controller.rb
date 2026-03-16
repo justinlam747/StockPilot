@@ -1,31 +1,20 @@
 class InventoryController < ApplicationController
   def index
-    @products = Product.includes(:variants)
-    @products = apply_filter(@products)
+    @filter = params[:filter] || "all"
+    @products = Product.includes(variants: :inventory_snapshots)
     @products = apply_search(@products)
-    @products = @products.page(params[:page]).per(25)
+    @products = @products.order(:title).page(params[:page]).per(25)
 
     if request.headers["HX-Request"]
-      render partial: "table", locals: { products: @products }
+      render partial: "table", locals: { products: @products, filter: @filter }
     end
   end
 
   def show
-    @product = Product.includes(:variants).find(params[:id])
+    @product = Product.includes(variants: :inventory_snapshots).find(params[:id])
   end
 
   private
-
-  def apply_filter(scope)
-    case params[:filter]
-    when "low_stock"
-      scope.joins(:variants).where("variants.inventory_quantity > 0 AND variants.inventory_quantity <= 10").distinct
-    when "out_of_stock"
-      scope.joins(:variants).where(variants: { inventory_quantity: 0 }).distinct
-    else
-      scope
-    end
-  end
 
   def apply_search(scope)
     return scope unless params[:q].present?

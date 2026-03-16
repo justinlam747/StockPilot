@@ -1,281 +1,458 @@
 <div class="sp">
   <a href="#sp-main" class="sr-only">Skip to main content</a>
 
-  <!-- Scroll spy sidebar -->
-  <aside class="sp-sidebar" aria-label="Page navigation">
-    <div class="sp-sidebar__track">
-      <a href="#sp-main" class="sp-sidebar__link is-active" data-section="sp-main">
-        <span class="sp-sidebar__dot"></span>
-        <span class="sp-sidebar__label">Home</span>
+  <!-- Nav -->
+  <nav class="sp-nav" aria-label="StockPilot navigation">
+    <div class="sp-nav__inner">
+      <a href="/" class="sp-nav__brand" aria-label="StockPilot home">
+        <%= image_tag "stockpilot-icon.png", alt: "", class: "sp-nav__logo", width: 32, height: 32 %>
+        <span>StockPilot</span>
       </a>
-      <a href="#sp-features" class="sp-sidebar__link" data-section="sp-features">
-        <span class="sp-sidebar__dot"></span>
-        <span class="sp-sidebar__label">Agents</span>
-      </a>
-      <a href="#sp-how" class="sp-sidebar__link" data-section="sp-how">
-        <span class="sp-sidebar__dot"></span>
-        <span class="sp-sidebar__label">How it works</span>
-      </a>
-      <a href="#sp-faq" class="sp-sidebar__link" data-section="sp-faq">
-        <span class="sp-sidebar__dot"></span>
-        <span class="sp-sidebar__label">FAQ</span>
-      </a>
+      <div class="sp-nav__links">
+        <a href="#sp-features">Features</a>
+        <a href="#sp-capabilities">Product</a>
+        <a href="#sp-how">How it works</a>
+        <a href="#sp-faq">FAQ</a>
+      </div>
+      <div class="sp-nav__actions">
+        <% if Rails.env.development? %>
+          <a href="/dev_login" class="sp-nav__login">Login</a>
+        <% else %>
+          <a href="/auth/shopify" class="sp-nav__login" data-method="post">Login</a>
+        <% end %>
+        <a href="/auth/shopify" class="sp-btn sp-btn--primary" data-method="post">Get started</a>
+      </div>
     </div>
-  </aside>
+  </nav>
 
-  <!-- Container for vertical grid lines -->
-  <div class="sp-grid" aria-hidden="true">
-    <div class="sp-grid__col sp-grid__col--1"></div>
-    <div class="sp-grid__col sp-grid__col--2"></div>
-  </div>
-
-  <div class="sp-wrap">
-
-    <!-- Nav — static notebook header -->
-    <nav class="sp-nav" aria-label="StockPilot navigation">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-        <span class="sp-corner sp-corner--bl"></span>
-        <span class="sp-corner sp-corner--br"></span>
-      </div>
-      <div class="sp-nav__inner">
-        <a href="/" class="sp-nav__brand" aria-label="StockPilot home">
-          <span>StockPilot</span>
-        </a>
-        <div class="sp-nav__links">
-          <a href="#sp-features">Features</a>
-          <a href="#sp-how">How it works</a>
-          <a href="#sp-faq">FAQ</a>
+  <!-- Hero -->
+  <section class="sp-hero" id="sp-main">
+    <div class="sp-hero__content">
+      <div class="sp-hero__text">
+        <h1 class="sp-hero__title">
+          Agents that stock your shelves<br>
+          Intelligence that grows your sales.
+        </h1>
+        <p class="sp-hero__sub">
+          Deploy AI agents that monitor inventory, draft purchase orders, and surface
+          insights&mdash;without changing how your team works.
+        </p>
+        <div class="sp-hero__actions">
+          <a href="/auth/shopify" class="sp-btn sp-btn--primary sp-btn--lg" data-method="post">
+            Start your free trial
+          </a>
+          <a href="#sp-features" class="sp-hero__demo-link">
+            View agent demos
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
         </div>
-        <a href="/auth/shopify" class="sp-btn sp-btn--dark" data-method="post">
-          Get started
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
       </div>
-    </nav>
-
-    <!-- Hero -->
-    <section class="sp-hero" id="sp-main">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-        <span class="sp-corner sp-corner--bl"></span>
-        <span class="sp-corner sp-corner--br"></span>
-      </div>
-      <div class="sp-hero__inner">
-        <div class="sp-hero__text">
-          <div class="sp-pill">
-            <span class="sp-pill__dot"></span>
-            Built for Shopify
-          </div>
-          <h1 class="sp-hero__title">$tockPilot</h1>
-          <p class="sp-hero__tagline">agentic inventory analysis</p>
-          <p class="sp-hero__sub">
-            Your inventory command center. <em>AI agents</em> that monitor stock,
-            draft purchase orders, scout suppliers, and wait for your
-            sign-off &mdash; so you never lose a sale to an empty shelf.
-          </p>
-          <div class="sp-hero__actions">
-            <a href="/auth/shopify" class="sp-btn sp-btn--dark sp-btn--lg" data-method="post">
-              Deploy your agents
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-          </div>
-          <p class="sp-hero__proof">4 AI agents &middot; 60s setup &middot; Human-in-the-loop</p>
-        </div>
-        </div>
-    </section>
-
-    <!-- Down arrows separator -->
-    <div class="sp-arrows" aria-hidden="true">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-    <!-- Features -->
-    <section id="sp-features" class="sp-section">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-        <span class="sp-corner sp-corner--bl"></span>
-        <span class="sp-corner sp-corner--br"></span>
+    <!-- Hero dashboard mockup — mirrors real app -->
+    <div class="sp-hero__visual">
+      <div class="sp-hero__screenshot">
+        <div class="sp-mock">
+          <!-- Sidebar — matches real sidebar -->
+          <div class="sp-mock__sidebar">
+            <div class="sp-mock__brand">
+              <%= image_tag "stockpilot-icon.png", alt: "", class: "sp-mock__brand-icon", width: 34, height: 34 %>
+            </div>
+            <div class="sp-mock__nav-items">
+              <div class="sp-mock__nav-item sp-mock__nav-item--active">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+              </div>
+              <div class="sp-mock__nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                Inventory
+              </div>
+              <div class="sp-mock__nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                Suppliers
+              </div>
+              <div class="sp-mock__nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Purchase Orders
+              </div>
+              <div class="sp-mock__nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                Alerts
+              </div>
+            </div>
+            <div class="sp-mock__user">
+              <div class="sp-mock__avatar">M</div>
+              <span class="sp-mock__user-name">My Store</span>
+            </div>
+          </div>
+
+          <!-- Main content area -->
+          <div class="sp-mock__main">
+            <!-- Page header -->
+            <div class="sp-mock__page-header">
+              <span class="sp-mock__page-title">Dashboard</span>
+              <button class="sp-mock__run-btn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Run Agent Now
+              </button>
+            </div>
+
+            <!-- KPI cards -->
+            <div class="sp-mock__kpis">
+              <div class="sp-mock__kpi">
+                <div class="sp-mock__kpi-val">2,847</div>
+                <div class="sp-mock__kpi-label">Total Products</div>
+                <div class="sp-mock__kpi-sub">14,203 variants tracked</div>
+              </div>
+              <div class="sp-mock__kpi">
+                <div class="sp-mock__kpi-val sp-mock__kpi-val--warn">23</div>
+                <div class="sp-mock__kpi-label">Low Stock</div>
+                <div class="sp-mock__kpi-sub">Below threshold</div>
+              </div>
+              <div class="sp-mock__kpi">
+                <div class="sp-mock__kpi-val sp-mock__kpi-val--danger">7</div>
+                <div class="sp-mock__kpi-label">Out of Stock</div>
+                <div class="sp-mock__kpi-sub">Needs reorder</div>
+              </div>
+              <div class="sp-mock__kpi">
+                <div class="sp-mock__kpi-val">5</div>
+                <div class="sp-mock__kpi-label">Pending POs</div>
+                <div class="sp-mock__kpi-sub">3 sent, 12 suppliers</div>
+              </div>
+            </div>
+
+            <!-- Two-column: Alerts + Agent Results -->
+            <div class="sp-mock__grid-2">
+              <!-- Recent Alerts -->
+              <div class="sp-mock__card">
+                <div class="sp-mock__card-header">
+                  <span class="sp-mock__card-title">Recent Alerts</span>
+                  <span class="sp-mock__card-action">View all</span>
+                </div>
+                <div class="sp-mock__alert-list">
+                  <div class="sp-mock__alert">
+                    <span class="sp-mock__alert-dot sp-mock__alert-dot--critical"></span>
+                    <div class="sp-mock__alert-body">
+                      <div class="sp-mock__alert-msg">Merino Wool Beanie / One Size — stock at 3 units</div>
+                      <div class="sp-mock__alert-time">2 hours ago</div>
+                    </div>
+                    <span class="sp-mock__dismiss">Dismiss</span>
+                  </div>
+                  <div class="sp-mock__alert">
+                    <span class="sp-mock__alert-dot sp-mock__alert-dot--warning"></span>
+                    <div class="sp-mock__alert-body">
+                      <div class="sp-mock__alert-msg">Organic Cotton Tee / M — stock at 12 units</div>
+                      <div class="sp-mock__alert-time">5 hours ago</div>
+                    </div>
+                    <span class="sp-mock__dismiss">Dismiss</span>
+                  </div>
+                  <div class="sp-mock__alert">
+                    <span class="sp-mock__alert-dot sp-mock__alert-dot--critical"></span>
+                    <div class="sp-mock__alert-body">
+                      <div class="sp-mock__alert-msg">Recycled Denim Jacket / L — stock at 0 units</div>
+                      <div class="sp-mock__alert-time">1 day ago</div>
+                    </div>
+                    <span class="sp-mock__dismiss">Dismiss</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Agent Results -->
+              <div class="sp-mock__card">
+                <div class="sp-mock__card-header">
+                  <span class="sp-mock__card-title">Agent Results</span>
+                </div>
+                <div class="sp-mock__agent">
+                  <div class="sp-mock__detail-row">
+                    <span class="sp-mock__detail-label">Last run</span>
+                    <span class="sp-mock__detail-val">Mar 14, 2026 at 09:32</span>
+                  </div>
+                  <div class="sp-mock__detail-row">
+                    <span class="sp-mock__detail-label">Variants scanned</span>
+                    <span class="sp-mock__detail-val">14,203</span>
+                  </div>
+                  <div class="sp-mock__detail-row">
+                    <span class="sp-mock__detail-label">Alerts generated</span>
+                    <span class="sp-mock__detail-val">4</span>
+                  </div>
+                  <div class="sp-mock__recs">
+                    <div class="sp-mock__recs-title">Recommendations</div>
+                    <div class="sp-mock__rec-item">Reorder Merino Wool Beanie — projected stockout in 3 days</div>
+                    <div class="sp-mock__rec-item">Bulk order opportunity: Cotton Tee variants below threshold</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="sp-section__label">[ Agents ]</div>
+    </div>
+  </section>
+
+  <!-- Features — 3 columns -->
+  <section id="sp-features" class="sp-section">
+    <div class="sp-section__inner">
       <div class="sp-section__header">
-        <h2 class="sp-section__title">Four agents.<br>One command center.</h2>
-        <p class="sp-section__sub">Each agent handles a specific domain of your inventory workflow. Together, they keep your shelves stocked and your margins healthy.</p>
+        <h2 class="sp-section__title">
+          Built for Merchants<br>Who Move Fast.
+        </h2>
+        <p class="sp-section__sub">
+          Agents work inside your Shopify admin, with built-in approvals,
+          configurable thresholds, and full traceability. Every action is
+          auditable, every outcome accountable.
+        </p>
       </div>
       <div class="sp-features">
-        <div class="sp-feature">
-          <div class="sp-feature__corner" aria-hidden="true">
-            <span class="sp-corner sp-corner--tl"></span>
-            <span class="sp-corner sp-corner--tr"></span>
-            <span class="sp-corner sp-corner--bl"></span>
-            <span class="sp-corner sp-corner--br"></span>
+        <!-- Card 1: Agent list -->
+        <div class="sp-feature-card">
+          <div class="sp-feature-card__visual">
+            <div class="sp-agent-preview sp-agent-preview--monitor">
+              <div class="sp-agent-preview__item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" fill="#f59e0b"/></svg>
+                <span>Inventory Monitor</span>
+                <span class="sp-agent-preview__badge sp-agent-preview__badge--active">
+                  <span class="sp-live-dot"></span>
+                  scanning
+                </span>
+              </div>
+              <div class="sp-agent-preview__item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" fill="#16a34a"/></svg>
+                <span>PO Drafter</span>
+                <span class="sp-agent-preview__badge">ready</span>
+              </div>
+              <div class="sp-agent-preview__item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" fill="#6366f1"/></svg>
+                <span>Lead Scout</span>
+                <span class="sp-agent-preview__meta">
+                  <span class="sp-agent-preview__progress"></span>
+                  67%
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="sp-feature__head">
-            <span class="sp-feature__num">01</span>
-            <span class="sp-feature__status"><span class="sp-dot sp-dot--green"></span> Active</span>
-          </div>
-          <h3 class="sp-feature__title">Inventory Monitor</h3>
-          <p class="sp-feature__desc">Continuously scans stock across all locations. Flags critical SKUs before you lose a sale.</p>
+          <h3 class="sp-feature-card__title">Prebuilt Agents, Tuned to Your Workflows</h3>
+          <p class="sp-feature-card__desc">
+            Customize AI agents for inventory monitoring, purchase orders, and
+            supplier discovery&mdash;built around your workflows.
+          </p>
         </div>
-        <div class="sp-feature">
-          <div class="sp-feature__corner" aria-hidden="true">
-            <span class="sp-corner sp-corner--tl"></span>
-            <span class="sp-corner sp-corner--tr"></span>
-            <span class="sp-corner sp-corner--bl"></span>
-            <span class="sp-corner sp-corner--br"></span>
+
+        <!-- Card 2: Workflow flow -->
+        <div class="sp-feature-card">
+          <div class="sp-feature-card__visual">
+            <div class="sp-agent-preview sp-agent-preview--flow">
+              <div class="sp-flow-step sp-flow-step--done">
+                <span class="sp-flow-check">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-5" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Fetching Data
+              </div>
+              <div class="sp-flow-step sp-flow-step--done">
+                <span class="sp-flow-check">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-5" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Processing Data
+              </div>
+              <div class="sp-flow-step sp-flow-step--active">
+                <span class="sp-flow-dot"></span>
+                Performing Action
+              </div>
+              <div class="sp-flow-step">
+                <span class="sp-flow-circle"></span>
+                Awaiting Approval
+              </div>
+              <div class="sp-flow-step">
+                <span class="sp-flow-circle"></span>
+                Generating Report
+              </div>
+            </div>
           </div>
-          <div class="sp-feature__head">
-            <span class="sp-feature__num">02</span>
-            <span class="sp-feature__status"><span class="sp-dot sp-dot--green"></span> Active</span>
-          </div>
-          <h3 class="sp-feature__title">PO Drafter</h3>
-          <p class="sp-feature__desc">Analyzes velocity and lead times. Drafts purchase orders so you just review and approve.</p>
+          <h3 class="sp-feature-card__title">Automate Handoffs, Reduce Ops Friction</h3>
+          <p class="sp-feature-card__desc">
+            Agents handle the grunt work&mdash;syncing inventory, drafting orders,
+            flagging anomalies&mdash;so your team focuses on decisions.
+          </p>
         </div>
-        <div class="sp-feature">
-          <div class="sp-feature__corner" aria-hidden="true">
-            <span class="sp-corner sp-corner--tl"></span>
-            <span class="sp-corner sp-corner--tr"></span>
-            <span class="sp-corner sp-corner--bl"></span>
-            <span class="sp-corner sp-corner--br"></span>
+
+        <!-- Card 3: Shield -->
+        <div class="sp-feature-card">
+          <div class="sp-feature-card__visual">
+            <div class="sp-agent-preview sp-agent-preview--shield">
+              <div class="sp-shield">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <path d="M24 4L6 12v12c0 11.1 7.7 21.5 18 24 10.3-2.5 18-12.9 18-24V12L24 4z" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+                  <path d="M17 24l5 5 9-9" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
           </div>
-          <div class="sp-feature__head">
-            <span class="sp-feature__num">03</span>
-            <span class="sp-feature__status"><span class="sp-dot sp-dot--green"></span> Active</span>
-          </div>
-          <h3 class="sp-feature__title">Lead Scout</h3>
-          <p class="sp-feature__desc">Finds the best suppliers. Compares pricing, lead times, and reliability scores.</p>
+          <h3 class="sp-feature-card__title">Approvals, Guardrails, and Full Auditability</h3>
+          <p class="sp-feature-card__desc">
+            Nothing ships without your sign-off. Every agent action is logged,
+            reviewable, and reversible.
+          </p>
         </div>
       </div>
-    </section>
-
-    <!-- Down arrows -->
-    <div class="sp-arrows" aria-hidden="true">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
+  </section>
 
-    <!-- How it works -->
-    <section id="sp-how" class="sp-section">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-        <span class="sp-corner sp-corner--bl"></span>
-        <span class="sp-corner sp-corner--br"></span>
+  <!-- Capabilities — 2x2 grid -->
+  <section id="sp-capabilities" class="sp-section sp-section--alt">
+    <div class="sp-section__inner">
+      <div class="sp-capabilities-grid">
+        <div class="sp-cap">
+          <div class="sp-cap__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h3 class="sp-cap__title">Real-Time Alerts</h3>
+          <p class="sp-cap__desc">
+            Configurable thresholds per variant. Get notified the moment stock
+            drops below your safety level.
+          </p>
+        </div>
+
+        <div class="sp-cap">
+          <div class="sp-cap__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h3 class="sp-cap__title">AI Purchase Orders</h3>
+          <p class="sp-cap__desc">
+            Claude analyzes velocity and lead times, then drafts purchase
+            orders for your review and approval.
+          </p>
+        </div>
+
+        <div class="sp-cap">
+          <div class="sp-cap__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <h3 class="sp-cap__title">Supplier Intelligence</h3>
+          <p class="sp-cap__desc">
+            Track lead times, compare pricing, manage contacts.
+            Find the best suppliers for every SKU.
+          </p>
+        </div>
+
+        <div class="sp-cap">
+          <div class="sp-cap__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3 class="sp-cap__title">Weekly Reports</h3>
+          <p class="sp-cap__desc">
+            Trend analysis with timezone-aware scheduling. Know what moved,
+            what stalled, and what to reorder.
+          </p>
+        </div>
       </div>
-      <div class="sp-section__label">[ How it works ]</div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="sp-how" class="sp-section">
+    <div class="sp-section__inner">
       <div class="sp-how">
-        <h2 class="sp-how__title">Connect. Configure.<br>Let agents fly.</h2>
-        <div class="sp-steps">
-          <div class="sp-step">
-            <div class="sp-step__marker">1</div>
-            <div class="sp-step__body">
-              <h3>Connect your store</h3>
-              <p>One-click Shopify install. Products sync in under 60 seconds.</p>
+        <div class="sp-how__left">
+          <h2 class="sp-how__title">Connect. Configure.<br>Let agents fly.</h2>
+          <p class="sp-how__sub">
+            From install to insights in under 60 seconds.
+            No configuration headaches, no learning curve.
+          </p>
+        </div>
+        <div class="sp-how__right">
+          <div class="sp-steps">
+            <div class="sp-step">
+              <div class="sp-step__marker">1</div>
+              <div class="sp-step__body">
+                <h3>Connect your store</h3>
+                <p>One-click Shopify install. Products sync in under 60 seconds.</p>
+              </div>
             </div>
-          </div>
-          <div class="sp-step">
-            <div class="sp-step__marker">2</div>
-            <div class="sp-step__body">
-              <h3>Set your rules</h3>
-              <p>Configure restock thresholds, alert preferences, and supplier contacts.</p>
+            <div class="sp-step">
+              <div class="sp-step__marker">2</div>
+              <div class="sp-step__body">
+                <h3>Set your rules</h3>
+                <p>Configure restock thresholds, alert preferences, and supplier contacts.</p>
+              </div>
             </div>
-          </div>
-          <div class="sp-step">
-            <div class="sp-step__marker">3</div>
-            <div class="sp-step__body">
-              <h3>Agents take flight</h3>
-              <p>Four AI agents start monitoring, drafting, and scouting automatically.</p>
+            <div class="sp-step">
+              <div class="sp-step__marker">3</div>
+              <div class="sp-step__body">
+                <h3>Agents take flight</h3>
+                <p>Four AI agents start monitoring, drafting, and scouting automatically.</p>
+              </div>
             </div>
-          </div>
-          <div class="sp-step">
-            <div class="sp-step__marker">4</div>
-            <div class="sp-step__body">
-              <h3>You review & approve</h3>
-              <p>Every purchase order, every decision &mdash; nothing ships without you.</p>
+            <div class="sp-step">
+              <div class="sp-step__marker">4</div>
+              <div class="sp-step__body">
+                <h3>You review & approve</h3>
+                <p>Every purchase order, every decision&mdash;nothing ships without you.</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-
-    <!-- Down arrows -->
-    <div class="sp-arrows" aria-hidden="true">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
+  </section>
 
-    <!-- FAQ -->
-    <section id="sp-faq" class="sp-section">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-        <span class="sp-corner sp-corner--bl"></span>
-        <span class="sp-corner sp-corner--br"></span>
-      </div>
-      <div class="sp-section__label">[ FAQ ]</div>
+  <!-- FAQ -->
+  <section id="sp-faq" class="sp-section sp-section--alt">
+    <div class="sp-section__inner">
       <div class="sp-faq">
-        <h2 class="sp-faq__title">Frequently asked<br>questions.</h2>
-        <div class="sp-faq__list">
-          <details class="sp-faq__item">
-            <summary>What is StockPilot?</summary>
-            <p>StockPilot is a Shopify app that uses four AI agents to monitor your inventory, draft purchase orders, find suppliers, and keep you in control with human-in-the-loop approvals.</p>
-          </details>
-          <details class="sp-faq__item">
-            <summary>How does it connect to my store?</summary>
-            <p>One-click install from the Shopify App Store. StockPilot syncs your products, variants, and inventory levels automatically in under 60 seconds.</p>
-          </details>
-          <details class="sp-faq__item">
-            <summary>Will agents take actions without my approval?</summary>
-            <p>Never. Every purchase order and supplier decision goes through the Approval Gate agent. Nothing happens without your explicit sign-off.</p>
-          </details>
-          <details class="sp-faq__item">
-            <summary>Is my data safe?</summary>
-            <p>Yes. All data is encrypted at rest and in transit. We follow GDPR requirements and Shopify's mandatory data handling policies. Access tokens are encrypted and never exposed.</p>
-          </details>
-          <details class="sp-faq__item">
-            <summary>What does it cost?</summary>
-            <p>StockPilot is free to get started. No credit card required during setup.</p>
-          </details>
+        <div class="sp-faq__left">
+          <h2 class="sp-faq__title">Frequently asked<br>questions.</h2>
+        </div>
+        <div class="sp-faq__right">
+          <div class="sp-faq__list">
+            <details class="sp-faq__item">
+              <summary>What is StockPilot?</summary>
+              <p>StockPilot is a Shopify app that uses four AI agents to monitor your inventory, draft purchase orders, find suppliers, and keep you in control with human-in-the-loop approvals.</p>
+            </details>
+            <details class="sp-faq__item">
+              <summary>How does it connect to my store?</summary>
+              <p>One-click install from the Shopify App Store. StockPilot syncs your products, variants, and inventory levels automatically in under 60 seconds.</p>
+            </details>
+            <details class="sp-faq__item">
+              <summary>Will agents take actions without my approval?</summary>
+              <p>Never. Every purchase order and supplier decision goes through the Approval Gate agent. Nothing happens without your explicit sign-off.</p>
+            </details>
+            <details class="sp-faq__item">
+              <summary>Is my data safe?</summary>
+              <p>Yes. All data is encrypted at rest and in transit. We follow GDPR requirements and Shopify's mandatory data handling policies. Access tokens are encrypted and never exposed.</p>
+            </details>
+            <details class="sp-faq__item">
+              <summary>What does it cost?</summary>
+              <p>StockPilot is free to get started. No credit card required during setup.</p>
+            </details>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- CTA -->
-    <section class="sp-section sp-section--cta">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-        <span class="sp-corner sp-corner--bl"></span>
-        <span class="sp-corner sp-corner--br"></span>
-      </div>
+  <!-- CTA -->
+  <section class="sp-section sp-section--cta">
+    <div class="sp-section__inner">
       <div class="sp-cta">
-        <h2 class="sp-cta__title">Start shipping with</h2>
-        <div class="sp-cta__brand">
-          <span>StockPilot</span>
-        </div>
-        <a href="/auth/shopify" class="sp-btn sp-btn--dark sp-btn--lg" data-method="post">
-          Get started
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h2 class="sp-cta__title">Ready to put your inventory on autopilot?</h2>
+        <p class="sp-cta__sub">Join merchants who never lose a sale to an empty shelf.</p>
+        <a href="/auth/shopify" class="sp-btn sp-btn--primary sp-btn--lg" data-method="post">
+          Get started free
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Footer -->
-    <footer class="sp-footer">
-      <div class="sp-section-border">
-        <span class="sp-corner sp-corner--tl"></span>
-        <span class="sp-corner sp-corner--tr"></span>
-      </div>
+  <!-- Footer -->
+  <footer class="sp-footer">
+    <div class="sp-section__inner">
       <div class="sp-footer__inner">
         <div class="sp-footer__left">
-          <p>&copy; 2026 StockPilot</p>
+          <a href="/" class="sp-footer__brand">
+            <%= image_tag "stockpilot-icon.png", alt: "", width: 24, height: 24 %>
+            <span>StockPilot</span>
+          </a>
+          <p class="sp-footer__copy">&copy; 2026 StockPilot. All rights reserved.</p>
         </div>
         <nav class="sp-footer__right" aria-label="Footer links">
           <a href="#">Privacy Policy</a>
@@ -283,7 +460,7 @@
           <a href="#">Changelog</a>
         </nav>
       </div>
-    </footer>
+    </div>
+  </footer>
 
-  </div>
 </div>

@@ -1,43 +1,54 @@
-<h2>Alerts</h2>
-
-<% if @alerts.any? %>
-  <table role="grid">
-    <thead>
-      <tr>
-        <th>Severity</th>
-        <th>Message</th>
-        <th>Created</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @alerts.each do |alert| %>
-        <tr id="alert-<%= alert.id %>">
-          <td>
-            <mark class="alert-severity--<%= alert.severity || 'warning' %>">
-              <%= (alert.severity || "warning").capitalize %>
-            </mark>
-          </td>
-          <td><%= alert.message %></td>
-          <td><%= alert.created_at.strftime("%b %d, %Y %H:%M") %></td>
-          <td>
-            <% unless alert.dismissed? %>
-              <button hx-patch="<%= dismiss_alert_path(alert) %>"
-                      hx-target="#alert-<%= alert.id %>"
-                      hx-swap="outerHTML"
-                      aria-label="Dismiss alert: <%= alert.message %>">
-                Dismiss
-              </button>
-            <% else %>
-              <span class="text-secondary">Dismissed</span>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-
-  <%= render "shared/pagination", collection: @alerts %>
-<% else %>
-  <p>No alerts to display.</p>
+<% content_for :breadcrumbs do %>
+  <a href="/dashboard">Dashboard</a>
+  <span class="separator">/</span>
+  <span>Alerts</span>
 <% end %>
+
+<% content_for :page_header do %>
+  <h1>Alerts</h1>
+<% end %>
+
+<div class="card">
+  <% if @alerts.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Severity</th>
+          <th>Message</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @alerts.each do |alert| %>
+          <tr id="alert-<%= alert.id %>">
+            <td>
+              <% sev = alert.severity || "warning" %>
+              <% badge = sev == "critical" ? "badge--danger" : "badge--warning" %>
+              <span class="badge <%= badge %>"><%= sev.capitalize %></span>
+            </td>
+            <td><%= alert.message %></td>
+            <td><%= alert.created_at.strftime("%b %d, %Y %H:%M") %></td>
+            <td>
+              <% unless alert.dismissed? %>
+                <button class="btn btn--sm"
+                        hx-patch="<%= dismiss_alert_path(alert) %>"
+                        hx-target="#alert-<%= alert.id %>"
+                        hx-swap="outerHTML"
+                        aria-label="Dismiss alert: <%= alert.message %>">
+                  Dismiss
+                </button>
+              <% else %>
+                <span class="badge badge--neutral">Dismissed</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render "shared/pagination", collection: @alerts %>
+  <% else %>
+    <div class="empty-state">No alerts to display.</div>
+  <% end %>
+</div>

@@ -1,21 +1,52 @@
-<h1>Dashboard</h1>
-
-<%= render "kpi_cards" %>
-
-<section>
-  <h2>Recent Alerts</h2>
-  <div id="alerts-list">
-    <%= render "alerts" %>
-  </div>
-</section>
-
-<section>
-  <h2>Agent Results</h2>
-  <button hx-post="/agents/run" hx-target="#agent-results" hx-indicator="#agent-spinner">
+<% content_for :page_header do %>
+  <h1>Dashboard</h1>
+  <button class="btn btn--primary" hx-post="/agents/run" hx-target="#agent-results" hx-indicator="#agent-spinner">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
     Run Agent Now
   </button>
-  <span id="agent-spinner" class="htmx-indicator">Analyzing inventory...</span>
-  <div id="agent-results">
-    <%= render "agent_results", results: @last_run %>
+<% end %>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-card__value"><%= @total_products %></div>
+    <div class="kpi-card__label">Total Products</div>
+    <div class="kpi-card__sub"><%= @total_variants %> variants tracked</div>
   </div>
-</section>
+  <div class="kpi-card">
+    <div class="kpi-card__value kpi-card__value--warn"><%= @low_stock %></div>
+    <div class="kpi-card__label">Low Stock</div>
+    <div class="kpi-card__sub">Below threshold</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__value kpi-card__value--danger"><%= @out_of_stock %></div>
+    <div class="kpi-card__label">Out of Stock</div>
+    <div class="kpi-card__sub">Needs reorder</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-card__value"><%= @pending_pos %></div>
+    <div class="kpi-card__label">Pending POs</div>
+    <div class="kpi-card__sub"><%= @sent_pos %> sent, <%= @supplier_count %> suppliers</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card__header">
+      <h2 class="card__title">Recent Alerts</h2>
+      <a href="/alerts" class="btn btn--sm">View all</a>
+    </div>
+    <div id="alerts-list">
+      <%= render "alerts" %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <h2 class="card__title">Agent Results</h2>
+      <span id="agent-spinner" class="htmx-indicator">Analyzing...</span>
+    </div>
+    <div id="agent-results">
+      <%= render "agent_results", results: @last_run %>
+    </div>
+  </div>
+</div>

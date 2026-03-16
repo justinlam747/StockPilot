@@ -6,6 +6,11 @@ Rails.application.routes.draw do
   get "/auth/failure", to: "auth#failure"
   delete "/logout", to: "auth#destroy"
 
+  # Dev login (development only)
+  if Rails.env.development?
+    get "/dev_login", to: "auth#dev_login"
+  end
+
   # Health check (unauthenticated)
   get "/health", to: "health#show"
 

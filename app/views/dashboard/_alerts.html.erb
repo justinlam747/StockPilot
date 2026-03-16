@@ -1,15 +1,27 @@
 <% if @recent_alerts.any? %>
-  <% @recent_alerts.each do |alert| %>
-    <div class="alert-row alert-row--<%= alert.severity || 'warning' %>" id="alert-<%= alert.id %>">
-      <span><%= alert.message %></span>
-      <button hx-patch="/alerts/<%= alert.id %>/dismiss"
-              hx-target="#alert-<%= alert.id %>"
-              hx-swap="outerHTML"
-              aria-label="Dismiss alert: <%= alert.message %>">
-        Dismiss
-      </button>
-    </div>
-  <% end %>
+  <div class="alert-list">
+    <% @recent_alerts.each do |alert| %>
+      <div class="alert-row" id="alert-<%= alert.id %>">
+        <div class="alert-row__left">
+          <span class="alert-dot alert-dot--<%= alert.severity %>"></span>
+          <div>
+            <div class="alert-row__message"><%= alert.message %></div>
+            <div class="alert-row__time"><%= time_ago_in_words(alert.triggered_at) %> ago</div>
+          </div>
+        </div>
+        <button class="btn btn--sm"
+                hx-patch="/alerts/<%= alert.id %>/dismiss"
+                hx-target="#alert-<%= alert.id %>"
+                hx-swap="outerHTML"
+                aria-label="Dismiss alert">
+          Dismiss
+        </button>
+      </div>
+    <% end %>
+  </div>
 <% else %>
-  <p>No recent alerts.</p>
+  <div class="empty-state">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--app-text-3); margin-bottom: 0.5rem;"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <div>All clear — no recent alerts.</div>
+  </div>
 <% end %>

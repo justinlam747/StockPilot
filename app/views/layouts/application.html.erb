@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StockPilot</title>
-  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <%= stylesheet_link_tag "application" %>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <%= csrf_meta_tags %>
@@ -14,7 +16,19 @@
     <%= render "shared/sidebar" %>
     <main class="app-main">
       <%= render "shared/flash" %>
-      <%= yield %>
+      <% if content_for?(:breadcrumbs) %>
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+          <%= yield :breadcrumbs %>
+        </nav>
+      <% end %>
+      <% if content_for?(:page_header) %>
+        <div class="page-header">
+          <%= yield :page_header %>
+        </div>
+      <% end %>
+      <div class="page-content">
+        <%= yield %>
+      </div>
     </main>
   </div>
 </body>

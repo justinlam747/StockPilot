@@ -1,10 +1,25 @@
-<h1>Suppliers</h1>
+<% content_for :breadcrumbs do %>
+  <a href="/dashboard">Dashboard</a>
+  <span class="separator">/</span>
+  <span>Suppliers</span>
+<% end %>
 
-<details>
-  <summary role="button" class="outline">Add Supplier</summary>
-  <%= render "form", supplier: @supplier, url: suppliers_path, method: :post %>
+<% content_for :page_header do %>
+  <h1>Suppliers</h1>
+  <button class="btn btn--primary" onclick="document.getElementById('add-supplier').open = !document.getElementById('add-supplier').open">
+    Add Supplier
+  </button>
+<% end %>
+
+<details id="add-supplier">
+  <summary style="display: none;"></summary>
+  <div class="card" style="margin-bottom: 1rem;">
+    <%= render "form", supplier: @supplier, url: suppliers_path, method: :post %>
+  </div>
 </details>
 
-<div id="supplier-list">
-  <%= render "list", suppliers: @suppliers %>
+<div class="card">
+  <div id="supplier-list">
+    <%= render "list", suppliers: @suppliers %>
+  </div>
 </div>

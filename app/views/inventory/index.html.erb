@@ -1,15 +1,33 @@
-<h1>Inventory</h1>
+<% content_for :breadcrumbs do %>
+  <a href="/dashboard">Dashboard</a>
+  <span class="separator">/</span>
+  <span>Inventory</span>
+<% end %>
 
-<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-  <button hx-get="/inventory?filter=all" hx-target="#product-table" hx-push-url="true">All</button>
-  <button hx-get="/inventory?filter=low_stock" hx-target="#product-table" hx-push-url="true">Low Stock</button>
-  <button hx-get="/inventory?filter=out_of_stock" hx-target="#product-table" hx-push-url="true">Out of Stock</button>
-</div>
+<% content_for :page_header do %>
+  <h1>Inventory</h1>
+  <div class="page-header__meta"><%= @products.total_count %> products</div>
+<% end %>
 
-<input type="search" name="q" placeholder="Search by name or SKU..."
-       hx-get="/inventory" hx-target="#product-table"
-       hx-trigger="input changed delay:300ms" hx-push-url="true">
+<div class="card">
+  <div class="card__toolbar">
+    <div class="filters">
+      <button class="filter-btn <%= 'is-active' if @filter == 'all' %>" hx-get="/inventory?filter=all" hx-target="#product-table" hx-push-url="true">All</button>
+      <button class="filter-btn <%= 'is-active' if @filter == 'low_stock' %>" hx-get="/inventory?filter=low_stock" hx-target="#product-table" hx-push-url="true">Low Stock</button>
+      <button class="filter-btn <%= 'is-active' if @filter == 'out_of_stock' %>" hx-get="/inventory?filter=out_of_stock" hx-target="#product-table" hx-push-url="true">Out of Stock</button>
+    </div>
 
-<div id="product-table">
-  <%= render "table", products: @products %>
+    <div class="search-input">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="search" name="q" placeholder="Search by name or SKU..."
+             hx-get="/inventory" hx-target="#product-table"
+             hx-trigger="input changed delay:300ms" hx-push-url="true">
+    </div>
+  </div>
+
+  <div id="product-table">
+    <%= render "table", products: @products, filter: @filter %>
+  </div>
 </div>
