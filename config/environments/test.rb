@@ -18,4 +18,8 @@ Rails.application.configure do
   config.active_support.disallowed_deprecation = :raise
 
   config.active_job.queue_adapter = :test
+
+  config.active_record.encryption.primary_key = "test-primary-key-that-is-long-enough"
+  config.active_record.encryption.deterministic_key = "test-deterministic-key-long-enough"
+  config.active_record.encryption.key_derivation_salt = "test-key-derivation-salt-long-enough"
 end

@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get "/auth/shopify/callback", to: "auth#callback"
   get "/auth/failure", to: "auth#failure"
   delete "/logout", to: "auth#destroy"
+  get "/install", to: "auth#install"
 
   # Health check (unauthenticated)
   get "/health", to: "health#show"

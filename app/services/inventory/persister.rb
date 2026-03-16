@@ -2,13 +2,16 @@ module Inventory
   class Persister
     def initialize(shop)
       @shop = shop
+      @cache = Cache::ShopCache.new(shop)
     end
 
     def upsert(data)
       products = data[:products]
       products.each do |product_node|
-        upsert_product_from_graphql(product_node)
+        product = upsert_product_from_graphql(product_node)
+        @cache.write_product(product.reload) if product
       end
+      @cache.invalidate_inventory
     end
 
     def upsert_single_product(shopify_data)

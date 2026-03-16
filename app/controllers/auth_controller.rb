@@ -21,6 +21,10 @@ class AuthController < ApplicationController
     redirect_to root_path, alert: "Authentication failed: #{params[:message]}"
   end
 
+  def install
+    # Renders a page with a form that POSTs to /auth/shopify (OmniAuth)
+  end
+
   def destroy
     AuditLog.record(action: "logout", shop: current_shop, request: request)
     reset_session

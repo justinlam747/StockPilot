@@ -16,4 +16,8 @@ class ApplicationController < ActionController::Base
   def set_tenant
     ActsAsTenant.current_tenant = current_shop
   end
+
+  def shop_cache
+    @shop_cache ||= Cache::ShopCache.new(current_shop)
+  end
 end

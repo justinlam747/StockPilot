@@ -1,16 +1,17 @@
 class SuppliersController < ApplicationController
   def index
-    @suppliers = Supplier.order(:name)
+    @suppliers = shop_cache.suppliers
     @supplier = Supplier.new
   end
 
   def create
     @supplier = Supplier.new(supplier_params)
     if @supplier.save
+      shop_cache.write_supplier(@supplier)
       AuditLog.record(action: "supplier_created", shop: current_shop, request: request,
                       metadata: { supplier_id: @supplier.id })
       if request.headers["HX-Request"]
-        @suppliers = Supplier.order(:name)
+        @suppliers = shop_cache.suppliers
         render partial: "list", locals: { suppliers: @suppliers }
       else
         redirect_to suppliers_path, notice: "Supplier created"
@@ -23,8 +24,9 @@ class SuppliersController < ApplicationController
   def update
     @supplier = Supplier.find(params[:id])
     if @supplier.update(supplier_params)
+      shop_cache.write_supplier(@supplier)
       if request.headers["HX-Request"]
-        @suppliers = Supplier.order(:name)
+        @suppliers = shop_cache.suppliers
         render partial: "list", locals: { suppliers: @suppliers }
       else
         redirect_to suppliers_path, notice: "Supplier updated"
@@ -39,8 +41,9 @@ class SuppliersController < ApplicationController
     AuditLog.record(action: "supplier_deleted", shop: current_shop, request: request,
                     metadata: { supplier_id: @supplier.id, name: @supplier.name })
     @supplier.destroy!
+    shop_cache.invalidate_supplier(@supplier.id)
     if request.headers["HX-Request"]
-      @suppliers = Supplier.order(:name)
+      @suppliers = shop_cache.suppliers
       render partial: "list", locals: { suppliers: @suppliers }
     else
       redirect_to suppliers_path, notice: "Supplier deleted"

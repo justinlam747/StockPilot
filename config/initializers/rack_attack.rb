@@ -1,4 +1,8 @@
-Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
+  url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
+  namespace: "throttle",
+  pool: false
+)
 
 class Rack::Attack
   # Helper to extract shop_id from session for per-tenant throttling.

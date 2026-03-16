@@ -1,0 +1,21 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "20afdf418d6ed8240cee854d5b171a69"
+name = "StockPilot"
+application_url = "https://saul-untempestuous-overdeferentially.ngrok-free.dev"
+embedded = true
+
+[webhooks]
+api_version = "2026-01"
+
+  [webhooks.privacy_compliance]
+  customer_deletion_url = "/webhooks/customers_redact"
+  customer_data_request_url = "/webhooks/customers_data_request"
+  shop_deletion_url = "/webhooks/shop_redact"
+
+[access_scopes]
+scopes = "read_products,read_inventory,read_orders,read_customers"
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [ "https://saul-untempestuous-overdeferentially.ngrok-free.dev/auth/shopify/callback" ]

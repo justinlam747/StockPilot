@@ -11,7 +11,7 @@ class InventoryController < ApplicationController
   end
 
   def show
-    @product = Product.includes(:variants).find(params[:id])
+    @product = shop_cache.product(params[:id])
   end
 
   private
