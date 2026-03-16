@@ -63,7 +63,6 @@ RSpec.describe Inventory::Persister do
         expect(Product.find_by(shopify_product_id: "111").title).to eq("New Title")
       end
     end
-  end
 
     it "creates multiple products with multiple variants" do
       data = {

@@ -467,4 +467,35 @@ Broad Shopify merchant base — from solo store owners managing a few hundred SK
 
 ---
 
+## Technical Decisions Log (MANDATORY)
+
+**Every time you make an architectural, security, or engineering decision, you MUST add an entry to `TECHNICAL_DECISIONS.md`.**
+
+This file is the owner's portfolio reference — it documents *what* was decided, *why*, and the trade-offs considered. It's used for interview prep and to track the engineering story of the project.
+
+### When to add an entry:
+- Choosing a gem, library, or tool over alternatives
+- Designing a security measure (auth, encryption, rate limiting, headers)
+- Choosing an architecture pattern (multi-tenancy, job design, caching strategy)
+- Making a trade-off (performance vs simplicity, security vs UX)
+- Any decision that would be interesting to explain in a technical interview
+
+### Entry format:
+```markdown
+## TD-XXX: Short Title
+
+**Date:** YYYY-MM-DD
+**Decision:** What you decided.
+**Why:** The reasoning — what problem does this solve?
+**Trade-off:** What you gave up or what the alternative was.
+```
+
+### Rules:
+- Number entries sequentially (TD-001, TD-002, ...)
+- Always include the *why* — the reasoning is more valuable than the decision itself
+- Keep entries concise but complete enough to talk about in an interview
+- Update existing entries if a decision is revisited or reversed
+
+---
+
 *This document is a living guide. Update it as practices evolve — via a PR, of course.*

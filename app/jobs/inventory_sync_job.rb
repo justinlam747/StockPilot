@@ -18,6 +18,7 @@ class InventorySyncJob < ApplicationJob
       Notifications::AlertSender.new(shop).send_low_stock_alerts(flagged)
 
       shop.update!(synced_at: Time.current)
+      Cache::ShopCache.new(shop).warm_inventory_stats
     end
   end
 end

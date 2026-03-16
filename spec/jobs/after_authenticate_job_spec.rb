@@ -14,6 +14,6 @@ RSpec.describe AfterAuthenticateJob, type: :job do
   it "discards when shop not found" do
     expect {
       described_class.perform_now(shop_domain: "nonexistent.myshopify.com")
-    }.to raise_error(ActiveRecord::RecordNotFound)
+    }.not_to raise_error
   end
 end

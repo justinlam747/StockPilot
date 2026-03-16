@@ -1,0 +1,15 @@
+{
+  "name": "inventory-intelligence",
+  "private": true,
+  "scripts": {
+    "dev": "npx shopify app dev",
+    "rails": "bundle exec rails server",
+    "sidekiq": "bundle exec sidekiq -C config/sidekiq.yml",
+    "console": "bundle exec rails console",
+    "test": "bundle exec rspec",
+    "lint": "bundle exec rubocop"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.39.1"
+  }
+}

@@ -1,0 +1,5 @@
+[commands]
+dev = "ruby bin/rails server -p %PORT%"
+
+[roles]
+backend = true
