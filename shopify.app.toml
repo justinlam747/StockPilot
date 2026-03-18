@@ -9,9 +9,9 @@ embedded = true
 api_version = "2026-01"
 
   [webhooks.privacy_compliance]
-  customer_deletion_url = "/webhooks/customers_redact"
-  customer_data_request_url = "/webhooks/customers_data_request"
-  shop_deletion_url = "/webhooks/shop_redact"
+  customer_deletion_url = "/gdpr/customers_redact"
+  customer_data_request_url = "/gdpr/customers_data_request"
+  shop_deletion_url = "/gdpr/shop_redact"
 
 [access_scopes]
 scopes = "read_products,read_inventory,read_orders,read_customers"
