@@ -1,8 +1,10 @@
-<div style="margin: 1rem 0; padding: 1.5rem; border: 1px solid var(--pico-muted-border-color); border-radius: 8px; background: #f9fafb;">
-  <h3>AI-Generated Draft</h3>
+<div class="sp-draft-preview" aria-live="polite">
+  <h3 class="sp-card__title">AI-Generated Draft</h3>
   <% if draft.present? %>
-    <pre style="white-space: pre-wrap;"><%= draft.to_json %></pre>
+    <pre><%= draft.to_json %></pre>
   <% else %>
-    <p>No draft could be generated. Check that you have low-stock items and suppliers configured.</p>
+    <div class="sp-empty">
+      <p class="sp-empty__desc">No draft could be generated. Check that you have low-stock items and suppliers configured.</p>
+    </div>
   <% end %>
 </div>

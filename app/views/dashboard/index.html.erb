@@ -1,21 +1,40 @@
-<h1>Dashboard</h1>
+<div class="sp-page-header">
+  <h1>Dashboard</h1>
+</div>
 
 <%= render "kpi_cards" %>
 
-<section>
-  <h2>Recent Alerts</h2>
-  <div id="alerts-list">
-    <%= render "alerts" %>
+<section class="sp-section" aria-labelledby="alerts-heading">
+  <div class="sp-card">
+    <div class="sp-card__header">
+      <h2 id="alerts-heading" class="sp-card__title">Recent Alerts</h2>
+    </div>
+    <div id="alerts-list">
+      <%= render "alerts" %>
+    </div>
   </div>
 </section>
 
-<section>
-  <h2>Agent Results</h2>
-  <button hx-post="/agents/run" hx-target="#agent-results" hx-indicator="#agent-spinner">
-    Run Agent Now
-  </button>
-  <span id="agent-spinner" class="htmx-indicator">Analyzing inventory...</span>
-  <div id="agent-results">
-    <%= render "agent_results", results: @last_run %>
+<section class="sp-section" aria-labelledby="agent-heading">
+  <div class="sp-card">
+    <div class="sp-card__header">
+      <h2 id="agent-heading" class="sp-card__title">Agent Results</h2>
+      <div class="sp-page-header__actions">
+        <button hx-post="/agents/run"
+                hx-target="#agent-results"
+                hx-indicator="#agent-spinner"
+                class="sp-btn--primary"
+                aria-label="Run inventory analysis agent">
+          Run Agent Now
+        </button>
+        <span id="agent-spinner" class="htmx-indicator">
+          <span class="sp-spinner" aria-hidden="true"></span>
+          Analyzing inventory...
+        </span>
+      </div>
+    </div>
+    <div id="agent-results">
+      <%= render "agent_results", results: @last_run %>
+    </div>
   </div>
 </section>

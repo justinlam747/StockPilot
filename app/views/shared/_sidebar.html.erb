@@ -3,18 +3,49 @@
     <svg width="22" height="22" viewBox="0 0 28 28" fill="none" aria-hidden="true">
       <rect x="2" y="2" width="24" height="24" rx="6" stroke="currentColor" stroke-width="1.5"/>
       <rect x="7" y="14" width="4" height="8" rx="1" fill="currentColor"/>
-      <rect x="12" y="10" width="4" height="12" rx="1" fill="#9CA3AF"/>
+      <rect x="12" y="10" width="4" height="12" rx="1" fill="#8C9196"/>
       <rect x="17" y="6" width="4" height="16" rx="1" fill="currentColor"/>
     </svg>
     <span>StockPilot</span>
   </div>
-  <ul>
-    <li><a href="/dashboard" class="<%= 'active' if request.path == '/dashboard' %>">Dashboard</a></li>
-    <li><a href="/inventory" class="<%= 'active' if request.path.start_with?('/inventory') %>">Inventory</a></li>
-    <li><a href="/suppliers" class="<%= 'active' if request.path.start_with?('/suppliers') %>">Suppliers</a></li>
-    <li><a href="/purchase_orders" class="<%= 'active' if request.path.start_with?('/purchase_orders') %>">Purchase Orders</a></li>
+  <ul role="list">
+    <li>
+      <a href="/dashboard"
+         class="<%= 'active' if request.path == '/dashboard' %>"
+         aria-current="<%= 'page' if request.path == '/dashboard' %>">
+        Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="/inventory"
+         class="<%= 'active' if request.path.start_with?('/inventory') %>"
+         aria-current="<%= 'page' if request.path.start_with?('/inventory') %>">
+        Inventory
+      </a>
+    </li>
+    <li>
+      <a href="/suppliers"
+         class="<%= 'active' if request.path.start_with?('/suppliers') %>"
+         aria-current="<%= 'page' if request.path.start_with?('/suppliers') %>">
+        Suppliers
+      </a>
+    </li>
+    <li>
+      <a href="/purchase_orders"
+         class="<%= 'active' if request.path.start_with?('/purchase_orders') %>"
+         aria-current="<%= 'page' if request.path.start_with?('/purchase_orders') %>">
+        Purchase Orders
+      </a>
+    </li>
+    <li>
+      <a href="/alerts"
+         class="<%= 'active' if request.path.start_with?('/alerts') %>"
+         aria-current="<%= 'page' if request.path.start_with?('/alerts') %>">
+        Alerts
+      </a>
+    </li>
   </ul>
   <div class="sidebar__footer">
-    <%= button_to "Logout", "/logout", method: :delete, class: "sidebar__logout" %>
+    <%= button_to "Log out", "/logout", method: :delete, class: "sidebar__logout", aria: { label: "Log out of StockPilot" } %>
   </div>
 </nav>

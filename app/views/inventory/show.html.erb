@@ -1,17 +1,28 @@
-<h1><%= @product.title %></h1>
-<a href="/inventory">&larr; Back to inventory</a>
+<a href="/inventory" class="sp-back-link" aria-label="Back to inventory list">
+  &larr; Back to inventory
+</a>
 
-<table>
-  <thead>
-    <tr><th>Variant</th><th>SKU</th><th>Stock</th></tr>
-  </thead>
-  <tbody>
-    <% @product.variants.each do |v| %>
+<div class="sp-page-header">
+  <h1><%= @product.title %></h1>
+</div>
+
+<div class="sp-card">
+  <table aria-label="Variants for <%= @product.title %>">
+    <thead>
       <tr>
-        <td><%= v.title %></td>
-        <td><%= v.sku %></td>
-        <td><%= v.inventory_quantity %></td>
+        <th scope="col">Variant</th>
+        <th scope="col">SKU</th>
+        <th scope="col">Stock</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% @product.variants.each do |v| %>
+        <tr>
+          <td><%= v.title %></td>
+          <td><%= v.sku %></td>
+          <td><%= v.inventory_quantity %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

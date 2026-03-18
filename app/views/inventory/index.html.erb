@@ -1,14 +1,44 @@
-<h1>Inventory</h1>
-
-<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-  <button hx-get="/inventory?filter=all" hx-target="#product-table" hx-push-url="true">All</button>
-  <button hx-get="/inventory?filter=low_stock" hx-target="#product-table" hx-push-url="true">Low Stock</button>
-  <button hx-get="/inventory?filter=out_of_stock" hx-target="#product-table" hx-push-url="true">Out of Stock</button>
+<div class="sp-page-header">
+  <h1>Inventory</h1>
 </div>
 
-<input type="search" name="q" placeholder="Search by name or SKU..."
-       hx-get="/inventory" hx-target="#product-table"
-       hx-trigger="input changed delay:300ms" hx-push-url="true">
+<div class="sp-filter-bar" role="group" aria-label="Filter inventory">
+  <button hx-get="/inventory?filter=all"
+          hx-target="#product-table"
+          hx-push-url="true"
+          aria-pressed="<%= params[:filter].blank? || params[:filter] == 'all' ? 'true' : 'false' %>"
+          class="<%= 'is-active' if params[:filter].blank? || params[:filter] == 'all' %>">
+    All
+  </button>
+  <button hx-get="/inventory?filter=low_stock"
+          hx-target="#product-table"
+          hx-push-url="true"
+          aria-pressed="<%= params[:filter] == 'low_stock' ? 'true' : 'false' %>"
+          class="<%= 'is-active' if params[:filter] == 'low_stock' %>">
+    Low Stock
+  </button>
+  <button hx-get="/inventory?filter=out_of_stock"
+          hx-target="#product-table"
+          hx-push-url="true"
+          aria-pressed="<%= params[:filter] == 'out_of_stock' ? 'true' : 'false' %>"
+          class="<%= 'is-active' if params[:filter] == 'out_of_stock' %>">
+    Out of Stock
+  </button>
+</div>
+
+<div class="sp-search">
+  <label for="inventory-search" class="sr-only">Search by name or SKU</label>
+  <input type="search"
+         id="inventory-search"
+         name="q"
+         placeholder="Search by name or SKU..."
+         value="<%= params[:q] %>"
+         hx-get="/inventory"
+         hx-target="#product-table"
+         hx-trigger="input changed delay:300ms"
+         hx-push-url="true"
+         aria-label="Search inventory">
+</div>
 
 <div id="product-table">
   <%= render "table", products: @products %>

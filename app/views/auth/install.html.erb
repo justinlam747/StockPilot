@@ -1,13 +1,26 @@
-<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
-  <div style="background: #fff; padding: 40px; border-radius: 8px; border: 1px solid #C9CCCF; text-align: center; max-width: 400px;">
-    <h1 style="color: #1A1A1A; font-size: 24px; margin-bottom: 8px;">Install StockPilot</h1>
-    <p style="color: #6D7175; margin-bottom: 24px;">Enter your Shopify store URL to connect.</p>
-    <%= form_with url: "/auth/shopify", method: :post, data: { turbo: false } do |f| %>
+<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--color-bg-hover, #F6F6F7);">
+  <div style="background: var(--color-bg, #FFFFFF); padding: 48px 40px; border-radius: 8px; border: 1px solid var(--color-stroke-light, #E1E3E5); text-align: center; max-width: 400px; width: 100%; box-shadow: 0 1px 2px 0 rgba(26, 26, 26, 0.05);">
+    <svg width="32" height="32" viewBox="0 0 28 28" fill="none" aria-hidden="true" style="margin-bottom: 16px;">
+      <rect x="2" y="2" width="24" height="24" rx="6" stroke="#1A1A1A" stroke-width="1.5"/>
+      <rect x="7" y="14" width="4" height="8" rx="1" fill="#1A1A1A"/>
+      <rect x="12" y="10" width="4" height="12" rx="1" fill="#8C9196"/>
+      <rect x="17" y="6" width="4" height="16" rx="1" fill="#1A1A1A"/>
+    </svg>
+    <h1 style="color: #1A1A1A; font-size: 20px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.02em;">Install StockPilot</h1>
+    <p style="color: #6D7175; margin: 0 0 28px; font-size: 14px; line-height: 1.5;">Enter your Shopify store URL to connect.</p>
+    <%= form_with url: "/auth/shopify", method: :post, data: { turbo: false }, html: { aria: { label: "Connect your Shopify store" } } do |f| %>
+      <label for="shop-url" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;">
+        Store URL
+      </label>
       <%= text_field_tag :shop, "stockpilot-7.myshopify.com",
+            id: "shop-url",
             placeholder: "your-store.myshopify.com",
-            style: "width: 100%; padding: 10px; border: 1px solid #C9CCCF; border-radius: 6px; font-size: 14px; margin-bottom: 16px; box-sizing: border-box; color: #1A1A1A;" %>
+            autocomplete: "url",
+            "aria-label": "Your Shopify store URL",
+            style: "width: 100%; padding: 10px 12px; border: 1px solid #C9CCCF; border-radius: 6px; font-size: 14px; margin-bottom: 16px; box-sizing: border-box; color: #1A1A1A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; outline: none; transition: border-color 0.15s ease;" %>
       <%= submit_tag "Connect with Shopify",
-            style: "background: #fff; border: 1px solid #C9CCCF; color: #6D7175; font-weight: 600; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%;" %>
+            style: "background: #FFFFFF; border: 1px solid #C9CCCF; color: #1A1A1A; font-weight: 600; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; transition: background 0.15s ease;",
+            "aria-label": "Connect your Shopify store to StockPilot" %>
     <% end %>
   </div>
 </div>

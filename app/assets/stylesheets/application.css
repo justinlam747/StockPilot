@@ -1,4 +1,4 @@
 /* app/assets/stylesheets/application.css */
-/* Pico CSS loaded from CDN in layout */
-/* This file is for app-wide overrides only */
+/* White & Grey Design System — StockPilot */
+/* No external CSS frameworks — all styles are custom */
 @import "overrides.css";

@@ -6,29 +6,32 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --sp-bg: #f9fafb;
-  --sp-surface: #ffffff;
-  --sp-text: #1a1c1e;
-  --sp-text-2: #4b5563;
-  --sp-text-3: #9ca3af;
-  --sp-border: #e5e7eb;
-  --sp-border-dash: #d1d5db;
-  --sp-dot: #9ca3af;
-  --sp-green: #22c55e;
-  --sp-font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --sp-font-display: 'Love Ya Like A Sister', cursive;
+  /* White & Grey design tokens */
+  --sp-bg: #FFFFFF;
+  --sp-surface: #FFFFFF;
+  --sp-text: #1A1A1A;
+  --sp-text-2: #6D7175;
+  --sp-text-3: #8C9196;
+  --sp-border: #E1E3E5;
+  --sp-border-dash: #C9CCCF;
+  --sp-dot: #8C9196;
+  --sp-green: #008060;
+  --sp-link: #2C6ECB;
+  --sp-font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --sp-wrap: 1160px;
   --sp-gutter: clamp(1.25rem, 3vw, 2.5rem);
   --sp-section-pad-x: clamp(2.5rem, 5vw, 4rem);
   --sp-section-pad-y: clamp(3.5rem, 7vh, 5.5rem);
   --sp-nav-h: 3.75rem;
+  --sp-focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px #2C6ECB;
 }
 
 body {
   font-family: var(--sp-font);
-  background: var(--sp-bg);
+  background: #F6F6F7;
   color: var(--sp-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
@@ -195,7 +198,6 @@ body {
 .sp-sidebar__link.is-active .sp-sidebar__dot {
   background: var(--sp-text);
   border-color: var(--sp-text);
-  box-shadow: 0 0 0 3px rgba(26, 28, 30, 0.1);
 }
 .sp-sidebar__link.is-active .sp-sidebar__label {
   color: var(--sp-text);
@@ -224,12 +226,25 @@ body {
 }
 .sp-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
 
-.sp-btn--dark {
-  background: var(--sp-text); color: #fff;
-  border-color: var(--sp-text);
+/* CTA button — white bg, grey border, semibold text (no dark fills) */
+.sp-btn--cta {
+  background: var(--sp-surface);
+  color: var(--sp-text);
+  border-color: var(--sp-border-dash);
   border-radius: 999px;
+  font-weight: 600;
 }
-.sp-btn--dark:hover { background: #2d2f33; }
+.sp-btn--cta:hover {
+  background: #F6F6F7;
+  border-color: var(--sp-text-3);
+}
+.sp-btn--cta:active {
+  background: #EDEEEF;
+}
+.sp-btn--cta:focus-visible {
+  outline: none;
+  box-shadow: var(--sp-focus-ring);
+}
 
 .sp-btn--lg {
   padding: 0.8125rem 1.75rem;
@@ -263,7 +278,6 @@ body {
 .sp-pill__dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--sp-green);
-  box-shadow: 0 0 6px rgba(34,197,94,0.4);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 @keyframes pulse-dot {
@@ -381,14 +395,13 @@ body {
   display: flex; align-items: center; gap: 0.375rem;
   font-size: 0.6875rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--sp-green);
+  color: var(--sp-text-2);
 }
 .sp-dot {
   width: 6px; height: 6px; border-radius: 50%;
 }
 .sp-dot--green {
   background: var(--sp-green);
-  box-shadow: 0 0 5px rgba(34,197,94,0.4);
 }
 
 .sp-feature__title {
@@ -427,7 +440,9 @@ body {
 
 .sp-step__marker {
   width: 30px; height: 30px; border-radius: 50%;
-  background: var(--sp-text); color: #fff;
+  background: var(--sp-surface);
+  color: var(--sp-text);
+  border: 1px solid var(--sp-border-dash);
   display: flex; align-items: center; justify-content: center;
   font-size: 0.8125rem; font-weight: 700;
   flex-shrink: 0;
@@ -545,6 +560,31 @@ body {
 .gsap-ready .sp-faq { opacity: 0; transform: translateY(20px); }
 .gsap-ready .sp-cta { opacity: 0; transform: translateY(20px); }
 .gsap-ready .sp-arrows { opacity: 0; }
+
+/* ─── FOCUS & ACCESSIBILITY ─── */
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--sp-focus-ring);
+  border-radius: 4px;
+}
+
+.sp-nav__links a:focus-visible {
+  outline: none;
+  box-shadow: var(--sp-focus-ring);
+  border-radius: 4px;
+}
+
+.sp-faq__item summary:focus-visible {
+  outline: none;
+  box-shadow: var(--sp-focus-ring);
+  border-radius: 4px;
+}
+
+.sp-sidebar__link:focus-visible {
+  outline: none;
+  box-shadow: var(--sp-focus-ring);
+  border-radius: 4px;
+}
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 900px) {
