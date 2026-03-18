@@ -1,0 +1,18 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "6bd860848368b81319ddb8f272e1cdfc44cee8ad162ab981ff9977551a21a1a8",
+      "note": "False positive: latest_snapshot_sql is generated from ActiveRecord .to_sql, not user input"
+    },
+    {
+      "fingerprint": "9479a18fe35bb995d61f65d0216ebb5d4105ae8c0f8cf9e1394318ec4d16245c",
+      "note": "False positive: latest_snapshot_sql is generated from ActiveRecord .to_sql, not user input"
+    },
+    {
+      "fingerprint": "f6296ae65b93841555c3766dfe7bdd26ed15c8e9dcf72c8e42f7df2d02b916fe",
+      "note": "False positive: latest_snapshots_sql is generated from ActiveRecord .to_sql, not user input"
+    }
+  ],
+  "updated": "2026-03-18",
+  "brakeman_version": "8.0.4"
+}

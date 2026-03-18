@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Displays paginated inventory with filtering by stock status and search.
 class InventoryController < ApplicationController
   def index
     @products = Product.includes(:variants)
@@ -19,32 +20,36 @@ class InventoryController < ApplicationController
   private
 
   def apply_filter(scope)
-    threshold = current_shop&.low_stock_threshold || 10
-
     case params[:filter]
-    when 'low_stock'
-      latest_sql = InventorySnapshot
-                   .select('DISTINCT ON (variant_id) variant_id, available')
-                   .where(shop_id: current_shop&.id)
-                   .order('variant_id, created_at DESC')
-                   .to_sql
-      scope.joins(:variants)
-           .joins("INNER JOIN (#{latest_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
-           .where('latest_snap.available > 0 AND latest_snap.available <= ?', threshold)
-           .distinct
-    when 'out_of_stock'
-      latest_sql = InventorySnapshot
-                   .select('DISTINCT ON (variant_id) variant_id, available')
-                   .where(shop_id: current_shop&.id)
-                   .order('variant_id, created_at DESC')
-                   .to_sql
-      scope.joins(:variants)
-           .joins("INNER JOIN (#{latest_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
-           .where('latest_snap.available = 0')
-           .distinct
-    else
-      scope
+    when 'low_stock' then filter_low_stock(scope)
+    when 'out_of_stock' then filter_out_of_stock(scope)
+    else scope
     end
+  end
+
+  def filter_low_stock(scope)
+    threshold = current_shop&.low_stock_threshold || 10
+    join = Arel.sql("INNER JOIN (#{latest_snapshot_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
+    scope.joins(:variants)
+         .joins(join)
+         .where('latest_snap.available > 0 AND latest_snap.available <= ?', threshold)
+         .distinct
+  end
+
+  def filter_out_of_stock(scope)
+    join = Arel.sql("INNER JOIN (#{latest_snapshot_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
+    scope.joins(:variants)
+         .joins(join)
+         .where('latest_snap.available = 0')
+         .distinct
+  end
+
+  def latest_snapshot_sql
+    InventorySnapshot
+      .select('DISTINCT ON (variant_id) variant_id, available')
+      .where(shop_id: current_shop&.id)
+      .order('variant_id, created_at DESC')
+      .to_sql
   end
 
   def apply_search(scope)

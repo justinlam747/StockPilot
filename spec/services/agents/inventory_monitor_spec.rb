@@ -20,8 +20,9 @@ RSpec.describe Agents::InventoryMonitor do
     end
 
     it 'defines 5 tools' do
-      expect(described_class::TOOLS.size).to eq(5)
-      tool_names = described_class::TOOLS.map { |t| t[:name] }
+      tools = monitor.send(:tools_definition)
+      expect(tools.size).to eq(5)
+      tool_names = tools.map { |t| t[:name] }
       expect(tool_names).to contain_exactly(
         'check_inventory',
         'get_stock_summary',
@@ -35,11 +36,11 @@ RSpec.describe Agents::InventoryMonitor do
   describe '#run' do
     context 'when Claude responds with end_turn immediately' do
       it 'completes in 1 turn with a summary' do
-        allow(mock_anthropic_client).to receive(:messages).and_return({
-                                                                        'stop_reason' => 'end_turn',
-                                                                        'content' => [{ 'type' => 'text',
-                                                                                        'text' => 'All inventory looks healthy.' }]
-                                                                      })
+        api_response = {
+          'stop_reason' => 'end_turn',
+          'content' => [{ 'type' => 'text', 'text' => 'All inventory looks healthy.' }]
+        }
+        allow(mock_anthropic_client).to receive(:messages).and_return(api_response)
 
         result = monitor.run
 
@@ -152,7 +153,8 @@ RSpec.describe Agents::InventoryMonitor do
 
         monitor.run
 
-        expect(alert_sender).to have_received(:send_low_stock_alerts).with(array_including(hash_including(status: :low_stock)))
+        expect(alert_sender).to have_received(:send_low_stock_alerts)
+          .with(array_including(hash_including(status: :low_stock)))
       end
     end
 

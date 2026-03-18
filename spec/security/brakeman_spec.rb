@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'Brakeman security scan' do
   it 'finds no warnings' do
-    result = `bundle exec brakeman --no-pager -q --format json`
+    result = `bundle exec brakeman --no-pager -q --format json -i config/brakeman.ignore`
     report = JSON.parse(result)
     warnings = report['warnings']
     expect(warnings).to be_empty,
