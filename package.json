@@ -7,9 +7,7 @@
     "sidekiq": "bundle exec sidekiq -C config/sidekiq.yml",
     "console": "bundle exec rails console",
     "test": "bundle exec rspec",
-    "lint": "bundle exec rubocop"
-  },
-  "dependencies": {
-    "puppeteer-core": "^24.39.1"
+    "lint": "bundle exec rubocop",
+    "security": "bundle exec bundler-audit check --update && bundle exec brakeman -q --no-pager"
   }
 }
