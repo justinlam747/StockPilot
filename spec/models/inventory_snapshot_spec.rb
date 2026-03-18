@@ -17,6 +17,25 @@ RSpec.describe InventorySnapshot, type: :model do
     it { should belong_to(:variant) }
   end
 
+  describe 'validations' do
+    subject do
+      ActsAsTenant.with_tenant(shop) do
+        product = create(:product, shop: shop)
+        variant = create(:variant, shop: shop, product: product)
+        create(:inventory_snapshot, shop: shop, variant: variant)
+      end
+    end
+
+    it { should validate_presence_of(:available) }
+    it { should validate_numericality_of(:available).only_integer }
+    it { should validate_presence_of(:on_hand) }
+    it { should validate_numericality_of(:on_hand).only_integer }
+    it { should validate_presence_of(:committed) }
+    it { should validate_numericality_of(:committed).only_integer.is_greater_than_or_equal_to(0) }
+    it { should validate_presence_of(:incoming) }
+    it { should validate_numericality_of(:incoming).only_integer.is_greater_than_or_equal_to(0) }
+  end
+
   describe 'tenant scoping' do
     it 'automatically scopes to the current tenant' do
       snapshot = ActsAsTenant.with_tenant(shop) do

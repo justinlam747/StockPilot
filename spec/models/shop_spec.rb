@@ -15,6 +15,19 @@ RSpec.describe Shop, type: :model do
     it { should have_many(:audit_logs).dependent(:destroy) }
   end
 
+  describe 'validations' do
+    it { should validate_presence_of(:shop_domain) }
+    it { should validate_uniqueness_of(:shop_domain) }
+    it { should validate_presence_of(:access_token) }
+
+    it { should allow_value('my-store.myshopify.com').for(:shop_domain) }
+    it { should allow_value('STORE-123.myshopify.com').for(:shop_domain) }
+    it { should_not allow_value('invalid-domain.com').for(:shop_domain) }
+    it { should_not allow_value('store.otherdomain.com').for(:shop_domain) }
+    it { should_not allow_value('').for(:shop_domain) }
+    it { should_not allow_value('store with spaces.myshopify.com').for(:shop_domain) }
+  end
+
   describe 'scopes' do
     describe '.active' do
       let!(:active_shop) { create(:shop, uninstalled_at: nil) }

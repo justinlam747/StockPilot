@@ -17,6 +17,117 @@ RSpec.describe Alert, type: :model do
     it { should belong_to(:variant) }
   end
 
+  describe 'validations' do
+    subject do
+      ActsAsTenant.with_tenant(shop) do
+        product = create(:product, shop: shop)
+        variant = create(:variant, shop: shop, product: product)
+        create(:alert, shop: shop, variant: variant)
+      end
+    end
+
+    it { should validate_presence_of(:alert_type) }
+    it { should validate_inclusion_of(:alert_type).in_array(%w[low_stock out_of_stock]) }
+    it { should validate_presence_of(:status) }
+    it { should validate_presence_of(:channel) }
+    it { should validate_numericality_of(:threshold).only_integer.is_greater_than(0).allow_nil }
+    it { should validate_numericality_of(:current_quantity).only_integer.is_greater_than_or_equal_to(0).allow_nil }
+  end
+
+  describe 'scopes' do
+    let!(:active_alert) do
+      ActsAsTenant.with_tenant(shop) do
+        product = create(:product, shop: shop)
+        variant = create(:variant, shop: shop, product: product)
+        create(:alert, shop: shop, variant: variant, dismissed: false)
+      end
+    end
+
+    let!(:dismissed_alert) do
+      ActsAsTenant.with_tenant(shop) do
+        product = create(:product, shop: shop)
+        variant = create(:variant, shop: shop, product: product)
+        create(:alert, shop: shop, variant: variant, dismissed: true)
+      end
+    end
+
+    describe '.active' do
+      it 'returns only non-dismissed alerts' do
+        ActsAsTenant.with_tenant(shop) do
+          expect(Alert.active).to include(active_alert)
+          expect(Alert.active).not_to include(dismissed_alert)
+        end
+      end
+    end
+
+    describe '.dismissed' do
+      it 'returns only dismissed alerts' do
+        ActsAsTenant.with_tenant(shop) do
+          expect(Alert.dismissed).to include(dismissed_alert)
+          expect(Alert.dismissed).not_to include(active_alert)
+        end
+      end
+    end
+  end
+
+  describe '#severity' do
+    it 'returns critical for out_of_stock alerts' do
+      alert = build(:alert, alert_type: 'out_of_stock')
+      expect(alert.severity).to eq('critical')
+    end
+
+    it 'returns warning for low_stock alerts' do
+      alert = build(:alert, alert_type: 'low_stock')
+      expect(alert.severity).to eq('warning')
+    end
+
+    it 'returns info for unknown alert types' do
+      alert = build(:alert)
+      alert.alert_type = 'something_else'
+      expect(alert.severity).to eq('info')
+    end
+  end
+
+  describe '#message' do
+    let(:product) { ActsAsTenant.with_tenant(shop) { create(:product, shop: shop) } }
+
+    it 'returns out of stock message with variant details' do
+      ActsAsTenant.with_tenant(shop) do
+        variant = create(:variant, shop: shop, product: product, sku: 'ABC-123', title: 'Red / Large')
+        alert = create(:alert, shop: shop, variant: variant, alert_type: 'out_of_stock')
+
+        expect(alert.message).to eq('ABC-123 — Red / Large is out of stock')
+      end
+    end
+
+    it 'returns low stock message with quantity' do
+      ActsAsTenant.with_tenant(shop) do
+        variant = create(:variant, shop: shop, product: product, sku: 'ABC-123', title: 'Red / Large')
+        alert = create(:alert, shop: shop, variant: variant, alert_type: 'low_stock', current_quantity: 3)
+
+        expect(alert.message).to eq('ABC-123 — Red / Large is low stock (3 remaining)')
+      end
+    end
+
+    it 'returns low stock message without quantity when nil' do
+      ActsAsTenant.with_tenant(shop) do
+        variant = create(:variant, shop: shop, product: product, sku: 'ABC-123', title: 'Red / Large')
+        alert = create(:alert, shop: shop, variant: variant, alert_type: 'low_stock', current_quantity: nil)
+
+        expect(alert.message).to eq('ABC-123 — Red / Large is low stock')
+      end
+    end
+
+    it 'uses Unknown SKU when variant sku is nil' do
+      ActsAsTenant.with_tenant(shop) do
+        variant = create(:variant, shop: shop, product: product, sku: nil, title: 'Red / Large')
+        alert = create(:alert, shop: shop, variant: variant, alert_type: 'out_of_stock')
+
+        expect(alert.message).to eq('Unknown SKU — Red / Large is out of stock')
+      end
+    end
+  end
+
   describe 'tenant scoping' do
     it 'automatically scopes to the current tenant' do
       alert = ActsAsTenant.with_tenant(shop) do

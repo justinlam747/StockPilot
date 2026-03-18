@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe AuditLog, type: :model do
   let(:shop) { create(:shop) }
 
+  describe 'associations' do
+    it { should belong_to(:shop).optional }
+  end
+
+  describe 'validations' do
+    it { should validate_presence_of(:action) }
+  end
+
   it 'records an event' do
     log = AuditLog.record(action: 'login', shop: shop, metadata: { source: 'oauth' })
     expect(log).to be_persisted

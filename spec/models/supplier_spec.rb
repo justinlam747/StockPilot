@@ -12,6 +12,41 @@ RSpec.describe Supplier, type: :model do
     it { should have_many(:purchase_orders).dependent(:restrict_with_error) }
   end
 
+  describe 'validations' do
+    subject { ActsAsTenant.with_tenant(shop) { create(:supplier, shop: shop) } }
+
+    it { should validate_presence_of(:name) }
+    it { should validate_length_of(:name).is_at_most(255) }
+
+    it { should allow_value('supplier@example.com').for(:email) }
+    it { should allow_value('').for(:email) }
+    it { should allow_value(nil).for(:email) }
+    it { should_not allow_value('not-an-email').for(:email) }
+    it { should_not allow_value('missing@').for(:email) }
+
+    it { should validate_numericality_of(:lead_time_days).only_integer.is_greater_than(0).allow_nil }
+    it { should validate_numericality_of(:star_rating).only_integer.allow_nil }
+
+    context 'star_rating range' do
+      subject { ActsAsTenant.with_tenant(shop) { build(:supplier, shop: shop) } }
+
+      it 'allows values between 0 and 5' do
+        (0..5).each do |rating|
+          subject.star_rating = rating
+          expect(subject).to be_valid
+        end
+      end
+
+      it 'rejects values outside 0 to 5' do
+        subject.star_rating = -1
+        expect(subject).not_to be_valid
+
+        subject.star_rating = 6
+        expect(subject).not_to be_valid
+      end
+    end
+  end
+
   describe 'tenant scoping' do
     it 'automatically scopes to the current tenant' do
       supplier = ActsAsTenant.with_tenant(shop) { create(:supplier, shop: shop) }
