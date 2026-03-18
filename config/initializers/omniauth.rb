@@ -1,27 +1,29 @@
+# frozen_string_literal: true
+
 Rails.application.config.middleware.use OmniAuth::Builder do
   provider :shopify,
-    ENV.fetch("SHOPIFY_API_KEY"),
-    ENV.fetch("SHOPIFY_API_SECRET"),
-    scope: "read_products,read_inventory,read_orders,read_customers",
-    callback_url: "#{ENV.fetch('SHOPIFY_APP_URL')}/auth/shopify/callback",
-    setup: proc { |env|
-      strategy = env['omniauth.strategy']
+           ENV.fetch('SHOPIFY_API_KEY'),
+           ENV.fetch('SHOPIFY_API_SECRET'),
+           scope: 'read_products,read_inventory,read_orders,read_customers',
+           callback_url: "#{ENV.fetch('SHOPIFY_APP_URL')}/auth/shopify/callback",
+           setup: proc { |env|
+             strategy = env['omniauth.strategy']
 
-      # Always read shop from request params (POST body), not stale session data.
-      # The default setup proc checks session first, which can contain stale/empty data
-      # and cause invalid_site errors.
-      shop = strategy.request.params['shop']
+             # Always read shop from request params (POST body), not stale session data.
+             # The default setup proc checks session first, which can contain stale/empty data
+             # and cause invalid_site errors.
+             shop = strategy.request.params['shop']
 
-      if shop && !shop.empty?
-        shop = shop.strip.downcase
-        shop = "#{shop}.myshopify.com" unless shop.include?('.')
-        strategy.options[:client_options][:site] = "https://#{shop}"
-      else
-        strategy.options[:client_options][:site] = ''
-      end
+             if shop && !shop.empty?
+               shop = shop.strip.downcase
+               shop = "#{shop}.myshopify.com" unless shop.include?('.')
+               strategy.options[:client_options][:site] = "https://#{shop}"
+             else
+               strategy.options[:client_options][:site] = ''
+             end
 
-      Rails.logger.info "[OmniAuth] Shop param: #{shop.inspect}, Site: #{strategy.options[:client_options][:site]}"
-    }
+             Rails.logger.info "[OmniAuth] Shop param: #{shop.inspect}, Site: #{strategy.options[:client_options][:site]}"
+           }
 end
 
 OmniAuth.config.allowed_request_methods = [:post]

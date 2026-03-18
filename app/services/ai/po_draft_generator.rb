@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module AI
   class PoDraftGenerator
-    MODEL = "claude-sonnet-4-20250514"
+    MODEL = 'claude-sonnet-4-20250514'
 
     def generate(supplier:, line_items:, shop:)
       items_text = line_items.map do |li|
-        "- #{li.sku}: #{li.variant.product.title} — #{li.variant.title}, Qty: #{li.quantity_ordered}, Unit Price: $#{li.unit_price}"
+        "- #{li.sku}: #{li.variant.product.title} — #{li.variant.title}, Qty: #{li.qty_ordered}, Unit Price: $#{li.unit_price}"
       end.join("\n")
 
       prompt = <<~PROMPT
@@ -18,17 +20,17 @@ module AI
         Keep it concise and professional. Include a summary table of items.
       PROMPT
 
-      client = Anthropic::Client.new(api_key: ENV.fetch("ANTHROPIC_API_KEY"))
+      client = Anthropic::Client.new(api_key: ENV.fetch('ANTHROPIC_API_KEY'))
       response = client.messages(
         model: MODEL,
         max_tokens: 1024,
-        system: "You write professional, concise purchase order emails for retail businesses. Include all item details in a clear format.",
+        system: 'You write professional, concise purchase order emails for retail businesses. Include all item details in a clear format.',
         messages: [
-          { role: "user", content: prompt }
+          { role: 'user', content: prompt }
         ]
       )
 
-      response.dig("content", 0, "text")
+      response.dig('content', 0, 'text')
     rescue Anthropic::Error => e
       Rails.logger.warn("[AI::PoDraftGenerator] Anthropic API error: #{e.message}")
       fallback_draft(supplier: supplier, line_items: line_items, shop: shop)
@@ -37,7 +39,7 @@ module AI
     private
 
     def fallback_draft(supplier:, line_items:, shop:)
-      items = line_items.map { |li| "  - #{li.sku}: #{li.variant.title}, Qty: #{li.quantity_ordered}" }.join("\n")
+      items = line_items.map { |li| "  - #{li.sku}: #{li.variant.title}, Qty: #{li.qty_ordered}" }.join("\n")
 
       <<~DRAFT
         Dear #{supplier.name},

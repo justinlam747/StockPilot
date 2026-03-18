@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SnapshotCleanupJob < ApplicationJob
   queue_as :maintenance
 
@@ -8,7 +10,7 @@ class SnapshotCleanupJob < ApplicationJob
     cutoff = RETENTION_DAYS.days.ago
 
     loop do
-      deleted = InventorySnapshot.where("created_at < ?", cutoff).limit(BATCH_SIZE).delete_all
+      deleted = InventorySnapshot.where('created_at < ?', cutoff).limit(BATCH_SIZE).delete_all
       break if deleted < BATCH_SIZE
     end
   end

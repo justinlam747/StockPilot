@@ -407,25 +407,28 @@ Current state of security measures — update as items are resolved:
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Shopify OAuth | Done | `shopify_app` gem v22, scopes properly scoped |
-| Session token validation | Done | `ShopifyApp::EnsureHasSession` on all authenticated routes |
-| Webhook HMAC verification | Done | `ShopifyApp::WebhookVerification` on webhook + GDPR controllers |
-| Access token encryption | Done | `encrypts :access_token` in Shop model |
-| Multi-tenancy isolation | Done | `acts_as_tenant :shop` on all models |
+| Shopify OAuth | Done | OmniAuth + custom OAuth flow (TD-006) |
+| Session token validation | Done | `require_login` + `set_tenant` on all authenticated routes |
+| Webhook HMAC verification | Done | Custom HMAC-SHA256 verification on webhook + GDPR controllers |
+| Access token encryption | Done | `encrypts :access_token` in Shop model (TD-005) |
+| Multi-tenancy isolation | Done | `acts_as_tenant :shop` on all models (TD-001) |
 | SSL in production | Done | `config.force_ssl = true` |
 | Parameter log filtering | Done | Filters tokens, keys, passwords, SSNs |
 | Sentry error tracking | Done | Production + staging |
 | Secrets via ENV vars | Done | No hardcoded credentials in code |
 | `.gitignore` for secrets | Done | `.env`, master key, credentials excluded |
-| CORS restriction | **CRITICAL** | Currently `origins "*"` — must restrict to app domain + Shopify |
-| Rate limiting (`rack-attack`) | **TODO** | No throttling on any endpoint |
-| Security headers (CSP, HSTS) | **TODO** | No headers configured |
-| Input validation / strong params | **TODO** | Controllers are stubs, must add `.permit()` |
+| CORS restriction | Done | Restricted to app domain + `admin.shopify.com` |
+| Rate limiting (`rack-attack`) | Done | Per-shop + per-IP throttling (TD-003) |
+| Security headers (CSP, HSTS) | Done | All headers configured in `security_headers.rb` |
+| Input validation / strong params | Done | Model validations + `strong_parameters` on all controllers |
+| Model validations | Done | All models have presence, format, and numericality validations |
 | Authorization (`pundit`) | **TODO** | Only authentication exists, no resource-level authz |
-| GDPR data processing | **TODO** | Endpoints return 200 but don't process/delete data |
-| Audit logging | **TODO** | No security event logging |
-| `brakeman` static analysis | **TODO** | Not in CI pipeline |
-| Session timeout config | **TODO** | No explicit expiry set |
+| GDPR data processing | Done | Jobs process data; app stores no customer PII |
+| Audit logging | Done | `AuditLog` model tracks all security-relevant events |
+| `brakeman` static analysis | Done | Runs in test suite via `spec/security/brakeman_spec.rb` |
+| Session timeout config | Done | 24-hour expiry in `session_store.rb` |
+| Webhook body read bug | Done | Fixed double `request.body.read` in webhooks + GDPR controllers |
+| N+1 query prevention | Done | Eager loading on all list endpoints |
 
 ---
 

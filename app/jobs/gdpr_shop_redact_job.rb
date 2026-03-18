@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class GdprShopRedactJob < ApplicationJob
   queue_as :default
 
@@ -15,7 +17,12 @@ class GdprShopRedactJob < ApplicationJob
       Supplier.delete_all
     end
 
+    AuditLog.record(
+      action: 'gdpr_shop_redacted',
+      metadata: { shop_id: shop_id, shop_domain: shop.shop_domain }
+    )
+
     shop.destroy!
-    Rails.logger.info("[GDPR] Shop #{shop_id} fully redacted")
+    Rails.logger.info("[GDPR] Shop #{shop_id} (#{shop.shop_domain}) fully redacted")
   end
 end

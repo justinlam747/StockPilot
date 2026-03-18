@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Inventory
   class Snapshotter
     def initialize(shop)
@@ -9,9 +11,9 @@ module Inventory
       rows = []
 
       products.each do |product_node|
-        variant_nodes = product_node.dig("variants", "nodes") || []
+        variant_nodes = product_node.dig('variants', 'nodes') || []
         variant_nodes.each do |vnode|
-          variant = Variant.find_by(shopify_variant_id: vnode["legacyResourceId"].to_s)
+          variant = Variant.find_by(shopify_variant_id: vnode['legacyResourceId'].to_s)
           next unless variant
 
           quantities = aggregate_quantities(vnode)
@@ -22,8 +24,7 @@ module Inventory
             on_hand: quantities[:on_hand],
             committed: quantities[:committed],
             incoming: quantities[:incoming],
-            created_at: Time.current,
-            updated_at: Time.current
+            created_at: Time.current
           }
         end
       end
@@ -35,13 +36,13 @@ module Inventory
     private
 
     def aggregate_quantities(variant_node)
-      levels = variant_node.dig("inventoryItem", "inventoryLevels", "nodes") || []
+      levels = variant_node.dig('inventoryItem', 'inventoryLevels', 'nodes') || []
       totals = { available: 0, on_hand: 0, committed: 0, incoming: 0 }
 
       levels.each do |level|
-        (level["quantities"] || []).each do |q|
-          key = q["name"].to_sym
-          totals[key] += q["quantity"].to_i if totals.key?(key)
+        (level['quantities'] || []).each do |q|
+          key = q['name'].to_sym
+          totals[key] += q['quantity'].to_i if totals.key?(key)
         end
       end
 

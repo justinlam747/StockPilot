@@ -1,4 +1,6 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe GdprShopRedactJob do
   let(:shop) { create(:shop) }
@@ -15,7 +17,7 @@ RSpec.describe GdprShopRedactJob do
     end
   end
 
-  it "deletes all shop data and the shop itself" do
+  it 'deletes all shop data and the shop itself' do
     expect { described_class.new.perform(shop.id) }
       .to change(Shop, :count).by(-1)
       .and change(Product, :count).by(-1)

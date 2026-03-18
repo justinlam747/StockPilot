@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Shop < ApplicationRecord
   encrypts :access_token
 
@@ -9,17 +11,21 @@ class Shop < ApplicationRecord
   has_many :purchase_orders, dependent: :destroy
   has_many :audit_logs, dependent: :destroy
 
+  validates :shop_domain, presence: true, uniqueness: true,
+                          format: { with: /\A[a-z0-9-]+\.myshopify\.com\z/i, message: 'must be a valid myshopify.com domain' }
+  validates :access_token, presence: true
+
   scope :active, -> { where(uninstalled_at: nil) }
 
   def timezone
-    settings["timezone"] || "America/Toronto"
+    settings['timezone'] || 'America/Toronto'
   end
 
   def low_stock_threshold
-    settings["low_stock_threshold"] || 10
+    settings['low_stock_threshold'] || 10
   end
 
   def alert_email
-    settings["alert_email"]
+    settings['alert_email']
   end
 end

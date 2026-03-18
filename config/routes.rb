@@ -1,21 +1,23 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
-  root "landing#index"
+  root 'landing#index'
 
   # Auth
-  get "/auth/shopify/callback", to: "auth#callback"
-  get "/auth/failure", to: "auth#failure"
-  delete "/logout", to: "auth#destroy"
-  get "/install", to: "auth#install"
+  get '/auth/shopify/callback', to: 'auth#callback'
+  get '/auth/failure', to: 'auth#failure'
+  delete '/logout', to: 'auth#destroy'
+  get '/install', to: 'auth#install'
 
   # Health check (unauthenticated)
-  get "/health", to: "health#show"
+  get '/health', to: 'health#show'
 
   # App
-  get "/dashboard", to: "dashboard#index"
-  post "/agents/run", to: "dashboard#run_agent"
+  get '/dashboard', to: 'dashboard#index'
+  post '/agents/run', to: 'dashboard#run_agent'
 
-  resources :inventory, only: [:index, :show]
-  resources :suppliers, except: [:new, :edit]
+  resources :inventory, only: %i[index show]
+  resources :suppliers, except: %i[new edit]
   resources :purchase_orders do
     member do
       patch :mark_sent
@@ -32,10 +34,10 @@ Rails.application.routes.draw do
   end
 
   # Shopify webhooks
-  post "/webhooks/:topic", to: "webhooks#receive"
+  post '/webhooks/:topic', to: 'webhooks#receive'
 
   # GDPR (required by Shopify)
-  post "/gdpr/customers_data_request", to: "gdpr#customers_data_request"
-  post "/gdpr/customers_redact", to: "gdpr#customers_redact"
-  post "/gdpr/shop_redact", to: "gdpr#shop_redact"
+  post '/gdpr/customers_data_request', to: 'gdpr#customers_data_request'
+  post '/gdpr/customers_redact', to: 'gdpr#customers_redact'
+  post '/gdpr/shop_redact', to: 'gdpr#shop_redact'
 end

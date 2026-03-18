@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 class AuditLog < ApplicationRecord
   belongs_to :shop, optional: true
+
+  validates :action, presence: true
 
   def readonly?
     persisted?

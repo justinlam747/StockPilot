@@ -69,4 +69,40 @@ A running record of architectural and engineering decisions made in StockPilot, 
 
 ---
 
+## TD-008: Comprehensive Model Validations
+
+**Date:** 2026-03-18
+**Decision:** Add presence, format, numericality, and inclusion validations to all ActiveRecord models.
+**Why:** Models had zero validations — any data could be written to the database regardless of format or completeness. This is a data integrity risk; invalid data silently corrupts business logic (e.g., alerts with missing types, suppliers with negative lead times, snapshots with nil quantities).
+**Trade-off:** Slightly stricter — existing seed data or test factories may need updates. Worth it because validations catch bugs at the source rather than in downstream services.
+
+---
+
+## TD-009: Fix Missing Database Columns (alerts.threshold, alerts.dismissed, etc.)
+
+**Date:** 2026-03-18
+**Decision:** Add migration for `alerts.threshold`, `alerts.current_quantity`, `alerts.dismissed`, `purchase_orders.order_date`, `purchase_orders.expected_delivery`, and performance indexes.
+**Why:** Application code (AlertSender, AlertsController, factories) referenced these columns but they didn't exist in the schema. This would cause `ActiveRecord::UnknownAttributeError` at runtime — a production-blocking bug.
+**Trade-off:** None — this was a straightforward schema gap that needed filling.
+
+---
+
+## TD-010: Fix Double request.body.read Bug in Webhook/GDPR Controllers
+
+**Date:** 2026-03-18
+**Decision:** Memoize the webhook body via `@webhook_body ||= request.body.read` and rewind the body stream in GDPR controller after HMAC verification.
+**Why:** The `request.body` is a stream — reading it once exhausts it. The HMAC verification `before_action` read the body for signature checking, then `receive` tried to read it again for JSON parsing and got an empty string. This meant ALL webhook product updates were silently failing with empty payloads.
+**Trade-off:** None — pure bug fix.
+
+---
+
+## TD-011: Weekly Report Job with Timezone-Aware Scheduling
+
+**Date:** 2026-03-18
+**Decision:** Create `WeeklyReportJob` that respects each shop's configured timezone when determining the report week boundaries. Scheduled via sidekiq-cron every Monday at 9 AM UTC.
+**Why:** The `WeeklyReportAllShopsJob` was referenced in the cron schedule but never existed. The `Reports::WeeklyGenerator` and `ReportMailer` were built but never connected. This closes the loop so merchants actually receive their weekly reports.
+**Trade-off:** Running at 9 AM UTC means different local times for different merchants. A per-shop cron would be more precise but adds complexity — UTC scheduling with timezone-aware week boundaries is a reasonable compromise.
+
+---
+
 *Add new entries as decisions are made. Format: TD-XXX, date, decision, why, trade-offs.*

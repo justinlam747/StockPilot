@@ -1,9 +1,11 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe InventorySnapshot, type: :model do
   let(:shop) { create(:shop) }
 
-  describe "associations" do
+  describe 'associations' do
     subject do
       ActsAsTenant.with_tenant(shop) do
         product = create(:product, shop: shop)
@@ -15,8 +17,8 @@ RSpec.describe InventorySnapshot, type: :model do
     it { should belong_to(:variant) }
   end
 
-  describe "tenant scoping" do
-    it "automatically scopes to the current tenant" do
+  describe 'tenant scoping' do
+    it 'automatically scopes to the current tenant' do
       snapshot = ActsAsTenant.with_tenant(shop) do
         product = create(:product, shop: shop)
         variant = create(:variant, shop: shop, product: product)

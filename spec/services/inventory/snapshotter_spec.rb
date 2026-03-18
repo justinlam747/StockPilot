@@ -1,37 +1,39 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe Inventory::Snapshotter do
   let(:shop) { create(:shop) }
   let(:snapshotter) { described_class.new(shop) }
 
-  it "creates snapshot rows from GraphQL product data" do
+  it 'creates snapshot rows from GraphQL product data' do
     product = create(:product, shop: shop)
-    variant = create(:variant, shop: shop, product: product, shopify_variant_id: "500")
+    create(:variant, shop: shop, product: product, shopify_variant_id: '500')
 
     data = {
       products: [
         {
-          "variants" => {
-            "nodes" => [
+          'variants' => {
+            'nodes' => [
               {
-                "legacyResourceId" => "500",
-                "inventoryItem" => {
-                  "inventoryLevels" => {
-                    "nodes" => [
+                'legacyResourceId' => '500',
+                'inventoryItem' => {
+                  'inventoryLevels' => {
+                    'nodes' => [
                       {
-                        "quantities" => [
-                          { "name" => "available", "quantity" => 10 },
-                          { "name" => "on_hand", "quantity" => 15 },
-                          { "name" => "committed", "quantity" => 5 },
-                          { "name" => "incoming", "quantity" => 0 }
+                        'quantities' => [
+                          { 'name' => 'available', 'quantity' => 10 },
+                          { 'name' => 'on_hand', 'quantity' => 15 },
+                          { 'name' => 'committed', 'quantity' => 5 },
+                          { 'name' => 'incoming', 'quantity' => 0 }
                         ]
                       },
                       {
-                        "quantities" => [
-                          { "name" => "available", "quantity" => 3 },
-                          { "name" => "on_hand", "quantity" => 5 },
-                          { "name" => "committed", "quantity" => 2 },
-                          { "name" => "incoming", "quantity" => 10 }
+                        'quantities' => [
+                          { 'name' => 'available', 'quantity' => 3 },
+                          { 'name' => 'on_hand', 'quantity' => 5 },
+                          { 'name' => 'committed', 'quantity' => 2 },
+                          { 'name' => 'incoming', 'quantity' => 10 }
                         ]
                       }
                     ]
@@ -56,23 +58,23 @@ RSpec.describe Inventory::Snapshotter do
     end
   end
 
-  it "returns 0 when no variants match the data" do
+  it 'returns 0 when no variants match the data' do
     data = {
       products: [
         {
-          "variants" => {
-            "nodes" => [
+          'variants' => {
+            'nodes' => [
               {
-                "legacyResourceId" => "99999",
-                "inventoryItem" => {
-                  "inventoryLevels" => {
-                    "nodes" => [
+                'legacyResourceId' => '99999',
+                'inventoryItem' => {
+                  'inventoryLevels' => {
+                    'nodes' => [
                       {
-                        "quantities" => [
-                          { "name" => "available", "quantity" => 10 },
-                          { "name" => "on_hand", "quantity" => 10 },
-                          { "name" => "committed", "quantity" => 0 },
-                          { "name" => "incoming", "quantity" => 0 }
+                        'quantities' => [
+                          { 'name' => 'available', 'quantity' => 10 },
+                          { 'name' => 'on_hand', 'quantity' => 10 },
+                          { 'name' => 'committed', 'quantity' => 0 },
+                          { 'name' => 'incoming', 'quantity' => 0 }
                         ]
                       }
                     ]
@@ -91,28 +93,28 @@ RSpec.describe Inventory::Snapshotter do
     end
   end
 
-  it "creates snapshots for multiple variants across products" do
+  it 'creates snapshots for multiple variants across products' do
     product1 = create(:product, shop: shop)
-    variant1 = create(:variant, shop: shop, product: product1, shopify_variant_id: "1001")
+    variant1 = create(:variant, shop: shop, product: product1, shopify_variant_id: '1001')
     product2 = create(:product, shop: shop)
-    variant2 = create(:variant, shop: shop, product: product2, shopify_variant_id: "1002")
+    variant2 = create(:variant, shop: shop, product: product2, shopify_variant_id: '1002')
 
     data = {
       products: [
         {
-          "variants" => {
-            "nodes" => [
+          'variants' => {
+            'nodes' => [
               {
-                "legacyResourceId" => "1001",
-                "inventoryItem" => {
-                  "inventoryLevels" => {
-                    "nodes" => [
+                'legacyResourceId' => '1001',
+                'inventoryItem' => {
+                  'inventoryLevels' => {
+                    'nodes' => [
                       {
-                        "quantities" => [
-                          { "name" => "available", "quantity" => 5 },
-                          { "name" => "on_hand", "quantity" => 8 },
-                          { "name" => "committed", "quantity" => 3 },
-                          { "name" => "incoming", "quantity" => 0 }
+                        'quantities' => [
+                          { 'name' => 'available', 'quantity' => 5 },
+                          { 'name' => 'on_hand', 'quantity' => 8 },
+                          { 'name' => 'committed', 'quantity' => 3 },
+                          { 'name' => 'incoming', 'quantity' => 0 }
                         ]
                       }
                     ]
@@ -123,19 +125,19 @@ RSpec.describe Inventory::Snapshotter do
           }
         },
         {
-          "variants" => {
-            "nodes" => [
+          'variants' => {
+            'nodes' => [
               {
-                "legacyResourceId" => "1002",
-                "inventoryItem" => {
-                  "inventoryLevels" => {
-                    "nodes" => [
+                'legacyResourceId' => '1002',
+                'inventoryItem' => {
+                  'inventoryLevels' => {
+                    'nodes' => [
                       {
-                        "quantities" => [
-                          { "name" => "available", "quantity" => 20 },
-                          { "name" => "on_hand", "quantity" => 25 },
-                          { "name" => "committed", "quantity" => 5 },
-                          { "name" => "incoming", "quantity" => 10 }
+                        'quantities' => [
+                          { 'name' => 'available', 'quantity' => 20 },
+                          { 'name' => 'on_hand', 'quantity' => 25 },
+                          { 'name' => 'committed', 'quantity' => 5 },
+                          { 'name' => 'incoming', 'quantity' => 10 }
                         ]
                       }
                     ]
@@ -161,20 +163,20 @@ RSpec.describe Inventory::Snapshotter do
     end
   end
 
-  it "records zeros when inventory levels are empty" do
+  it 'records zeros when inventory levels are empty' do
     product = create(:product, shop: shop)
-    variant = create(:variant, shop: shop, product: product, shopify_variant_id: "2000")
+    variant = create(:variant, shop: shop, product: product, shopify_variant_id: '2000')
 
     data = {
       products: [
         {
-          "variants" => {
-            "nodes" => [
+          'variants' => {
+            'nodes' => [
               {
-                "legacyResourceId" => "2000",
-                "inventoryItem" => {
-                  "inventoryLevels" => {
-                    "nodes" => []
+                'legacyResourceId' => '2000',
+                'inventoryItem' => {
+                  'inventoryLevels' => {
+                    'nodes' => []
                   }
                 }
               }

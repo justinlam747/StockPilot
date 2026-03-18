@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PurchaseOrderMailer < ApplicationMailer
   def send_po(purchase_order)
     @po = purchase_order

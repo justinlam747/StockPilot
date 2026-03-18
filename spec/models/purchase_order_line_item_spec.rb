@@ -1,9 +1,11 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe PurchaseOrderLineItem, type: :model do
   let(:shop) { create(:shop) }
 
-  describe "associations" do
+  describe 'associations' do
     subject do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
@@ -18,8 +20,8 @@ RSpec.describe PurchaseOrderLineItem, type: :model do
     it { should belong_to(:variant) }
   end
 
-  describe "restrict_with_error on variant deletion" do
-    it "prevents variant deletion when line items reference it" do
+  describe 'restrict_with_error on variant deletion' do
+    it 'prevents variant deletion when line items reference it' do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
         po = create(:purchase_order, shop: shop, supplier: supplier)

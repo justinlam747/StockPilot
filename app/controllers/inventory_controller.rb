@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class InventoryController < ApplicationController
   def index
     @products = Product.includes(:variants)
@@ -5,9 +7,9 @@ class InventoryController < ApplicationController
     @products = apply_search(@products)
     @products = @products.page(params[:page]).per(25)
 
-    if request.headers["HX-Request"]
-      render partial: "table", locals: { products: @products }
-    end
+    return unless request.headers['HX-Request']
+
+    render partial: 'table', locals: { products: @products }
   end
 
   def show
@@ -17,11 +19,29 @@ class InventoryController < ApplicationController
   private
 
   def apply_filter(scope)
+    threshold = current_shop&.low_stock_threshold || 10
+
     case params[:filter]
-    when "low_stock"
-      scope.joins(:variants).where("variants.inventory_quantity > 0 AND variants.inventory_quantity <= 10").distinct
-    when "out_of_stock"
-      scope.joins(:variants).where(variants: { inventory_quantity: 0 }).distinct
+    when 'low_stock'
+      latest_sql = InventorySnapshot
+                   .select('DISTINCT ON (variant_id) variant_id, available')
+                   .where(shop_id: current_shop&.id)
+                   .order('variant_id, created_at DESC')
+                   .to_sql
+      scope.joins(:variants)
+           .joins("INNER JOIN (#{latest_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
+           .where('latest_snap.available > 0 AND latest_snap.available <= ?', threshold)
+           .distinct
+    when 'out_of_stock'
+      latest_sql = InventorySnapshot
+                   .select('DISTINCT ON (variant_id) variant_id, available')
+                   .where(shop_id: current_shop&.id)
+                   .order('variant_id, created_at DESC')
+                   .to_sql
+      scope.joins(:variants)
+           .joins("INNER JOIN (#{latest_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
+           .where('latest_snap.available = 0')
+           .distinct
     else
       scope
     end
@@ -29,6 +49,7 @@ class InventoryController < ApplicationController
 
   def apply_search(scope)
     return scope unless params[:q].present?
-    scope.where("products.title ILIKE ?", "%#{params[:q]}%")
+
+    scope.where('products.title ILIKE ?', "%#{params[:q]}%")
   end
 end

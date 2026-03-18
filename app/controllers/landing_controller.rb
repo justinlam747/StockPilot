@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 class LandingController < ApplicationController
   skip_before_action :require_login
-  layout "landing"
+  layout 'landing'
 
-  def index
-  end
+  def index; end
 end

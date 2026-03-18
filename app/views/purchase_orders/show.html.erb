@@ -17,11 +17,11 @@
     <tr><th>Variant</th><th>Quantity</th><th>Unit Cost</th></tr>
   </thead>
   <tbody>
-    <% @purchase_order.purchase_order_line_items.each do |li| %>
+    <% @purchase_order.line_items.each do |li| %>
       <tr>
         <td><%= li.variant&.title || li.variant&.sku %></td>
-        <td><%= li.quantity %></td>
-        <td><%= number_to_currency(li.unit_cost) if li.respond_to?(:unit_cost) %></td>
+        <td><%= li.qty_ordered %></td>
+        <td><%= number_to_currency(li.unit_price) %></td>
       </tr>
     <% end %>
   </tbody>

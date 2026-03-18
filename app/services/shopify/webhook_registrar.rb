@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Shopify
   class WebhookRegistrar
     REQUIRED_TOPICS = %w[
@@ -36,10 +38,10 @@ module Shopify
       @client.query(
         REGISTER_MUTATION,
         variables: {
-          topic: topic.tr("/", "_").upcase,
+          topic: topic.tr('/', '_').upcase,
           webhookSubscription: {
             callbackUrl: webhook_url(topic),
-            format: "JSON"
+            format: 'JSON'
           }
         }
       )
@@ -48,7 +50,7 @@ module Shopify
     end
 
     def webhook_url(topic)
-      host = ENV.fetch("SHOPIFY_APP_URL", "https://localhost:3000")
+      host = ENV.fetch('SHOPIFY_APP_URL', 'https://localhost:3000')
       "#{host}/webhooks/#{topic.tr('/', '_')}"
     end
   end

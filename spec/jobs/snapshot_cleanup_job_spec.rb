@@ -1,9 +1,11 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe SnapshotCleanupJob, type: :job do
   let(:shop) { create(:shop) }
 
-  it "deletes old snapshots and keeps recent ones" do
+  it 'deletes old snapshots and keeps recent ones' do
     product = create(:product, shop: shop)
     variant = create(:variant, shop: shop, product: product)
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AlertMailer < ApplicationMailer
   def low_stock(shop, flagged_variants, to)
     @shop = shop

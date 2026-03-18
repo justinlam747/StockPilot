@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Agents
   class Runner
     def self.run_all_shops

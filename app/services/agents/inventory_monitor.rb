@@ -1,58 +1,60 @@
+# frozen_string_literal: true
+
 module Agents
   class InventoryMonitor
-    MODEL = "claude-sonnet-4-20250514"
+    MODEL = 'claude-sonnet-4-20250514'
     MAX_TURNS = 10
 
     TOOLS = [
       {
-        name: "check_inventory",
-        description: "Scan all SKUs for low-stock and out-of-stock variants. Returns a list of flagged items with current quantity, threshold, and status.",
-        input_schema: { type: "object", properties: {}, required: [] }
+        name: 'check_inventory',
+        description: 'Scan all SKUs for low-stock and out-of-stock variants. Returns a list of flagged items with current quantity, threshold, and status.',
+        input_schema: { type: 'object', properties: {}, required: [] }
       },
       {
-        name: "get_stock_summary",
-        description: "Get a high-level summary of inventory health: total SKUs, how many are low stock, out of stock, and healthy.",
-        input_schema: { type: "object", properties: {}, required: [] }
+        name: 'get_stock_summary',
+        description: 'Get a high-level summary of inventory health: total SKUs, how many are low stock, out of stock, and healthy.',
+        input_schema: { type: 'object', properties: {}, required: [] }
       },
       {
-        name: "send_alerts",
+        name: 'send_alerts',
         description: "Send low-stock alerts for flagged variants. Deduplicates — won't alert the same SKU twice in one day. Creates alert records and fires webhooks.",
         input_schema: {
-          type: "object",
+          type: 'object',
           properties: {
             variant_ids: {
-              type: "array",
-              items: { type: "integer" },
-              description: "IDs of variants to alert on. Pass an empty array to alert on ALL currently flagged variants."
+              type: 'array',
+              items: { type: 'integer' },
+              description: 'IDs of variants to alert on. Pass an empty array to alert on ALL currently flagged variants.'
             }
           },
-          required: ["variant_ids"]
+          required: ['variant_ids']
         }
       },
       {
-        name: "get_recent_alerts",
-        description: "Check what alerts have already been sent today to avoid duplicate notifications.",
-        input_schema: { type: "object", properties: {}, required: [] }
+        name: 'get_recent_alerts',
+        description: 'Check what alerts have already been sent today to avoid duplicate notifications.',
+        input_schema: { type: 'object', properties: {}, required: [] }
       },
       {
-        name: "draft_purchase_order",
-        description: "Draft a purchase order for a supplier based on their low-stock variants. Returns the drafted PO details.",
+        name: 'draft_purchase_order',
+        description: 'Draft a purchase order for a supplier based on their low-stock variants. Returns the drafted PO details.',
         input_schema: {
-          type: "object",
+          type: 'object',
           properties: {
             supplier_id: {
-              type: "integer",
-              description: "The supplier ID to draft a PO for."
+              type: 'integer',
+              description: 'The supplier ID to draft a PO for.'
             }
           },
-          required: ["supplier_id"]
+          required: ['supplier_id']
         }
       }
     ].freeze
 
     def initialize(shop)
       @shop = shop
-      @client = Anthropic::Client.new(api_key: ENV.fetch("ANTHROPIC_API_KEY"))
+      @client = Anthropic::Client.new(api_key: ENV.fetch('ANTHROPIC_API_KEY'))
       @flagged_cache = nil
       @log = []
     end
@@ -62,7 +64,7 @@ module Agents
 
       messages = [
         {
-          role: "user",
+          role: 'user',
           content: <<~PROMPT
             You are the Inventory Monitor agent for the Shopify store "#{@shop.shop_domain}".
 
@@ -85,28 +87,28 @@ module Agents
         response = @client.messages(
           model: MODEL,
           max_tokens: 1024,
-          system: "You are an inventory monitoring agent. Use the tools to check stock levels and take action. Be concise and action-oriented.",
+          system: 'You are an inventory monitoring agent. Use the tools to check stock levels and take action. Be concise and action-oriented.',
           tools: TOOLS,
           messages: messages
         )
 
         # Check if the model wants to use tools
-        if response["stop_reason"] == "tool_use"
+        if response['stop_reason'] == 'tool_use'
           # Add assistant message
-          messages << { role: "assistant", content: response["content"] }
+          messages << { role: 'assistant', content: response['content'] }
 
           # Process each tool call
-          tool_results = response["content"]
-            .select { |block| block["type"] == "tool_use" }
-            .map { |tool_call| execute_tool(tool_call) }
+          tool_results = response['content']
+                         .select { |block| block['type'] == 'tool_use' }
+                         .map { |tool_call| execute_tool(tool_call) }
 
-          messages << { role: "user", content: tool_results }
+          messages << { role: 'user', content: tool_results }
         else
           # Model is done — extract final text
-          final_text = response["content"]
-            &.select { |block| block["type"] == "text" }
-            &.map { |block| block["text"] }
-            &.join("\n")
+          final_text = response['content']
+                       &.select { |block| block['type'] == 'text' }
+                       &.map { |block| block['text'] }
+                       &.join("\n")
 
           log("Agent summary: #{final_text}")
           break
@@ -128,37 +130,37 @@ module Agents
     private
 
     def execute_tool(tool_call)
-      name = tool_call["name"]
-      input = tool_call["input"] || {}
-      tool_use_id = tool_call["id"]
+      name = tool_call['name']
+      input = tool_call['input'] || {}
+      tool_use_id = tool_call['id']
 
       log("Tool call: #{name}(#{input.to_json})")
 
       result = case name
-               when "check_inventory" then tool_check_inventory
-               when "get_stock_summary" then tool_get_stock_summary
-               when "send_alerts" then tool_send_alerts(input)
-               when "get_recent_alerts" then tool_get_recent_alerts
-               when "draft_purchase_order" then tool_draft_purchase_order(input)
+               when 'check_inventory' then tool_check_inventory
+               when 'get_stock_summary' then tool_get_stock_summary
+               when 'send_alerts' then tool_send_alerts(input)
+               when 'get_recent_alerts' then tool_get_recent_alerts
+               when 'draft_purchase_order' then tool_draft_purchase_order(input)
                else "Unknown tool: #{name}"
                end
 
       log("Tool result: #{result.to_s.truncate(200)}")
 
       {
-        type: "tool_result",
+        type: 'tool_result',
         tool_use_id: tool_use_id,
         content: result.to_s
       }
     end
 
     def flagged_variants
-      @flagged_cache ||= Inventory::LowStockDetector.new(@shop).detect
+      @flagged_variants ||= Inventory::LowStockDetector.new(@shop).detect
     end
 
     def tool_check_inventory
       flagged = flagged_variants
-      return "All SKUs are healthy — no low-stock or out-of-stock items." if flagged.empty?
+      return 'All SKUs are healthy — no low-stock or out-of-stock items.' if flagged.empty?
 
       items = flagged.map do |fv|
         {
@@ -168,11 +170,13 @@ module Agents
           available: fv[:available],
           threshold: fv[:threshold],
           status: fv[:status].to_s,
-          supplier: fv[:variant].supplier&.name || "No supplier assigned"
+          supplier: fv[:variant].supplier&.name || 'No supplier assigned'
         }
       end
 
-      "Found #{flagged.size} flagged variants:\n#{items.map { |i| "  - #{i[:sku]}: #{i[:available]} available (threshold: #{i[:threshold]}, status: #{i[:status]}, supplier: #{i[:supplier]})" }.join("\n")}"
+      "Found #{flagged.size} flagged variants:\n#{items.map do |i|
+        "  - #{i[:sku]}: #{i[:available]} available (threshold: #{i[:threshold]}, status: #{i[:status]}, supplier: #{i[:supplier]})"
+      end.join("\n")}"
     end
 
     def tool_get_stock_summary
@@ -186,9 +190,9 @@ module Agents
 
     def tool_send_alerts(input)
       flagged = flagged_variants
-      return "No flagged variants to alert on." if flagged.empty?
+      return 'No flagged variants to alert on.' if flagged.empty?
 
-      variant_ids = input["variant_ids"] || []
+      variant_ids = input['variant_ids'] || []
       targets = if variant_ids.empty?
                   flagged
                 else
@@ -196,7 +200,7 @@ module Agents
                   flagged.select { |fv| ids_set.include?(fv[:variant].id) }
                 end
 
-      return "No matching variants found for the given IDs." if targets.empty?
+      return 'No matching variants found for the given IDs.' if targets.empty?
 
       Notifications::AlertSender.new(@shop).send_low_stock_alerts(targets)
       "Sent alerts for #{targets.size} variant(s). Duplicates from today were automatically skipped."
@@ -209,7 +213,7 @@ module Agents
                     .order(triggered_at: :desc)
                     .limit(20)
 
-      return "No alerts sent today yet." if recent.empty?
+      return 'No alerts sent today yet.' if recent.empty?
 
       lines = recent.map do |a|
         "  - #{a.variant.sku} (#{a.alert_type}): #{a.current_quantity} available, alerted at #{a.triggered_at.strftime('%H:%M')}"
@@ -219,7 +223,7 @@ module Agents
     end
 
     def tool_draft_purchase_order(input)
-      supplier_id = input["supplier_id"]
+      supplier_id = input['supplier_id']
       supplier = Supplier.find_by(id: supplier_id, shop_id: @shop.id)
       return "Supplier #{supplier_id} not found." unless supplier
 
@@ -229,8 +233,9 @@ module Agents
       po = PurchaseOrder.create!(
         shop: @shop,
         supplier: supplier,
-        status: "draft",
-        total_amount: 0
+        status: 'draft',
+        order_date: Date.current,
+        expected_delivery: Date.current + (supplier.lead_time_days || 14).days
       )
 
       total = 0
@@ -241,26 +246,24 @@ module Agents
           purchase_order: po,
           variant: fv[:variant],
           sku: fv[:variant].sku,
-          quantity_ordered: qty,
+          qty_ordered: qty,
           unit_price: price
         )
         total += qty * price
       end
-
-      po.update!(total_amount: total)
 
       "Drafted PO ##{po.id} for #{supplier.name}: #{low_variants.size} line item(s), total $#{'%.2f' % total}. Status: draft (awaiting approval)."
     end
 
     # Fallback if Claude API is down — run the basic sync directly
     def run_fallback
-      log("Running fallback: direct inventory check + alerts")
+      log('Running fallback: direct inventory check + alerts')
       flagged = flagged_variants
       if flagged.any?
         Notifications::AlertSender.new(@shop).send_low_stock_alerts(flagged)
         log("Fallback: sent alerts for #{flagged.size} variant(s)")
       else
-        log("Fallback: all SKUs healthy")
+        log('Fallback: all SKUs healthy')
       end
     end
 

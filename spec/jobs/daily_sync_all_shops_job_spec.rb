@@ -1,13 +1,15 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe DailySyncAllShopsJob, type: :job do
-  it "enqueues InventorySyncJob for each active shop" do
-    shop1 = create(:shop)
-    shop2 = create(:shop)
+  it 'enqueues InventorySyncJob for each active shop' do
+    create(:shop)
+    create(:shop)
     create(:shop, uninstalled_at: Time.current) # inactive
 
-    expect {
+    expect do
       described_class.perform_now
-    }.to have_enqueued_job(InventorySyncJob).exactly(2).times
+    end.to have_enqueued_job(InventorySyncJob).exactly(2).times
   end
 end

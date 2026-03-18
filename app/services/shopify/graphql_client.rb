@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Shopify
   class GraphqlClient
     MAX_RETRIES = 3
@@ -18,17 +20,17 @@ module Shopify
       begin
         response = @client.query(query: graphql_query, variables: variables)
 
-        if response.body["errors"]
-          errors = response.body["errors"]
-          throttled = errors.any? { |e| e.dig("extensions", "code") == "THROTTLED" }
-          if throttled
-            raise ShopifyThrottledError, "Rate limited by Shopify"
-          else
-            raise ShopifyApiError, errors.map { |e| e["message"] }.join(", ")
-          end
+        if response.body['errors']
+          errors = response.body['errors']
+          throttled = errors.any? { |e| e.dig('extensions', 'code') == 'THROTTLED' }
+          raise ShopifyThrottledError, 'Rate limited by Shopify' if throttled
+
+
+          raise ShopifyApiError, errors.map { |e| e['message'] }.join(', ')
+
         end
 
-        response.body["data"]
+        response.body['data']
       rescue ShopifyThrottledError => e
         retries += 1
         if retries <= MAX_RETRIES
@@ -39,7 +41,7 @@ module Shopify
       end
     end
 
-    def paginate(graphql_query, variables: {}, connection_path:)
+    def paginate(graphql_query, connection_path:, variables: {})
       all_nodes = []
       cursor = nil
 
@@ -48,11 +50,12 @@ module Shopify
         connection = data.dig(*connection_path)
         break unless connection
 
-        all_nodes.concat(connection["nodes"] || connection["edges"]&.map { |e| e["node"] } || [])
+        all_nodes.concat(connection['nodes'] || connection['edges']&.map { |e| e['node'] } || [])
 
-        page_info = connection["pageInfo"]
-        break unless page_info&.dig("hasNextPage")
-        cursor = page_info["endCursor"]
+        page_info = connection['pageInfo']
+        break unless page_info&.dig('hasNextPage')
+
+        cursor = page_info['endCursor']
       end
 
       all_nodes

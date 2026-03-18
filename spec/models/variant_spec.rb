@@ -1,9 +1,11 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe Variant, type: :model do
   let(:shop) { create(:shop) }
 
-  describe "associations" do
+  describe 'associations' do
     subject do
       ActsAsTenant.with_tenant(shop) do
         create(:variant, shop: shop, product: create(:product, shop: shop))
@@ -17,8 +19,8 @@ RSpec.describe Variant, type: :model do
     it { should have_many(:purchase_order_line_items).dependent(:restrict_with_error) }
   end
 
-  describe "tenant scoping" do
-    it "automatically scopes to the current tenant" do
+  describe 'tenant scoping' do
+    it 'automatically scopes to the current tenant' do
       variant = ActsAsTenant.with_tenant(shop) do
         create(:variant, shop: shop, product: create(:product, shop: shop))
       end
@@ -35,15 +37,15 @@ RSpec.describe Variant, type: :model do
     end
   end
 
-  describe "supplier association" do
-    it "allows a variant without a supplier" do
+  describe 'supplier association' do
+    it 'allows a variant without a supplier' do
       ActsAsTenant.with_tenant(shop) do
         variant = create(:variant, shop: shop, product: create(:product, shop: shop), supplier: nil)
         expect(variant).to be_valid
       end
     end
 
-    it "allows assigning a supplier" do
+    it 'allows assigning a supplier' do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
         variant = create(:variant, shop: shop, product: create(:product, shop: shop), supplier: supplier)

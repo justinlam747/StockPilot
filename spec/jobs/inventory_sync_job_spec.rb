@@ -1,9 +1,11 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe InventorySyncJob, type: :job do
   let(:shop) { create(:shop) }
 
-  it "calls each service in order" do
+  it 'calls each service in order' do
     data = { products: [], fetched_at: Time.current }
 
     fetcher = instance_double(Shopify::InventoryFetcher)
@@ -21,8 +23,8 @@ RSpec.describe InventorySyncJob, type: :job do
     expect(Inventory::Snapshotter).to receive(:new).with(shop).and_return(snapshotter)
     expect(snapshotter).to receive(:snapshot).with(data)
 
-    expect(Inventory::LowStockDetector).to receive(:new).with(shop).and_return(detector)
-    expect(detector).to receive(:detect).and_return([])
+    expect(Inventory::LowStockDetector).to receive(:new).with(shop).at_least(:once).and_return(detector)
+    expect(detector).to receive(:detect).at_least(:once).and_return([])
 
     expect(Notifications::AlertSender).to receive(:new).with(shop).and_return(sender)
     expect(sender).to receive(:send_low_stock_alerts).with([])

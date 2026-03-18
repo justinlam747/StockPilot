@@ -1,4 +1,6 @@
-require "active_support/core_ext/integer/time"
+# frozen_string_literal: true
+
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   config.enable_reloading = true
@@ -7,9 +9,9 @@ Rails.application.configure do
 
   config.action_controller.perform_caching = true
   config.cache_store = :redis_cache_store, {
-    url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
+    url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0'),
     expires_in: 1.hour,
-    namespace: "cache",
+    namespace: 'cache',
     pool: false
   }
 
@@ -32,7 +34,10 @@ Rails.application.configure do
 
   config.active_job.verbose_enqueue_logs = true
 
-  config.active_record.encryption.primary_key = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY", "dev-primary-key-that-is-long-enough")
-  config.active_record.encryption.deterministic_key = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY", "dev-deterministic-key-long-enough")
-  config.active_record.encryption.key_derivation_salt = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT", "dev-key-derivation-salt-long-enough")
+  config.active_record.encryption.primary_key = ENV.fetch('ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY',
+                                                          'dev-primary-key-that-is-long-enough')
+  config.active_record.encryption.deterministic_key = ENV.fetch('ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY',
+                                                                'dev-deterministic-key-long-enough')
+  config.active_record.encryption.key_derivation_salt = ENV.fetch('ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT',
+                                                                  'dev-key-derivation-salt-long-enough')
 end

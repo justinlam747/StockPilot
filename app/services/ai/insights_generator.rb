@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module AI
   class InsightsGenerator
-    MODEL = "claude-sonnet-4-20250514"
+    MODEL = 'claude-sonnet-4-20250514'
 
     def initialize(shop)
       @shop = shop
@@ -18,20 +20,20 @@ module AI
         end
       }
 
-      client = Anthropic::Client.new(api_key: ENV.fetch("ANTHROPIC_API_KEY"))
+      client = Anthropic::Client.new(api_key: ENV.fetch('ANTHROPIC_API_KEY'))
       response = client.messages(
         model: MODEL,
         max_tokens: 512,
         system: "You are an inventory intelligence assistant. Provide 3-5 concise bullet points with actionable insights based on the merchant's inventory metrics. Be specific and data-driven.",
         messages: [
-          { role: "user", content: "Here are my current inventory metrics:\n#{metrics.to_json}" }
+          { role: 'user', content: "Here are my current inventory metrics:\n#{metrics.to_json}" }
         ]
       )
 
-      response.dig("content", 0, "text")
+      response.dig('content', 0, 'text')
     rescue Anthropic::Error => e
       Rails.logger.warn("[AI::InsightsGenerator] Anthropic API error: #{e.message}")
-      "AI insights temporarily unavailable."
+      'AI insights temporarily unavailable.'
     end
   end
 end

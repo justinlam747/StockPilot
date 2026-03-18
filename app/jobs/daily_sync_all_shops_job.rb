@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DailySyncAllShopsJob < ApplicationJob
   queue_as :default
 

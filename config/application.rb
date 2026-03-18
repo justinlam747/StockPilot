@@ -1,13 +1,15 @@
-require_relative "boot"
+# frozen_string_literal: true
 
-require "rails"
-require "active_model/railtie"
-require "active_job/railtie"
-require "active_record/railtie"
-require "action_controller/railtie"
-require "action_mailer/railtie"
-require "action_view/railtie"
-require "rails/test_unit/railtie"
+require_relative 'boot'
+
+require 'rails'
+require 'active_model/railtie'
+require 'active_job/railtie'
+require 'active_record/railtie'
+require 'action_controller/railtie'
+require 'action_mailer/railtie'
+require 'action_view/railtie'
+require 'rails/test_unit/railtie'
 
 Bundler.require(*Rails.groups)
 
@@ -22,12 +24,12 @@ module ShopifyInventory
     config.autoload_lib(ignore: %w[assets tasks])
 
     # Time zone
-    config.time_zone = "UTC"
+    config.time_zone = 'UTC'
 
     # Generators
     config.generators do |g|
       g.test_framework :rspec
-      g.fixture_replacement :factory_bot, dir: "spec/factories"
+      g.fixture_replacement :factory_bot, dir: 'spec/factories'
       g.orm :active_record, primary_key_type: :bigint
     end
   end

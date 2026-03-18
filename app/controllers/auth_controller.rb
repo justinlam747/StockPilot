@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 class AuthController < ApplicationController
   skip_before_action :require_login
 
   def callback
-    auth = request.env["omniauth.auth"]
+    auth = request.env['omniauth.auth']
     reset_session
 
     shop = Shop.find_or_initialize_by(shop_domain: auth.uid)
@@ -11,12 +13,12 @@ class AuthController < ApplicationController
     shop.save!
 
     session[:shop_id] = shop.id
-    AuditLog.record(action: "login", shop: shop, request: request)
-    redirect_to "/dashboard"
+    AuditLog.record(action: 'login', shop: shop, request: request)
+    redirect_to '/dashboard'
   end
 
   def failure
-    AuditLog.record(action: "login_failed", request: request,
+    AuditLog.record(action: 'login_failed', request: request,
                     metadata: { reason: params[:message] })
     redirect_to root_path, alert: "Authentication failed: #{params[:message]}"
   end
@@ -26,7 +28,7 @@ class AuthController < ApplicationController
   end
 
   def destroy
-    AuditLog.record(action: "logout", shop: current_shop, request: request)
+    AuditLog.record(action: 'logout', shop: current_shop, request: request)
     reset_session
     redirect_to root_path
   end

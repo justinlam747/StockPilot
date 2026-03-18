@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SuppliersController < ApplicationController
   def index
     @suppliers = shop_cache.suppliers
@@ -8,13 +10,13 @@ class SuppliersController < ApplicationController
     @supplier = Supplier.new(supplier_params)
     if @supplier.save
       shop_cache.write_supplier(@supplier)
-      AuditLog.record(action: "supplier_created", shop: current_shop, request: request,
+      AuditLog.record(action: 'supplier_created', shop: current_shop, request: request,
                       metadata: { supplier_id: @supplier.id })
-      if request.headers["HX-Request"]
+      if request.headers['HX-Request']
         @suppliers = shop_cache.suppliers
-        render partial: "list", locals: { suppliers: @suppliers }
+        render partial: 'list', locals: { suppliers: @suppliers }
       else
-        redirect_to suppliers_path, notice: "Supplier created"
+        redirect_to suppliers_path, notice: 'Supplier created'
       end
     else
       render :index, status: :unprocessable_entity
@@ -25,11 +27,11 @@ class SuppliersController < ApplicationController
     @supplier = Supplier.find(params[:id])
     if @supplier.update(supplier_params)
       shop_cache.write_supplier(@supplier)
-      if request.headers["HX-Request"]
+      if request.headers['HX-Request']
         @suppliers = shop_cache.suppliers
-        render partial: "list", locals: { suppliers: @suppliers }
+        render partial: 'list', locals: { suppliers: @suppliers }
       else
-        redirect_to suppliers_path, notice: "Supplier updated"
+        redirect_to suppliers_path, notice: 'Supplier updated'
       end
     else
       render :index, status: :unprocessable_entity
@@ -38,15 +40,15 @@ class SuppliersController < ApplicationController
 
   def destroy
     @supplier = Supplier.find(params[:id])
-    AuditLog.record(action: "supplier_deleted", shop: current_shop, request: request,
+    AuditLog.record(action: 'supplier_deleted', shop: current_shop, request: request,
                     metadata: { supplier_id: @supplier.id, name: @supplier.name })
     @supplier.destroy!
     shop_cache.invalidate_supplier(@supplier.id)
-    if request.headers["HX-Request"]
+    if request.headers['HX-Request']
       @suppliers = shop_cache.suppliers
-      render partial: "list", locals: { suppliers: @suppliers }
+      render partial: 'list', locals: { suppliers: @suppliers }
     else
-      redirect_to suppliers_path, notice: "Supplier deleted"
+      redirect_to suppliers_path, notice: 'Supplier deleted'
     end
   end
 

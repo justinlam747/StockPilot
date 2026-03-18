@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Shopify
   class InventoryFetcher
     PRODUCTS_QUERY = <<~GQL
@@ -50,7 +52,7 @@ module Shopify
     def call
       products = @client.paginate(
         PRODUCTS_QUERY,
-        connection_path: ["products"]
+        connection_path: ['products']
       )
 
       {

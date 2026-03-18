@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 class ReportMailer < ApplicationMailer
-  def weekly_summary(report, to)
-    @report = report
-    @payload = report.payload
+  def weekly_summary(shop, report_data)
+    @shop = shop
+    @report = report_data
     mail(
-      to: to,
-      subject: "[#{report.shop.shop_domain}] Weekly Inventory Report — #{report.week_start.strftime('%b %d, %Y')}"
+      to: shop.alert_email,
+      subject: "[#{shop.shop_domain}] Weekly Inventory Report — #{Date.current.strftime('%b %d, %Y')}"
     )
   end
 end

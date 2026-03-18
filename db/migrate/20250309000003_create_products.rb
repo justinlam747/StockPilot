@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products do |t|
@@ -13,7 +15,7 @@ class CreateProducts < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :products, [:shop_id, :shopify_product_id], unique: true
-    add_index :products, [:shop_id, :status]
+    add_index :products, %i[shop_id shopify_product_id], unique: true
+    add_index :products, %i[shop_id status]
   end
 end
