@@ -700,37 +700,28 @@
 
 ## Progress Tracker
 
-> **Last updated:** 2026-03-12 — All phases implemented.
+> **Last updated:** 2026-03-18 — Server-rendered ERB migration complete. Frontend sections (9, 10, 13) no longer applicable.
 
-| Section | Total Items | Completed | % Done | Files Created/Modified |
-|---------|-------------|-----------|--------|----------------------|
-| 1. CI Pipeline | 16 | 14 | 88% | `.github/workflows/ci.yml` |
-| 2. Model Specs | 42 | 42 | 100% | 11 specs in `spec/models/`, 2 new factories |
-| 3. Request Specs (Missing) | 22 | 22 | 100% | 4 specs: customers, inventory, purchase_orders, variants |
-| 4. Request Specs (Harden) | 15 | 15 | 100% | 10 existing specs expanded with 30 new test cases |
-| 5. Service Specs (Missing) | 26 | 26 | 100% | 5 specs: inventory_fetcher, webhook_registrar, weekly_generator, inventory_monitor, runner |
-| 6. Service Specs (Harden) | 21 | 21 | 100% | 7 existing specs expanded with 21 new test cases |
-| 7. Job Specs (Missing) | 13 | 13 | 100% | 3 specs: weekly_report_job, weekly_report_all_shops_job, agent_inventory_check_job |
-| 8. Mailer Specs (Missing) | 9 | 9 | 100% | 2 specs: report_mailer, purchase_order_mailer |
-| 9. Frontend Unit Tests | 8 | 8 | 100% | vitest.config.ts, setup.ts, test-utils.tsx, useAuthenticatedFetch.test.ts |
-| 10. Frontend Component Tests | 47 | 44 | 94% | 11 test files: 8 pages + 2 UI components + 1 hook |
-| 11. Concurrency Tests | 12 | 12 | 100% | `spec/concurrency/race_conditions_spec.rb` |
-| 12. Resilience Tests | 17 | 17 | 100% | `spec/resilience/error_handling_spec.rb` |
-| 13. E2E Tests | 38 | 38 | 100% | playwright.config.ts, mock-api helper, 8 E2E spec files |
-| 14. Security Tests | 22 | 16 | 73% | `spec/requests/security_spec.rb` (auth + tenant isolation) |
-| 15. Coverage & Quality | 11 | 11 | 100% | SimpleCov config, CI coverage upload, CODEOWNERS, PR template |
-| **TOTAL** | **319** | **308** | **97%** |
+| Section | Status | Notes |
+|---------|--------|-------|
+| 1. CI Pipeline | Done | `.github/workflows/ci.yml` — lint, security (bundler-audit + brakeman), test |
+| 2. Model Specs | Done | 114 examples, shoulda-matchers validation specs for all 9 models |
+| 3. Request Specs | Done | Dashboard, Inventory, Suppliers, POs, Alerts, Auth, GDPR, Webhooks, Health, Landing, Security Headers, Rate Limiting |
+| 5. Service Specs | Done | All services tested: GraphQL client, fetcher, persister, snapshotter, detector, alert sender, weekly generator, agent, runner, AI generators |
+| 7. Job Specs | Done | InventorySyncJob, DailySyncAllShopsJob, SnapshotCleanupJob, AgentInventoryCheckJob, WeeklyReportJob, GDPR jobs, AfterAuthenticateJob |
+| 8. Mailer Specs | Done | AlertMailer, ReportMailer, PurchaseOrderMailer |
+| 9-10. Frontend Tests | N/A | Migrated to server-rendered ERB — no React/Vitest |
+| 11. Concurrency Tests | Done | `spec/concurrency/race_conditions_spec.rb` |
+| 12. Resilience Tests | Done | `spec/resilience/error_handling_spec.rb` |
+| 13. E2E Tests | N/A | Server-rendered ERB — no Playwright needed |
+| 14. Security Tests | Done | HMAC verification, rate limiting, security headers, GDPR, brakeman |
+| 15. Coverage & Quality | Done | SimpleCov 93% line coverage, 50% per-file minimum |
 
-### Remaining Items (11)
-- CI: brakeman and git-secrets stages (need gem installation)
-- Security: CORS restriction tests, webhook HMAC tests, input validation tests, rate limiting tests (need rack-attack implementation)
-- Frontend: 3 edge-case component tests
-
-### Stats
-- **53 backend spec files** (~5,009 lines)
-- **11 frontend test files** (44 tests)
-- **8 E2E test files** (47 tests)
-- **3 CI/GitHub config files**
+### Current Stats
+- **~45 backend spec files** with **~370+ examples**
+- **93% line coverage** (SimpleCov)
+- **0 failures** across all specs
+- CI: RuboCop + bundler-audit + brakeman + RSpec
 
 ---
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Shopify
+  # Shopify Admin GraphQL client with throttle retry and pagination.
   class GraphqlClient
     MAX_RETRIES = 3
     THROTTLE_SLEEP = 2.0
@@ -25,9 +26,7 @@ module Shopify
           throttled = errors.any? { |e| e.dig('extensions', 'code') == 'THROTTLED' }
           raise ShopifyThrottledError, 'Rate limited by Shopify' if throttled
 
-
           raise ShopifyApiError, errors.map { |e| e['message'] }.join(', ')
-
         end
 
         response.body['data']
