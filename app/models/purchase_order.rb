@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# A restock order sent to a supplier with one or more line items.
 class PurchaseOrder < ApplicationRecord
   acts_as_tenant :shop
 

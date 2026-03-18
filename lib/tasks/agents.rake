@@ -18,7 +18,7 @@ namespace :agents do
 
   desc 'Run the inventory monitor agent for a specific shop'
   task :check_shop, [:shop_id] => :environment do |_t, args|
-    shop_id = args[:shop_id] || ENV['SHOP_ID']
+    shop_id = args[:shop_id] || ENV.fetch('SHOP_ID', nil)
     abort 'Usage: rake agents:check_shop[SHOP_ID]' unless shop_id
 
     puts "Running inventory monitor agent for shop #{shop_id}..."

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Base controller providing authentication, tenant scoping, and cache helpers.
 class ApplicationController < ActionController::Base
   before_action :require_login
   before_action :set_tenant

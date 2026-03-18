@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Purges inventory snapshots older than the retention period in batches.
 class SnapshotCleanupJob < ApplicationJob
   queue_as :maintenance
 

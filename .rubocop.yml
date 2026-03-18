@@ -1,0 +1,37 @@
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.3
+
+# Config, route, schema, and seed files naturally have long blocks
+Metrics/BlockLength:
+  Exclude:
+    - 'config/**/*'
+    - 'spec/**/*'
+    - 'lib/tasks/**/*'
+    - 'db/**/*'
+
+# Migrations have long change methods by nature
+Metrics/MethodLength:
+  Exclude:
+    - 'db/migrate/**/*'
+
+# Spec and DB files don't need documentation
+Style/Documentation:
+  Exclude:
+    - 'spec/**/*'
+    - 'db/**/*'
+
+# Windows/cross-platform — disable line ending checks
+Layout/EndOfLine:
+  Enabled: false
+
+# Spec files use numbered variables for test fixtures
+Naming/VariableNumber:
+  Exclude:
+    - 'spec/**/*'
+
+# Seeds and migrations have long lines for readability
+Layout/LineLength:
+  Exclude:
+    - 'db/seeds.rb'

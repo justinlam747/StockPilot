@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Base job class with default retry policy and structured logging.
 class ApplicationJob < ActiveJob::Base
   retry_on StandardError, wait: :polynomially_longer, attempts: 3
   discard_on ActiveRecord::RecordNotFound

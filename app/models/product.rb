@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Represents a Shopify product synced from the store.
 class Product < ApplicationRecord
   acts_as_tenant :shop
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Immutable record of security-relevant events for compliance.
 class AuditLog < ApplicationRecord
   belongs_to :shop, optional: true
 

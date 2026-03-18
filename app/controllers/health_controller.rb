@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
+# Liveness/readiness probe checking database and Redis connectivity.
 class HealthController < ActionController::API
   def show
     ActiveRecord::Base.connection.execute('SELECT 1')
-    redis = Redis.new(url: ENV['REDIS_URL'])
+    redis = Redis.new(url: ENV.fetch('REDIS_URL', nil))
     redis_ok = redis.ping == 'PONG'
     redis.close
     render json: { status: 'ok', db: true, redis: redis_ok }, status: :ok

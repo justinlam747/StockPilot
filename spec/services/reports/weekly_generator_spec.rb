@@ -65,7 +65,7 @@ RSpec.describe Reports::WeeklyGenerator do
           # variant_c: 30 - 25 = 5 sold
           expect(top_sellers.size).to eq(3)
 
-          skus_sold = top_sellers.map { |ts| [ts['sku'], ts['units_sold']] }.to_h
+          skus_sold = top_sellers.to_h { |ts| [ts['sku'], ts['units_sold']] }
           expect(skus_sold['WA-001']).to eq(40)
           expect(skus_sold['WB-001']).to eq(40)
           expect(skus_sold['WA-002']).to eq(5)

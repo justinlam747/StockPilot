@@ -95,9 +95,9 @@ RSpec.describe Shopify::GraphqlClient do
                               })
       allow(mock_gql_client).to receive(:query).and_return(page1_response, page2_response)
 
-      results = client.paginate('{ products(first: 2, after: $cursor) { nodes { id } pageInfo { hasNextPage endCursor } } }',
-                                variables: {},
-                                connection_path: ['products'])
+      paginate_query = '{ products(first: 2, after: $cursor) ' \
+                       '{ nodes { id } pageInfo { hasNextPage endCursor } } }'
+      results = client.paginate(paginate_query, variables: {}, connection_path: ['products'])
 
       expect(results).to eq([{ 'id' => '1' }, { 'id' => '2' }, { 'id' => '3' }])
       expect(mock_gql_client).to have_received(:query).twice

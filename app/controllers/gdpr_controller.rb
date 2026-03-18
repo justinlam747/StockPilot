@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Processes mandatory Shopify GDPR webhooks for customer data and shop redaction.
 class GdprController < ActionController::Base
   skip_before_action :verify_authenticity_token
   before_action :verify_shopify_hmac

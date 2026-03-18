@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Delivers weekly inventory summary reports to merchants.
 class ReportMailer < ApplicationMailer
   def weekly_summary(shop, report_data)
     @shop = shop

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# A specific SKU/option combination of a product.
 class Variant < ApplicationRecord
   acts_as_tenant :shop
 

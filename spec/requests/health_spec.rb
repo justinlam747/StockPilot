@@ -35,7 +35,8 @@ RSpec.describe 'Health Check', type: :request do
 
     context 'when DB is down' do
       before do
-        allow(ActiveRecord::Base.connection).to receive(:execute).and_raise(ActiveRecord::ConnectionNotEstablished.new('Connection refused'))
+        allow(ActiveRecord::Base.connection).to receive(:execute)
+          .and_raise(ActiveRecord::ConnectionNotEstablished.new('Connection refused'))
       end
 
       it 'returns degraded status with 503' do

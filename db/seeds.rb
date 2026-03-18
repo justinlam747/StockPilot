@@ -20,8 +20,10 @@ end
 ActsAsTenant.with_tenant(shop) do
   # Suppliers
   suppliers = [
-    { name: 'ACME Wholesale', email: 'orders@acme-wholesale.com', phone: '555-0101', lead_time_days: 7, star_rating: 5 },
-    { name: 'Pacific Trading Co', email: 'supply@pacifictrading.com', phone: '555-0102', lead_time_days: 14, star_rating: 4 },
+    { name: 'ACME Wholesale', email: 'orders@acme-wholesale.com', phone: '555-0101', lead_time_days: 7,
+      star_rating: 5 },
+    { name: 'Pacific Trading Co', email: 'supply@pacifictrading.com', phone: '555-0102', lead_time_days: 14,
+      star_rating: 4 },
     { name: 'Nordic Imports', email: 'orders@nordicimports.com', phone: '555-0103', lead_time_days: 21, star_rating: 3 }
   ].map do |attrs|
     Supplier.find_or_create_by!(name: attrs[:name]) do |s|

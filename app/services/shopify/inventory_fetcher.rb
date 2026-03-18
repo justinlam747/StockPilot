@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Shopify
+  # Fetches all products with variant inventory levels via GraphQL pagination.
   class InventoryFetcher
     PRODUCTS_QUERY = <<~GQL
       query($cursor: String) {

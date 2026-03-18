@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# A vendor supplying products to the merchant's store.
 class Supplier < ApplicationRecord
   acts_as_tenant :shop
 

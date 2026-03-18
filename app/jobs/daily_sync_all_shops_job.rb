@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Enqueues an inventory sync job for every active shop.
 class DailySyncAllShopsJob < ApplicationJob
   queue_as :default
 

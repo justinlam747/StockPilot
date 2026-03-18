@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Post-OAuth setup: registers webhooks and triggers initial inventory sync.
 class AfterAuthenticateJob < ApplicationJob
   queue_as :default
 

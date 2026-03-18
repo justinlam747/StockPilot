@@ -11,6 +11,7 @@ Rack::Attack.cache.store = if Rails.env.test?
                            end
 
 module Rack
+  # Rate limiting and throttle rules for API abuse prevention.
   class Attack
     # Helper to extract shop_id from session for per-tenant throttling.
     # Falls back to IP for unauthenticated requests (auth, webhooks).

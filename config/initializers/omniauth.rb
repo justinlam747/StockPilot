@@ -22,7 +22,8 @@ Rails.application.config.middleware.use OmniAuth::Builder do
                strategy.options[:client_options][:site] = ''
              end
 
-             Rails.logger.info "[OmniAuth] Shop param: #{shop.inspect}, Site: #{strategy.options[:client_options][:site]}"
+             site = strategy.options[:client_options][:site]
+             Rails.logger.info "[OmniAuth] Shop param: #{shop.inspect}, Site: #{site}"
            }
 end
 

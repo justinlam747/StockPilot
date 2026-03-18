@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Cache
+  # Per-shop caching layer for products, suppliers, and inventory stats.
   class ShopCache
     PRODUCT_TTL = 6.hours
     SUPPLIER_TTL = 12.hours

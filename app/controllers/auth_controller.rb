@@ -1,17 +1,13 @@
 # frozen_string_literal: true
 
+# Handles Shopify OAuth callback, session management, and logout.
 class AuthController < ApplicationController
   skip_before_action :require_login
 
   def callback
     auth = request.env['omniauth.auth']
     reset_session
-
-    shop = Shop.find_or_initialize_by(shop_domain: auth.uid)
-    shop.access_token = auth.credentials.token
-    shop.installed_at ||= Time.current
-    shop.save!
-
+    shop = upsert_shop(auth)
     session[:shop_id] = shop.id
     AuditLog.record(action: 'login', shop: shop, request: request)
     redirect_to '/dashboard'
@@ -31,5 +27,15 @@ class AuthController < ApplicationController
     AuditLog.record(action: 'logout', shop: current_shop, request: request)
     reset_session
     redirect_to root_path
+  end
+
+  private
+
+  def upsert_shop(auth)
+    shop = Shop.find_or_initialize_by(shop_domain: auth.uid)
+    shop.access_token = auth.credentials.token
+    shop.installed_at ||= Time.current
+    shop.save!
+    shop
   end
 end

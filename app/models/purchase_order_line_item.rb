@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# A single SKU entry within a purchase order.
 class PurchaseOrderLineItem < ApplicationRecord
   belongs_to :purchase_order
   belongs_to :variant

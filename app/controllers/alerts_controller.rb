@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Manages low-stock and out-of-stock alert display and dismissal.
 class AlertsController < ApplicationController
   def index
     @alerts = Alert.includes(variant: :product).order(created_at: :desc).page(params[:page]).per(25)

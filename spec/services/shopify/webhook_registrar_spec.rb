@@ -12,7 +12,8 @@ RSpec.describe Shopify::WebhookRegistrar do
 
   describe '.call' do
     it "delegates to a new instance's register_all" do
-      allow(mock_client).to receive(:query).and_return({ 'webhookSubscriptionCreate' => { 'webhookSubscription' => { 'id' => '123' } } })
+      response = { 'webhookSubscriptionCreate' => { 'webhookSubscription' => { 'id' => '123' } } }
+      allow(mock_client).to receive(:query).and_return(response)
 
       described_class.call(shop)
 
@@ -24,12 +25,13 @@ RSpec.describe Shopify::WebhookRegistrar do
     let(:registrar) { described_class.new(shop) }
 
     it 'registers all 3 required webhook topics' do
-      allow(mock_client).to receive(:query).and_return({
-                                                         'webhookSubscriptionCreate' => {
-                                                           'webhookSubscription' => { 'id' => 'gid://shopify/WebhookSubscription/1' },
-                                                           'userErrors' => []
-                                                         }
-                                                       })
+      webhook_response = {
+        'webhookSubscriptionCreate' => {
+          'webhookSubscription' => { 'id' => 'gid://shopify/WebhookSubscription/1' },
+          'userErrors' => []
+        }
+      }
+      allow(mock_client).to receive(:query).and_return(webhook_response)
 
       registrar.register_all
 

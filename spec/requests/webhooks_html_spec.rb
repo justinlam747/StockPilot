@@ -10,13 +10,15 @@ RSpec.describe 'Webhook HMAC verification', type: :request do
     digest = OpenSSL::HMAC.digest('sha256', secret, body)
     hmac = Base64.strict_encode64(digest)
     post '/webhooks/products_update', params: body,
-                                      headers: { 'HTTP_X_SHOPIFY_HMAC_SHA256' => hmac, 'CONTENT_TYPE' => 'application/json' }
+                                      headers: { 'HTTP_X_SHOPIFY_HMAC_SHA256' => hmac,
+                                                 'CONTENT_TYPE' => 'application/json' }
     expect(response).to have_http_status(:ok)
   end
 
   it 'rejects invalid HMAC' do
     post '/webhooks/products_update', params: '{}',
-                                      headers: { 'HTTP_X_SHOPIFY_HMAC_SHA256' => 'bad', 'CONTENT_TYPE' => 'application/json' }
+                                      headers: { 'HTTP_X_SHOPIFY_HMAC_SHA256' => 'bad',
+                                                 'CONTENT_TYPE' => 'application/json' }
     expect(response).to have_http_status(:unauthorized)
   end
 

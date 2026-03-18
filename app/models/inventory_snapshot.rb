@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Point-in-time record of a variant's stock levels across all locations.
 class InventorySnapshot < ApplicationRecord
   acts_as_tenant :shop
 

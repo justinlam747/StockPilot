@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Tracks low-stock and out-of-stock notifications per variant.
 class Alert < ApplicationRecord
   acts_as_tenant :shop
 
