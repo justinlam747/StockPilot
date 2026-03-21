@@ -3,10 +3,12 @@
 # Displays paginated inventory with filtering by stock status and search.
 class InventoryController < ApplicationController
   def index
+    load_inventory_stats
     @products = Product.includes(variants: :inventory_snapshots)
     @products = apply_filter(@products)
     @products = apply_search(@products)
-    @products = @products.page(params[:page]).per(25)
+    @products = apply_sort(@products)
+    @products = @products.page(params[:page]).per(24)
 
     return unless request.headers['HX-Request']
 
@@ -57,5 +59,22 @@ class InventoryController < ApplicationController
     return scope unless params[:q].present?
 
     scope.where('products.title ILIKE ?', "%#{params[:q]}%")
+  end
+
+  def apply_sort(scope)
+    case params[:sort]
+    when 'title_desc' then scope.order(title: :desc)
+    when 'newest' then scope.order(created_at: :desc)
+    when 'vendor' then scope.order(:vendor, :title)
+    else scope.order(:title)
+    end
+  end
+
+  def load_inventory_stats
+    stats = shop_cache.inventory_stats
+    @total_variants = Variant.where(shop_id: current_shop.id).count
+    @low_stock = stats[:low_stock]
+    @out_of_stock = stats[:out_of_stock]
+    @healthy_products = [stats[:total_products] - @low_stock - @out_of_stock, 0].max
   end
 end
