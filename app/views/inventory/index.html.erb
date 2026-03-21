@@ -1,24 +1,42 @@
 <div class="sp-page-header">
-  <h1>Inventory</h1>
+  <h1>Inventory (<%= @products.total_count %>)</h1>
+  <div class="sp-page-header__actions">
+    <div class="inv-view-toggle" role="group" aria-label="View mode">
+      <button class="inv-view-btn <%= 'is-active' unless params[:view] == 'table' %>"
+              hx-get="/inventory?view=grid&filter=<%= params[:filter] %>&q=<%= params[:q] %>"
+              hx-target="#product-list"
+              hx-push-url="true"
+              aria-label="Grid view" title="Grid view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button class="inv-view-btn <%= 'is-active' if params[:view] == 'table' %>"
+              hx-get="/inventory?view=table&filter=<%= params[:filter] %>&q=<%= params[:q] %>"
+              hx-target="#product-list"
+              hx-push-url="true"
+              aria-label="Table view" title="Table view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="sp-filter-bar" role="group" aria-label="Filter inventory">
-  <button hx-get="/inventory?filter=all"
-          hx-target="#product-table"
+  <button hx-get="/inventory?filter=all&view=<%= params[:view] %>"
+          hx-target="#product-list"
           hx-push-url="true"
           aria-pressed="<%= params[:filter].blank? || params[:filter] == 'all' ? 'true' : 'false' %>"
           class="<%= 'is-active' if params[:filter].blank? || params[:filter] == 'all' %>">
     All
   </button>
-  <button hx-get="/inventory?filter=low_stock"
-          hx-target="#product-table"
+  <button hx-get="/inventory?filter=low_stock&view=<%= params[:view] %>"
+          hx-target="#product-list"
           hx-push-url="true"
           aria-pressed="<%= params[:filter] == 'low_stock' ? 'true' : 'false' %>"
           class="<%= 'is-active' if params[:filter] == 'low_stock' %>">
     Low Stock
   </button>
-  <button hx-get="/inventory?filter=out_of_stock"
-          hx-target="#product-table"
+  <button hx-get="/inventory?filter=out_of_stock&view=<%= params[:view] %>"
+          hx-target="#product-list"
           hx-push-url="true"
           aria-pressed="<%= params[:filter] == 'out_of_stock' ? 'true' : 'false' %>"
           class="<%= 'is-active' if params[:filter] == 'out_of_stock' %>">
@@ -31,15 +49,20 @@
   <input type="search"
          id="inventory-search"
          name="q"
-         placeholder="Search by name or SKU..."
+         placeholder="Search products..."
          value="<%= params[:q] %>"
          hx-get="/inventory"
-         hx-target="#product-table"
+         hx-target="#product-list"
          hx-trigger="input changed delay:300ms"
          hx-push-url="true"
+         hx-include="[name='view']"
          aria-label="Search inventory">
 </div>
 
-<div id="product-table">
-  <%= render "table", products: @products %>
+<div id="product-list">
+  <% if params[:view] == 'table' %>
+    <%= render "table", products: @products %>
+  <% else %>
+    <%= render "grid", products: @products %>
+  <% end %>
 </div>

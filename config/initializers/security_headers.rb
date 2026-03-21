@@ -8,13 +8,13 @@ Rails.application.config.action_dispatch.default_headers = {
   'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
   'Content-Security-Policy' => [
     "default-src 'self'",
-    "script-src 'self' https://unpkg.com",
-    "style-src 'self' https://unpkg.com 'unsafe-inline'",
-    "img-src 'self' data:",
-    "font-src 'self'",
+    "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net",
+    "style-src 'self' https://unpkg.com https://fonts.googleapis.com 'unsafe-inline'",
+    "img-src 'self' data: https://cdn.shopify.com",
+    "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self'",
     'frame-ancestors https://*.myshopify.com https://admin.shopify.com',
     "base-uri 'self'",
-    "form-action 'self' https://*.myshopify.com"
+    "form-action *"
   ].join('; ')
 }

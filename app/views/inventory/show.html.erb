@@ -13,14 +13,26 @@
         <th scope="col">Variant</th>
         <th scope="col">SKU</th>
         <th scope="col">Stock</th>
+        <th scope="col">Status</th>
       </tr>
     </thead>
     <tbody>
       <% @product.variants.each do |v| %>
+        <% snapshot = v.inventory_snapshots.order(created_at: :desc).first %>
+        <% qty = snapshot&.available || 0 %>
         <tr>
           <td><%= v.title %></td>
-          <td><%= v.sku %></td>
-          <td><%= v.inventory_quantity %></td>
+          <td><%= v.sku.presence || '—' %></td>
+          <td><%= qty %></td>
+          <td>
+            <% if qty == 0 %>
+              <span class="sp-badge sp-badge--critical">Out of Stock</span>
+            <% elsif qty <= (v.low_stock_threshold || 10) %>
+              <span class="sp-badge sp-badge--warning">Low</span>
+            <% else %>
+              <span class="sp-badge sp-badge--success">In Stock</span>
+            <% end %>
+          </td>
         </tr>
       <% end %>
     </tbody>

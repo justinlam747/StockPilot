@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StockPilot</title>
   <%= stylesheet_link_tag "application" %>
+  <%= stylesheet_link_tag "overrides" %>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <%= csrf_meta_tags %>
 </head>
@@ -16,5 +17,6 @@
       <%= yield %>
     </main>
   </div>
+  <%= javascript_include_tag "sidebar" %>
 </body>
 </html>

@@ -3,18 +3,19 @@
 # Displays paginated inventory with filtering by stock status and search.
 class InventoryController < ApplicationController
   def index
-    @products = Product.includes(:variants)
+    @products = Product.includes(variants: :inventory_snapshots)
     @products = apply_filter(@products)
     @products = apply_search(@products)
     @products = @products.page(params[:page]).per(25)
 
     return unless request.headers['HX-Request']
 
-    render partial: 'table', locals: { products: @products }
+    partial = params[:view] == 'table' ? 'table' : 'grid'
+    render partial: partial, locals: { products: @products }
   end
 
   def show
-    @product = shop_cache.product(params[:id])
+    @product = Product.includes(variants: :inventory_snapshots).find(params[:id])
   end
 
   private

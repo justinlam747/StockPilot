@@ -229,6 +229,65 @@ button:focus-visible {
   color: var(--lp-text);
 }
 
+/* ─── INSTALL PAGE ─── */
+.lp-install {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px - 120px);
+  padding: 40px;
+}
+.lp-install__card {
+  background: var(--lp-bg);
+  padding: 48px 40px;
+  border-radius: 8px;
+  border: 1px solid var(--lp-border);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+.lp-install__icon {
+  margin-bottom: 16px;
+}
+.lp-install__title {
+  font-family: var(--lp-font);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--lp-text);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+.lp-install__subtitle {
+  font-size: 14px;
+  color: var(--lp-text-secondary);
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+.lp-install__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lp-install__input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--lp-border-btn);
+  border-radius: 6px;
+  font-family: var(--lp-font);
+  font-size: 14px;
+  color: var(--lp-text);
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+.lp-install__input:focus {
+  border-color: var(--lp-link);
+}
+.lp-install__submit {
+  width: 100%;
+  font-weight: 600;
+}
+
 /* ─── GSAP ANIMATION STATES ─── */
 .gsap-ready .lp-nav { opacity: 0; transform: translateY(-8px); }
 .gsap-ready .lp-hero__headline { opacity: 0; transform: translateY(30px); }

@@ -11,16 +11,21 @@
     <tbody>
       <% products.each do |product| %>
         <% product.variants.each do |variant| %>
+          <% snapshot = variant.inventory_snapshots.order(created_at: :desc).first %>
+          <% qty = snapshot&.available || 0 %>
           <tr>
             <td>
               <a href="/inventory/<%= product.id %>"><%= product.title %></a>
+              <% if variant.title != "Default Title" %>
+                <span class="bento__sub" style="display:block;"><%= variant.title %></span>
+              <% end %>
             </td>
-            <td><%= variant.sku %></td>
-            <td><%= variant.inventory_quantity %></td>
+            <td><%= variant.sku.presence || '—' %></td>
+            <td><%= qty %></td>
             <td>
-              <% if variant.inventory_quantity == 0 %>
+              <% if qty == 0 %>
                 <span class="sp-badge sp-badge--critical">Out of Stock</span>
-              <% elsif variant.inventory_quantity <= 10 %>
+              <% elsif qty <= (variant.low_stock_threshold || 10) %>
                 <span class="sp-badge sp-badge--warning">Low</span>
               <% else %>
                 <span class="sp-badge sp-badge--success">In Stock</span>

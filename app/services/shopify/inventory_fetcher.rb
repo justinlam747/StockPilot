@@ -5,7 +5,7 @@ module Shopify
   class InventoryFetcher
     PRODUCTS_QUERY = <<~GQL
       query($cursor: String) {
-        products(first: 50, after: $cursor) {
+        products(first: 25, after: $cursor) {
           pageInfo { hasNextPage endCursor }
           nodes {
             id
@@ -14,6 +14,13 @@ module Shopify
             productType
             vendor
             status
+            featuredMedia {
+              preview {
+                image {
+                  url
+                }
+              }
+            }
             variants(first: 100) {
               nodes {
                 id
@@ -30,10 +37,6 @@ module Shopify
                       quantities(names: ["available", "on_hand", "committed", "incoming"]) {
                         name
                         quantity
-                      }
-                      location {
-                        id
-                        name
                       }
                     }
                   }

@@ -25,6 +25,15 @@ class DashboardController < ApplicationController
     @low_stock = stats[:low_stock]
     @out_of_stock = stats[:out_of_stock]
     @pending_pos = stats[:pending_pos]
+    @total_suppliers = Supplier.where(shop_id: current_shop.id).count
+    @total_alerts = Alert.where(shop_id: current_shop.id).count
+    @total_variants = Variant.where(shop_id: current_shop.id).count
+    @healthy_products = [@total_products - @low_stock - @out_of_stock, 0].max
+    @health_pct = @total_products.positive? ? ((@healthy_products.to_f / @total_products) * 100).round : 0
+    @sent_pos = PurchaseOrder.where(shop_id: current_shop.id, status: 'sent').count
+    @alerts_today = Alert.where(shop_id: current_shop.id)
+                        .where('created_at >= ?', Time.current.beginning_of_day).count
+    @avg_variants_per_product = @total_products.positive? ? (@total_variants.to_f / @total_products).round(1) : 0
   end
 
   def execute_agent_run

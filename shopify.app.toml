@@ -2,20 +2,30 @@
 
 client_id = "20afdf418d6ed8240cee854d5b171a69"
 name = "StockPilot"
-application_url = "https://saul-untempestuous-overdeferentially.ngrok-free.dev"
+application_url = "https://meryl-congeneric-lula.ngrok-free.dev"
 embedded = true
 
 [webhooks]
 api_version = "2026-01"
 
-  [webhooks.privacy_compliance]
-  customer_deletion_url = "/gdpr/customers_redact"
-  customer_data_request_url = "/gdpr/customers_data_request"
-  shop_deletion_url = "/gdpr/shop_redact"
+  [[webhooks.subscriptions]]
+  uri = "/gdpr/customers_data_request"
+  compliance_topics = [ "customers/data_request" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/gdpr/customers_redact"
+  compliance_topics = [ "customers/redact" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/gdpr/shop_redact"
+  compliance_topics = [ "shop/redact" ]
 
 [access_scopes]
-scopes = "read_products,read_inventory,read_orders,read_customers"
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_customers,read_inventory,read_orders,read_products"
 use_legacy_install_flow = true
 
 [auth]
-redirect_urls = [ "https://saul-untempestuous-overdeferentially.ngrok-free.dev/auth/shopify/callback" ]
+redirect_urls = [
+  "https://meryl-congeneric-lula.ngrok-free.dev/auth/shopify/callback"
+]

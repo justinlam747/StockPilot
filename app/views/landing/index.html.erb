@@ -1,10 +1,17 @@
+<% content_for :landing_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollToPlugin.min.js"></script>
+  <%= javascript_include_tag "landing" %>
+<% end %>
+
 <a href="#lp-main" class="sr-only">Skip to main content</a>
 
 <!-- Sticky nav -->
 <nav class="lp-nav" aria-label="StockPilot navigation">
   <div class="lp-nav__inner">
     <a href="/" class="lp-nav__brand" aria-label="StockPilot home">StockPilot</a>
-    <a href="/auth/shopify" class="lp-btn" data-method="post" aria-label="Get started with StockPilot">Get Started</a>
+    <a href="/install" class="lp-btn" aria-label="Get started with StockPilot">Get Started</a>
   </div>
 </nav>
 
@@ -43,7 +50,7 @@
   <!-- Statement CTA -->
   <section class="lp-statement">
     <h2 class="lp-statement__text">Inventory on autopilot.</h2>
-    <a href="/auth/shopify" class="lp-btn" data-method="post" aria-label="Get started with StockPilot">Get Started</a>
+    <a href="/install" class="lp-btn" aria-label="Get started with StockPilot">Get Started</a>
   </section>
 </main>
 

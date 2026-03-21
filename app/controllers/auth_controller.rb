@@ -3,6 +3,7 @@
 # Handles Shopify OAuth callback, session management, and logout.
 class AuthController < ApplicationController
   skip_before_action :require_login
+  layout 'landing', only: :install
 
   def callback
     auth = request.env['omniauth.auth']
@@ -21,6 +22,17 @@ class AuthController < ApplicationController
 
   def install
     # Renders a page with a form that POSTs to /auth/shopify (OmniAuth)
+  end
+
+  # Development-only: auto-login as the first shop in DB
+  def dev_login
+    return head :not_found unless Rails.env.development?
+
+    shop = Shop.first
+    return redirect_to root_path, alert: 'No shops. Run: rails db:seed' unless shop
+
+    session[:shop_id] = shop.id
+    redirect_to '/dashboard'
   end
 
   def destroy

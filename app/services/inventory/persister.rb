@@ -66,6 +66,7 @@ module Inventory
         product_type: node['productType'],
         vendor: node['vendor'],
         status: node['status']&.downcase || 'active',
+        image_url: node.dig('featuredMedia', 'preview', 'image', 'url'),
         deleted_at: nil,
         synced_at: Time.current
       )
