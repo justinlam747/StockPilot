@@ -3,27 +3,26 @@
 module Agents
   # AI-powered agent that checks stock levels and takes corrective actions.
   class InventoryMonitor # rubocop:disable Metrics/ClassLength
-    MODEL = 'claude-sonnet-4-20250514'
     MAX_TURNS = 10
     SYSTEM_PROMPT = 'You are an inventory monitoring agent. ' \
                     'Use the tools to check stock levels and take action. ' \
                     'Be concise and action-oriented.'
 
-    def initialize(shop)
+    def initialize(shop, provider: nil, model: nil)
       @shop = shop
-      @client = Anthropic::Client.new(api_key: ENV.fetch('ANTHROPIC_API_KEY'))
+      @llm = LLM::Factory.build(provider: provider, model: model)
       @flagged_cache = nil
       @log = []
     end
 
     def run
-      log("Starting inventory monitor agent for #{@shop.shop_domain}")
+      log("Starting agent for #{@shop.shop_domain} [#{@llm.provider_name}/#{@llm.instance_variable_get(:@model)}]")
       messages = [{ role: 'user', content: build_user_prompt }]
       turns = run_agent_loop(messages)
       log("Agent completed in #{turns} turn(s)")
-      { log: @log, turns: turns }
-    rescue Anthropic::Error => e
-      handle_anthropic_error(e)
+      { log: @log, turns: turns, provider: @llm.provider_name }
+    rescue LLM::Base::ProviderError => e
+      handle_provider_error(e)
     rescue StandardError => e
       handle_standard_error(e)
     end
@@ -41,12 +40,11 @@ module Agents
     end
 
     def call_api(messages)
-      @client.messages(
-        model: MODEL,
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
+      @llm.chat(
+        messages: messages,
         tools: tools_definition,
-        messages: messages
+        system: SYSTEM_PROMPT,
+        max_tokens: 1024
       )
     end
 
@@ -75,10 +73,10 @@ module Agents
       log("Agent summary: #{final_text}")
     end
 
-    def handle_anthropic_error(err)
-      log("Anthropic API error: #{err.message} — falling back to direct check")
+    def handle_provider_error(err)
+      log("LLM error: #{err.message} — falling back to direct check")
       run_fallback
-      { log: @log, turns: 0, fallback: true }
+      { log: @log, turns: 0, fallback: true, provider: @llm.provider_name }
     end
 
     def handle_standard_error(err)

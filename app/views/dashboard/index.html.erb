@@ -9,22 +9,40 @@
     </div>
     <div class="bento__content" style="margin-top: var(--space-4); flex: 1; justify-content: center;">
       <span class="bento__title" style="font-size: 1.25rem;">Inventory Agent</span>
-      <span class="bento__desc" style="margin-top: 6px;">Scans every SKU for low-stock risks, flags reorder candidates, and drafts purchase orders to your suppliers — all powered by Claude AI.</span>
+      <span class="bento__desc" style="margin-top: 6px;">Scans every SKU for low-stock risks, flags reorder candidates, and drafts purchase orders — powered by your choice of AI provider.</span>
       <div class="bento__agent-features">
         <div class="bento__agent-feat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Low-stock detection</span></div>
         <div class="bento__agent-feat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Reorder recommendations</span></div>
         <div class="bento__agent-feat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Auto-draft purchase orders</span></div>
       </div>
+      <div class="agent-provider-select">
+        <select id="agent-provider" class="agent-select" aria-label="Select AI provider">
+          <option value="">Claude (default)</option>
+          <option value="anthropic|claude-sonnet-4-20250514">Claude Sonnet 4</option>
+          <option value="anthropic|claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+          <option value="openai|gpt-4o">GPT-4o</option>
+          <option value="openai|gpt-4o-mini">GPT-4o Mini</option>
+          <option value="openai|o3-mini">o3-mini</option>
+          <option value="google|gemini-2.0-flash">Gemini 2.0 Flash</option>
+          <option value="google|gemini-2.5-pro-preview-06-05">Gemini 2.5 Pro</option>
+        </select>
+      </div>
       <div class="bento__agent-cta">
-        <button hx-post="/agents/run" hx-target="#agent-status" hx-indicator="#agent-spinner" class="bento__btn" aria-label="Run inventory analysis agent">Run Analysis</button>
+        <button id="agent-run-btn"
+                hx-post="/agents/run"
+                hx-target="#agent-status"
+                hx-indicator="#agent-spinner"
+                hx-include="#agent-provider-input,#agent-model-input"
+                class="bento__btn"
+                aria-label="Run inventory analysis agent">
+          Run Analysis
+        </button>
+        <input type="hidden" id="agent-provider-input" name="provider" value="">
+        <input type="hidden" id="agent-model-input" name="model" value="">
         <span id="agent-spinner" class="htmx-indicator"><span class="sp-spinner" aria-hidden="true"></span></span>
       </div>
       <div id="agent-status">
-        <% if @last_run.present? %>
-          <span class="bento__meta">Last run <%= time_ago_in_words(@last_run_at) %> ago &middot; <%= @last_run["low_stock_count"] || 0 %> items flagged</span>
-        <% else %>
-          <span class="bento__meta">Run your first analysis to surface insights</span>
-        <% end %>
+        <%= render "agent_results", results: @last_run %>
       </div>
     </div>
   </div>
@@ -198,3 +216,4 @@
 </button>
 
 <%= javascript_include_tag "demo-toggle" %>
+<%= javascript_include_tag "agent-provider" %>

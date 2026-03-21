@@ -1,16 +1,42 @@
 <% if results.present? %>
-  <div class="sp-detail-grid">
-    <div class="sp-detail-item">
-      <span class="sp-detail-item__label">Last run</span>
-      <span class="sp-detail-item__value"><%= results["ran_at"] || @last_run_at&.strftime("%b %d, %H:%M") %></span>
+  <div class="agent-summary">
+    <div class="agent-summary__stats">
+      <div class="agent-stat">
+        <span class="agent-stat__value"><%= results["low_stock_count"] || 0 %></span>
+        <span class="agent-stat__label">Items flagged</span>
+      </div>
+      <div class="agent-stat">
+        <span class="agent-stat__value"><%= results["turns"] || 1 %></span>
+        <span class="agent-stat__label">Agent turns</span>
+      </div>
+      <div class="agent-stat">
+        <span class="agent-stat__value"><%= results["ran_at"] ? Time.parse(results["ran_at"]).strftime("%H:%M") : "—" %></span>
+        <span class="agent-stat__label">Completed</span>
+      </div>
     </div>
-    <div class="sp-detail-item">
-      <span class="sp-detail-item__label">Low stock items found</span>
-      <span class="sp-detail-item__value"><%= results["low_stock_count"] || 0 %></span>
-    </div>
+    <% if results["provider"] || results["model"] %>
+      <span class="agent-provider-badge">
+        <%= results["provider"]&.capitalize || 'Anthropic' %><% if results["model"] %> &middot; <%= results["model"] %><% end %>
+      </span>
+    <% end %>
+    <% if results["fallback"] %>
+      <span class="bento__sub" style="color: var(--color-warning);">Ran in fallback mode (AI unavailable)</span>
+    <% end %>
   </div>
+
+  <% if results["log"].present? %>
+    <details class="agent-log">
+      <summary>Agent reasoning (<%= results["log"].size %> steps)</summary>
+      <div class="agent-log__entries">
+        <% results["log"].each_with_index do |entry, i| %>
+          <div class="agent-log__entry">
+            <span class="agent-log__step"><%= i + 1 %></span>
+            <span class="agent-log__text"><%= entry %></span>
+          </div>
+        <% end %>
+      </div>
+    </details>
+  <% end %>
 <% else %>
-  <div class="sp-empty">
-    <p class="sp-empty__desc">No agent runs yet. Click "Run Agent Now" to start.</p>
-  </div>
+  <span class="bento__meta">Run your first analysis to surface insights</span>
 <% end %>

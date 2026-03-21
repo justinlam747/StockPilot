@@ -6,6 +6,7 @@ ruby '>= 3.3.0'
 
 gem 'acts_as_tenant', '~> 1.0'
 gem 'anthropic', '~> 0.3'
+gem 'ruby-openai', '~> 7.0'
 gem 'blueprinter', '~> 1.0'
 gem 'bootsnap', require: false
 gem 'httparty', '~> 0.22'

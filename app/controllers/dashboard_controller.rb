@@ -37,8 +37,22 @@ class DashboardController < ApplicationController
   end
 
   def execute_agent_run
-    low_stock_variants = Inventory::LowStockDetector.new(current_shop).detect
-    results = { low_stock_count: low_stock_variants.size, ran_at: Time.current.iso8601 }
+    agent = Agents::InventoryMonitor.new(
+      current_shop,
+      provider: params[:provider],
+      model: params[:model]
+    )
+    agent_result = agent.run
+    low_stock_count = Inventory::LowStockDetector.new(current_shop).detect.size
+    results = {
+      'low_stock_count' => low_stock_count,
+      'ran_at' => Time.current.iso8601,
+      'turns' => agent_result[:turns],
+      'log' => agent_result[:log],
+      'fallback' => agent_result[:fallback] || false,
+      'provider' => agent_result[:provider] || 'anthropic',
+      'model' => params[:model]
+    }
     current_shop.update!(last_agent_run_at: Time.current, last_agent_results: results)
     results
   end
@@ -54,6 +68,11 @@ class DashboardController < ApplicationController
   def handle_agent_error(err)
     Rails.logger.error("[DashboardController#run_agent] Error: #{err.message}")
     Sentry.capture_exception(err) if defined?(Sentry)
-    redirect_to '/dashboard', alert: 'Agent run failed. Please try again.'
+    if request.headers['HX-Request']
+      results = { 'error' => err.message, 'ran_at' => Time.current.iso8601, 'fallback' => true }
+      render partial: 'agent_results', locals: { results: results }
+    else
+      redirect_to '/dashboard', alert: 'Agent run failed. Please try again.'
+    end
   end
 end
