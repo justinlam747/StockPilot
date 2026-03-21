@@ -17,12 +17,16 @@ module LLM
     private
 
     def post_api(body)
-      url = "#{GEMINI_URL}/models/#{@model}:generateContent?key=#{@api_key}"
+      url = "#{GEMINI_URL}/models/#{@model}:generateContent"
       resp = HTTParty.post(url,
-                           headers: { 'Content-Type' => 'application/json' },
+                           headers: {
+                             'Content-Type' => 'application/json',
+                             'x-goog-api-key' => @api_key
+                           },
                            body: body.to_json,
-                           timeout: 60)
-      raise ProviderError, "Google API #{resp.code}: #{resp.body}" unless resp.success?
+                           timeout: 60,
+                           verify: true)
+      raise ProviderError, "Google API error (#{resp.code})" unless resp.success?
 
       resp.parsed_response
     end

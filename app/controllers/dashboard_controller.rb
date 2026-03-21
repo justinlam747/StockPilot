@@ -2,6 +2,13 @@
 
 # Renders the merchant dashboard with inventory stats and agent results.
 class DashboardController < ApplicationController
+  ALLOWED_PROVIDERS = %w[anthropic openai google].freeze
+  ALLOWED_MODELS = {
+    'anthropic' => %w[claude-sonnet-4-20250514 claude-haiku-4-5-20251001],
+    'openai' => %w[gpt-4o gpt-4o-mini o3-mini],
+    'google' => %w[gemini-2.0-flash gemini-2.5-pro-preview-06-05]
+  }.freeze
+
   def index
     load_dashboard_stats
     @recent_alerts = Alert.includes(variant: :product).order(created_at: :desc).limit(10)
@@ -37,11 +44,8 @@ class DashboardController < ApplicationController
   end
 
   def execute_agent_run
-    agent = Agents::InventoryMonitor.new(
-      current_shop,
-      provider: params[:provider],
-      model: params[:model]
-    )
+    provider, model = validated_provider_model
+    agent = Agents::InventoryMonitor.new(current_shop, provider: provider, model: model)
     agent_result = agent.run
     low_stock_count = Inventory::LowStockDetector.new(current_shop).detect.size
     results = {
@@ -51,10 +55,27 @@ class DashboardController < ApplicationController
       'log' => agent_result[:log],
       'fallback' => agent_result[:fallback] || false,
       'provider' => agent_result[:provider] || 'anthropic',
-      'model' => params[:model]
+      'model' => model
     }
     current_shop.update!(last_agent_run_at: Time.current, last_agent_results: results)
     results
+  end
+
+  def validated_provider_model
+    provider = params[:provider]&.downcase&.strip
+    model = params[:model]&.strip
+    return [nil, nil] if provider.blank? && model.blank?
+
+    unless provider.blank? || ALLOWED_PROVIDERS.include?(provider)
+      raise ArgumentError, 'Invalid provider'
+    end
+
+    if model.present? && provider.present?
+      allowed = ALLOWED_MODELS[provider] || []
+      raise ArgumentError, 'Invalid model for provider' unless allowed.include?(model)
+    end
+
+    [provider, model]
   end
 
   def respond_to_agent_run(results)
@@ -66,10 +87,10 @@ class DashboardController < ApplicationController
   end
 
   def handle_agent_error(err)
-    Rails.logger.error("[DashboardController#run_agent] Error: #{err.message}")
+    Rails.logger.error("[DashboardController#run_agent] #{err.class}")
     Sentry.capture_exception(err) if defined?(Sentry)
     if request.headers['HX-Request']
-      results = { 'error' => err.message, 'ran_at' => Time.current.iso8601, 'fallback' => true }
+      results = { 'error' => 'Agent run failed', 'ran_at' => Time.current.iso8601, 'fallback' => true }
       render partial: 'agent_results', locals: { results: results }
     else
       redirect_to '/dashboard', alert: 'Agent run failed. Please try again.'

@@ -2,11 +2,16 @@
 
 module Agents
   # AI-powered agent that checks stock levels and takes corrective actions.
+  # Security: prompt injection protection, input validation, cost controls,
+  # tenant isolation verification, and log sanitization.
   class InventoryMonitor # rubocop:disable Metrics/ClassLength
-    MAX_TURNS = 10
+    MAX_TURNS = 5
+    MAX_LOG_ENTRY_LENGTH = 500
     SYSTEM_PROMPT = 'You are an inventory monitoring agent. ' \
                     'Use the tools to check stock levels and take action. ' \
-                    'Be concise and action-oriented.'
+                    'Be concise and action-oriented. ' \
+                    'IMPORTANT: Only use tool inputs that match the documented schemas. ' \
+                    'Do not attempt to access data outside the current store scope.'
 
     def initialize(shop, provider: nil, model: nil)
       @shop = shop
@@ -16,10 +21,10 @@ module Agents
     end
 
     def run
-      log("Starting agent for #{@shop.shop_domain} [#{@llm.provider_name}/#{@llm.instance_variable_get(:@model)}]")
+      log("Starting agent [#{@llm.provider_name}]")
       messages = [{ role: 'user', content: build_user_prompt }]
       turns = run_agent_loop(messages)
-      log("Agent completed in #{turns} turn(s)")
+      log("Completed in #{turns} turn(s)")
       { log: @log, turns: turns, provider: @llm.provider_name }
     rescue LLM::Base::ProviderError => e
       handle_provider_error(e)
@@ -70,25 +75,25 @@ module Agents
                    &.select { |block| block['type'] == 'text' }
                    &.map { |block| block['text'] }
                    &.join("\n")
-      log("Agent summary: #{final_text}")
+      log("Summary: #{final_text}")
     end
 
     def handle_provider_error(err)
-      log("LLM error: #{err.message} — falling back to direct check")
+      log("LLM unavailable — falling back to direct check")
       run_fallback
       { log: @log, turns: 0, fallback: true, provider: @llm.provider_name }
     end
 
     def handle_standard_error(err)
-      log("Agent error: #{err.class} — #{err.message}")
-      backtrace = err.backtrace&.first(5)&.join("\n")
-      Rails.logger.error("[Agents::InventoryMonitor] #{err.class}: #{err.message}\n#{backtrace}")
-      { log: @log, turns: 0, error: true }
+      log("Error: #{err.class}")
+      Sentry.capture_exception(err, extra: { shop_id: @shop.id }) if defined?(Sentry)
+      { log: @log, turns: 0, error: true, provider: @llm.provider_name }
     end
 
+    # Prompt injection protection: use shop ID, not user-controlled domain
     def build_user_prompt
       <<~PROMPT
-        You are the Inventory Monitor agent for the Shopify store "#{@shop.shop_domain}".
+        You are the Inventory Monitor agent for store ID #{@shop.id}.
 
         Your job is to:
         1. Check current inventory levels across all SKUs
@@ -104,9 +109,9 @@ module Agents
     def execute_tool(tool_call)
       name = tool_call['name']
       input = tool_call['input'] || {}
-      log("Tool call: #{name}(#{input.to_json})")
+      log("Tool: #{sanitize_log(name)}(#{sanitize_log(input.to_json)})")
       result = dispatch_tool(name, input)
-      log("Tool result: #{result.to_s.truncate(200)}")
+      log("Result: #{sanitize_log(result.to_s)}")
       { type: 'tool_result', tool_use_id: tool_call['id'], content: result.to_s }
     end
 
@@ -117,7 +122,7 @@ module Agents
       when 'send_alerts' then tool_send_alerts(input)
       when 'get_recent_alerts' then tool_get_recent_alerts
       when 'draft_purchase_order' then tool_draft_purchase_order(input)
-      else "Unknown tool: #{name}"
+      else "Unknown tool: #{sanitize_log(name)}"
       end
     end
 
@@ -127,6 +132,7 @@ module Agents
 
     def tool_check_inventory
       flagged = flagged_variants
+      verify_tenant_isolation!(flagged)
       return 'All SKUs are healthy — no low-stock or out-of-stock items.' if flagged.empty?
 
       items = flagged.map { |fv| format_flagged_item(fv) }
@@ -156,8 +162,8 @@ module Agents
       low = flagged.count { |fv| fv[:status] == :low_stock }
       oos = flagged.count { |fv| fv[:status] == :out_of_stock }
 
-      "Stock summary for #{@shop.shop_domain}:\n  " \
-        "Total SKUs: #{total}\n  Healthy: #{total - low - oos}\n  " \
+      "Stock summary:\n  Total SKUs: #{total}\n  " \
+        "Healthy: #{total - low - oos}\n  " \
         "Low stock: #{low}\n  Out of stock: #{oos}"
     end
 
@@ -173,11 +179,21 @@ module Agents
         'Duplicates from today were automatically skipped.'
     end
 
+    # Input validation: strict integer coercion for variant IDs
     def filter_alert_targets(flagged, variant_ids)
       return flagged if variant_ids.empty?
 
-      ids_set = variant_ids.to_set
-      flagged.select { |fv| ids_set.include?(fv[:variant].id) }
+      valid_ids = Array(variant_ids).filter_map do |id|
+        next unless id.is_a?(Integer) || (id.is_a?(String) && id.match?(/\A\d+\z/))
+
+        id.to_i
+      end
+      return flagged if valid_ids.empty?
+
+      ids_set = valid_ids.to_set
+      results = flagged.select { |fv| ids_set.include?(fv[:variant].id) }
+      verify_tenant_isolation!(results)
+      results
     end
 
     def tool_get_recent_alerts
@@ -198,18 +214,19 @@ module Agents
     end
 
     def tool_draft_purchase_order(input)
-      supplier_id = input['supplier_id']
+      supplier_id = validate_integer(input['supplier_id'])
+      return 'Invalid supplier ID.' unless supplier_id
+
       supplier = Supplier.find_by(id: supplier_id, shop_id: @shop.id)
-      return "Supplier #{supplier_id} not found." unless supplier
+      return "Supplier not found." unless supplier
 
       low_variants = flagged_variants.select { |fv| fv[:variant].supplier_id == supplier_id }
-      return "No low-stock variants for supplier #{supplier.name}." if low_variants.empty?
+      return "No low-stock variants for this supplier." if low_variants.empty?
 
       po = create_draft_po(supplier)
       total = create_po_line_items(po, low_variants)
-      format('Drafted PO #%d for %s: %d line item(s), total $%.2f. ' \
-             'Status: draft (awaiting approval).',
-             po.id, supplier.name, low_variants.size, total)
+      format('Drafted PO #%d: %d line item(s), total $%.2f. Status: draft.',
+             po.id, low_variants.size, total)
     end
 
     def create_draft_po(supplier)
@@ -234,7 +251,7 @@ module Agents
     end
 
     def run_fallback
-      log('Running fallback: direct inventory check + alerts')
+      log('Fallback: direct inventory check + alerts')
       flagged = flagged_variants
       if flagged.any?
         Notifications::AlertSender.new(@shop).send_low_stock_alerts(flagged)
@@ -244,8 +261,35 @@ module Agents
       end
     end
 
+    # --- Security helpers ---
+
+    # Verify all returned data belongs to the current shop
+    def verify_tenant_isolation!(records)
+      records.each do |record|
+        variant = record.is_a?(Hash) ? record[:variant] : record
+        next unless variant.respond_to?(:shop_id)
+        next if variant.shop_id == @shop.id
+
+        raise SecurityError, "Tenant isolation breach: variant #{variant.id} belongs to shop #{variant.shop_id}"
+      end
+    end
+
+    # Validate integer input from LLM tool calls
+    def validate_integer(value)
+      return nil if value.nil?
+      return value if value.is_a?(Integer)
+      return value.to_i if value.is_a?(String) && value.match?(/\A\d+\z/)
+
+      nil
+    end
+
+    # Sanitize log entries — strip HTML, limit length
+    def sanitize_log(text)
+      text.to_s.gsub(/[<>"']/, '').truncate(MAX_LOG_ENTRY_LENGTH)
+    end
+
     def log(message)
-      entry = "[#{Time.current.strftime('%H:%M:%S')}] #{message}"
+      entry = "[#{Time.current.strftime('%H:%M:%S')}] #{sanitize_log(message)}"
       @log << entry
       Rails.logger.info("[Agents::InventoryMonitor] #{entry}")
     end
@@ -266,7 +310,7 @@ module Agents
             properties: {
               variant_ids: {
                 type: 'array', items: { type: 'integer' },
-                description: 'IDs of variants to alert on.'
+                description: 'IDs of variants to alert on. Empty array = alert all flagged.'
               }
             },
             required: ['variant_ids']
@@ -275,7 +319,7 @@ module Agents
           description: 'Check what alerts have already been sent today.',
           input_schema: { type: 'object', properties: {}, required: [] } },
         { name: 'draft_purchase_order',
-          description: 'Draft a purchase order for a supplier.',
+          description: 'Draft a purchase order for a specific supplier.',
           input_schema: {
             type: 'object',
             properties: {

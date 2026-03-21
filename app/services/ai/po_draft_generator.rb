@@ -23,8 +23,9 @@ module AI
       delivery = target_delivery_date(supplier)
 
       <<~PROMPT
-        Write a professional purchase order email to #{supplier.name} (#{supplier.email}).
-        Store: #{shop.shop_domain}
+        Write a professional purchase order email.
+        Supplier: #{sanitize_prompt(supplier.name)} (#{sanitize_prompt(supplier.email)})
+        Store ID: #{shop.id}
         Target delivery: #{delivery}
 
         Items to order:
@@ -61,7 +62,7 @@ module AI
       end.join("\n")
 
       <<~DRAFT
-        Dear #{supplier.name},
+        Dear #{sanitize_prompt(supplier.name)},
 
         We would like to place the following order:
 
@@ -70,8 +71,12 @@ module AI
         Please confirm availability and expected delivery date.
 
         Thank you,
-        #{shop.shop_domain}
+        Store ##{shop.id}
       DRAFT
+    end
+
+    def sanitize_prompt(text)
+      text.to_s.gsub(/["'\n\\]/, '').truncate(100)
     end
   end
 end

@@ -16,11 +16,14 @@
     </div>
     <% if results["provider"] || results["model"] %>
       <span class="agent-provider-badge">
-        <%= results["provider"]&.capitalize || 'Anthropic' %><% if results["model"] %> &middot; <%= results["model"] %><% end %>
+        <%= h(results["provider"]&.capitalize || 'Anthropic') %><% if results["model"] %> &middot; <%= h(results["model"]) %><% end %>
       </span>
     <% end %>
     <% if results["fallback"] %>
       <span class="bento__sub" style="color: var(--color-warning);">Ran in fallback mode (AI unavailable)</span>
+    <% end %>
+    <% if results["error"] %>
+      <span class="bento__sub" style="color: var(--color-warning);"><%= h(results["error"]) %></span>
     <% end %>
   </div>
 
@@ -31,7 +34,7 @@
         <% results["log"].each_with_index do |entry, i| %>
           <div class="agent-log__entry">
             <span class="agent-log__step"><%= i + 1 %></span>
-            <span class="agent-log__text"><%= entry %></span>
+            <span class="agent-log__text"><%= h(entry) %></span>
           </div>
         <% end %>
       </div>

@@ -23,10 +23,16 @@ module Rack
       SHOP_OR_IP.call(req) unless req.path.start_with?('/assets')
     end
 
-    throttle('agents/shop', limit: 5, period: 1.minute) do |req|
+    # AI agent: 3 runs per minute, 30 per hour per shop
+    throttle('agents/shop/minute', limit: 3, period: 1.minute) do |req|
       SHOP_OR_IP.call(req) if req.path == '/agents/run' && req.post?
     end
 
+    throttle('agents/shop/hour', limit: 30, period: 1.hour) do |req|
+      SHOP_OR_IP.call(req) if req.path == '/agents/run' && req.post?
+    end
+
+    # PO draft generation: 5 per minute per shop
     throttle('po-draft/shop', limit: 5, period: 1.minute) do |req|
       SHOP_OR_IP.call(req) if req.path == '/purchase_orders/generate_draft' && req.post?
     end
