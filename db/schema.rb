@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_13_000004) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_20_214411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,6 +23,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_13_000004) do
     t.datetime "triggered_at", precision: nil, default: -> { "now()" }, null: false
     t.jsonb "metadata", default: {}
     t.datetime "created_at", precision: nil, default: -> { "now()" }, null: false
+    t.integer "threshold"
+    t.integer "current_quantity"
+    t.boolean "dismissed", default: false, null: false
+    t.index ["shop_id", "dismissed"], name: "index_alerts_on_shop_id_and_dismissed"
     t.index ["shop_id", "variant_id", "triggered_at"], name: "idx_alerts_variant_day"
     t.index ["shop_id"], name: "index_alerts_on_shop_id"
     t.index ["variant_id"], name: "index_alerts_on_variant_id"
@@ -68,6 +72,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_13_000004) do
     t.datetime "synced_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "image_url"
     t.index ["shop_id", "shopify_product_id"], name: "index_products_on_shop_id_and_shopify_product_id", unique: true
     t.index ["shop_id", "status"], name: "index_products_on_shop_id_and_status"
     t.index ["shop_id"], name: "index_products_on_shop_id"
@@ -96,6 +101,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_13_000004) do
     t.datetime "sent_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "order_date"
+    t.date "expected_delivery"
+    t.text "po_notes"
+    t.index ["shop_id", "status"], name: "index_purchase_orders_on_shop_id_and_status"
     t.index ["shop_id"], name: "index_purchase_orders_on_shop_id"
     t.index ["supplier_id"], name: "index_purchase_orders_on_supplier_id"
   end
@@ -126,6 +135,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_13_000004) do
     t.datetime "updated_at", null: false
     t.integer "star_rating", default: 0
     t.text "rating_notes"
+    t.string "phone"
+    t.index ["shop_id", "name"], name: "index_suppliers_on_shop_id_and_name"
     t.index ["shop_id"], name: "index_suppliers_on_shop_id"
   end
 

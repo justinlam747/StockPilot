@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Runs the AI inventory monitoring agent for one or all shops.
 class AgentInventoryCheckJob < ApplicationJob
   queue_as :default
 

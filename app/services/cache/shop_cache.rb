@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 module Cache
+  # Per-shop caching layer for products, suppliers, and inventory stats.
   class ShopCache
     PRODUCT_TTL = 6.hours
     SUPPLIER_TTL = 12.hours
@@ -11,7 +14,7 @@ module Cache
     # --- Products (write-through + lazy load) ---
 
     def products_with_variants
-      Rails.cache.fetch(key("products:all"), expires_in: PRODUCT_TTL) do
+      Rails.cache.fetch(key('products:all'), expires_in: PRODUCT_TTL) do
         Product.where(shop_id: @shop.id).includes(:variants).order(:title).to_a
       end
     end
@@ -33,13 +36,13 @@ module Cache
     end
 
     def invalidate_product_list
-      Rails.cache.delete(key("products:all"))
+      Rails.cache.delete(key('products:all'))
     end
 
     # --- Suppliers (write-through) ---
 
     def suppliers
-      Rails.cache.fetch(key("suppliers:all"), expires_in: SUPPLIER_TTL) do
+      Rails.cache.fetch(key('suppliers:all'), expires_in: SUPPLIER_TTL) do
         Supplier.where(shop_id: @shop.id).order(:name).to_a
       end
     end
@@ -61,26 +64,26 @@ module Cache
     end
 
     def invalidate_supplier_list
-      Rails.cache.delete(key("suppliers:all"))
+      Rails.cache.delete(key('suppliers:all'))
     end
 
     # --- Inventory (cache-aside, short TTL) ---
     # DB is source of truth. After reading from DB, backfill cache.
 
     def inventory_stats
-      Rails.cache.fetch(key("inventory:stats"), expires_in: INVENTORY_TTL) do
+      Rails.cache.fetch(key('inventory:stats'), expires_in: INVENTORY_TTL) do
         build_inventory_stats
       end
     end
 
     def warm_inventory_stats
       stats = build_inventory_stats
-      Rails.cache.write(key("inventory:stats"), stats, expires_in: INVENTORY_TTL)
+      Rails.cache.write(key('inventory:stats'), stats, expires_in: INVENTORY_TTL)
       stats
     end
 
     def invalidate_inventory
-      Rails.cache.delete(key("inventory:stats"))
+      Rails.cache.delete(key('inventory:stats'))
     end
 
     # --- Bulk invalidation ---
@@ -103,7 +106,7 @@ module Cache
         total_products: Product.where(shop_id: @shop.id).active.count,
         low_stock: flagged.count { |f| f[:status] == :low_stock },
         out_of_stock: flagged.count { |f| f[:status] == :out_of_stock },
-        pending_pos: PurchaseOrder.where(shop_id: @shop.id, status: "draft").count
+        pending_pos: PurchaseOrder.where(shop_id: @shop.id, status: 'draft').count
       }
     end
   end

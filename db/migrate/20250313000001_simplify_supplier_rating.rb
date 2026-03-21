@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SimplifySupplierRating < ActiveRecord::Migration[7.2]
   def change
     add_column :suppliers, :star_rating, :integer, default: 0

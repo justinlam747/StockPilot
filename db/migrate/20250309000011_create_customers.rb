@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateCustomers < ActiveRecord::Migration[7.2]
   def change
     create_table :customers do |t|
@@ -12,11 +14,11 @@ class CreateCustomers < ActiveRecord::Migration[7.2]
       t.decimal :avg_days_between_orders, precision: 6, scale: 1
       t.timestamp :first_order_at
       t.timestamp :last_order_at
-      t.jsonb   :top_product_types, default: []
+      t.jsonb :top_product_types, default: []
 
       t.timestamps
     end
 
-    add_index :customers, [:shop_id, :shopify_customer_id], unique: true
+    add_index :customers, %i[shop_id shopify_customer_id], unique: true
   end
 end

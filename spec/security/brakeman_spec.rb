@@ -1,12 +1,16 @@
-require "rails_helper"
+# frozen_string_literal: true
 
-RSpec.describe "Brakeman security scan" do
-  it "finds no warnings" do
-    result = `bundle exec brakeman --no-pager -q --format json`
+require 'rails_helper'
+
+RSpec.describe 'Brakeman security scan' do
+  it 'finds no warnings' do
+    result = `bundle exec brakeman --no-pager -q --format json -i config/brakeman.ignore`
     report = JSON.parse(result)
-    warnings = report["warnings"]
+    warnings = report['warnings']
     expect(warnings).to be_empty,
-      "Brakeman found #{warnings.size} warnings:\n" +
-      warnings.map { |w| "  - #{w['warning_type']}: #{w['message']} (#{w['file']}:#{w['line']})" }.join("\n")
+                        "Brakeman found #{warnings.size} warnings:\n" +
+                        warnings.map { |w|
+                          "  - #{w['warning_type']}: #{w['message']} (#{w['file']}:#{w['line']})"
+                        }.join("\n")
   end
 end

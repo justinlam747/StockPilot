@@ -1,15 +1,23 @@
 <% if @recent_alerts.any? %>
-  <% @recent_alerts.each do |alert| %>
-    <div class="alert-row alert-row--<%= alert.severity || 'warning' %>" id="alert-<%= alert.id %>">
-      <span><%= alert.message %></span>
-      <button hx-patch="/alerts/<%= alert.id %>/dismiss"
-              hx-target="#alert-<%= alert.id %>"
-              hx-swap="outerHTML"
-              aria-label="Dismiss alert: <%= alert.message %>">
-        Dismiss
-      </button>
-    </div>
-  <% end %>
+  <div role="list" aria-label="Recent alerts">
+    <% @recent_alerts.each do |alert| %>
+      <div class="alert-row alert-row--<%= alert.severity || 'warning' %>"
+           id="alert-<%= alert.id %>"
+           role="listitem">
+        <span class="alert-row__message"><%= alert.message %></span>
+        <button hx-patch="/alerts/<%= alert.id %>/dismiss"
+                hx-target="#alert-<%= alert.id %>"
+                hx-swap="outerHTML"
+                class="sp-btn--sm"
+                aria-label="Dismiss alert: <%= alert.message %>">
+          Dismiss
+        </button>
+      </div>
+    <% end %>
+  </div>
 <% else %>
-  <p>No recent alerts.</p>
+  <div class="sp-empty">
+    <p class="sp-empty__title">All clear</p>
+    <p class="sp-empty__desc">No recent alerts. Your inventory looks good.</p>
+  </div>
 <% end %>

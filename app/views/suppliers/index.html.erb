@@ -1,10 +1,14 @@
-<h1>Suppliers</h1>
+<div class="sp-page-header">
+  <h1>Suppliers</h1>
+</div>
 
 <details>
-  <summary role="button" class="outline">Add Supplier</summary>
-  <%= render "form", supplier: @supplier, url: suppliers_path, method: :post %>
+  <summary aria-label="Toggle add supplier form">Add Supplier</summary>
+  <div>
+    <%= render "form", supplier: @supplier, url: suppliers_path, method: :post %>
+  </div>
 </details>
 
-<div id="supplier-list">
+<div id="supplier-list" class="sp-section">
   <%= render "list", suppliers: @suppliers %>
 </div>

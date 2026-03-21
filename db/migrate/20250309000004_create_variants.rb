@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateVariants < ActiveRecord::Migration[7.2]
   def change
     create_table :variants do |t|
@@ -14,7 +16,7 @@ class CreateVariants < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :variants, [:shop_id, :shopify_variant_id], unique: true
-    add_index :variants, [:shop_id, :sku]
+    add_index :variants, %i[shop_id shopify_variant_id], unique: true
+    add_index :variants, %i[shop_id sku]
   end
 end

@@ -1,34 +1,80 @@
+# frozen_string_literal: true
+
+# Displays paginated inventory with filtering by stock status and search.
 class InventoryController < ApplicationController
   def index
-    @products = Product.includes(:variants)
+    load_inventory_stats
+    @products = Product.includes(variants: :inventory_snapshots)
     @products = apply_filter(@products)
     @products = apply_search(@products)
-    @products = @products.page(params[:page]).per(25)
+    @products = apply_sort(@products)
+    @products = @products.page(params[:page]).per(24)
 
-    if request.headers["HX-Request"]
-      render partial: "table", locals: { products: @products }
-    end
+    return unless request.headers['HX-Request']
+
+    partial = params[:view] == 'table' ? 'table' : 'grid'
+    render partial: partial, locals: { products: @products }
   end
 
   def show
-    @product = shop_cache.product(params[:id])
+    @product = Product.includes(variants: :inventory_snapshots).find(params[:id])
   end
 
   private
 
   def apply_filter(scope)
     case params[:filter]
-    when "low_stock"
-      scope.joins(:variants).where("variants.inventory_quantity > 0 AND variants.inventory_quantity <= 10").distinct
-    when "out_of_stock"
-      scope.joins(:variants).where(variants: { inventory_quantity: 0 }).distinct
-    else
-      scope
+    when 'low_stock' then filter_low_stock(scope)
+    when 'out_of_stock' then filter_out_of_stock(scope)
+    else scope
     end
+  end
+
+  def filter_low_stock(scope)
+    threshold = current_shop&.low_stock_threshold || 10
+    join = Arel.sql("INNER JOIN (#{latest_snapshot_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
+    scope.joins(:variants)
+         .joins(join)
+         .where('latest_snap.available > 0 AND latest_snap.available <= ?', threshold)
+         .distinct
+  end
+
+  def filter_out_of_stock(scope)
+    join = Arel.sql("INNER JOIN (#{latest_snapshot_sql}) AS latest_snap ON latest_snap.variant_id = variants.id")
+    scope.joins(:variants)
+         .joins(join)
+         .where('latest_snap.available = 0')
+         .distinct
+  end
+
+  def latest_snapshot_sql
+    InventorySnapshot
+      .select('DISTINCT ON (variant_id) variant_id, available')
+      .where(shop_id: current_shop&.id)
+      .order('variant_id, created_at DESC')
+      .to_sql
   end
 
   def apply_search(scope)
     return scope unless params[:q].present?
-    scope.where("products.title ILIKE ?", "%#{params[:q]}%")
+
+    scope.where('products.title ILIKE ?', "%#{params[:q]}%")
+  end
+
+  def apply_sort(scope)
+    case params[:sort]
+    when 'title_desc' then scope.order(title: :desc)
+    when 'newest' then scope.order(created_at: :desc)
+    when 'vendor' then scope.order(:vendor, :title)
+    else scope.order(:title)
+    end
+  end
+
+  def load_inventory_stats
+    stats = shop_cache.inventory_stats
+    @total_variants = Variant.where(shop_id: current_shop.id).count
+    @low_stock = stats[:low_stock]
+    @out_of_stock = stats[:out_of_stock]
+    @healthy_products = [stats[:total_products] - @low_stock - @out_of_stock, 0].max
   end
 end

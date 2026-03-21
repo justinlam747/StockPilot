@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StockPilot</title>
-  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
   <%= stylesheet_link_tag "application" %>
+  <%= stylesheet_link_tag "overrides" %>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <%= csrf_meta_tags %>
 </head>
 <body>
   <div class="app-shell">
     <%= render "shared/sidebar" %>
-    <main class="app-main">
+    <main class="app-main" id="main-content">
       <%= render "shared/flash" %>
       <%= yield %>
     </main>
   </div>
+  <%= javascript_include_tag "sidebar" %>
 </body>
 </html>

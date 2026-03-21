@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreatePurchaseOrderLineItems < ActiveRecord::Migration[7.2]
   def change
     create_table :purchase_order_line_items do |t|

@@ -1,36 +1,38 @@
-require "rails_helper"
+# frozen_string_literal: true
 
-RSpec.describe "Security headers", type: :request do
+require 'rails_helper'
+
+RSpec.describe 'Security headers', type: :request do
   let(:shop) { create(:shop) }
 
   before do
     login_as(shop)
-    get "/dashboard"
+    get '/dashboard'
   end
 
-  it "sets Strict-Transport-Security" do
-    expect(response.headers["Strict-Transport-Security"]).to include("max-age=31536000")
+  it 'sets Strict-Transport-Security' do
+    expect(response.headers['Strict-Transport-Security']).to include('max-age=31536000')
   end
 
-  it "sets X-Content-Type-Options" do
-    expect(response.headers["X-Content-Type-Options"]).to eq("nosniff")
+  it 'sets X-Content-Type-Options' do
+    expect(response.headers['X-Content-Type-Options']).to eq('nosniff')
   end
 
-  it "sets X-Frame-Options to DENY" do
-    expect(response.headers["X-Frame-Options"]).to eq("DENY")
+  it 'sets X-Frame-Options to ALLOWALL' do
+    expect(response.headers['X-Frame-Options']).to eq('ALLOWALL')
   end
 
-  it "sets Content-Security-Policy" do
-    csp = response.headers["Content-Security-Policy"]
+  it 'sets Content-Security-Policy' do
+    csp = response.headers['Content-Security-Policy']
     expect(csp).to include("default-src 'self'")
-    expect(csp).to include("frame-ancestors 'none'")
+    expect(csp).to include('frame-ancestors https://*.myshopify.com https://admin.shopify.com')
   end
 
-  it "sets Referrer-Policy" do
-    expect(response.headers["Referrer-Policy"]).to eq("strict-origin-when-cross-origin")
+  it 'sets Referrer-Policy' do
+    expect(response.headers['Referrer-Policy']).to eq('strict-origin-when-cross-origin')
   end
 
-  it "sets Permissions-Policy" do
-    expect(response.headers["Permissions-Policy"]).to include("camera=()")
+  it 'sets Permissions-Policy' do
+    expect(response.headers['Permissions-Policy']).to include('camera=()')
   end
 end

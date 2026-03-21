@@ -1,32 +1,41 @@
-<table>
-  <thead>
-    <tr>
-      <th>Product</th>
-      <th>SKU</th>
-      <th>Stock</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% products.each do |product| %>
-      <% product.variants.each do |variant| %>
-        <tr>
-          <td><a href="/inventory/<%= product.id %>"><%= product.title %></a></td>
-          <td><%= variant.sku %></td>
-          <td><%= variant.inventory_quantity %></td>
-          <td>
-            <% if variant.inventory_quantity == 0 %>
-              <mark>Out of Stock</mark>
-            <% elsif variant.inventory_quantity <= 10 %>
-              <mark>Low</mark>
-            <% else %>
-              In Stock
-            <% end %>
-          </td>
-        </tr>
+<div class="sp-card">
+  <table aria-label="Inventory products">
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">SKU</th>
+        <th scope="col">Stock</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.each do |product| %>
+        <% product.variants.each do |variant| %>
+          <% snapshot = variant.inventory_snapshots.order(created_at: :desc).first %>
+          <% qty = snapshot&.available || 0 %>
+          <tr>
+            <td>
+              <a href="/inventory/<%= product.id %>"><%= product.title %></a>
+              <% if variant.title != "Default Title" %>
+                <span class="bento__sub" style="display:block;"><%= variant.title %></span>
+              <% end %>
+            </td>
+            <td><%= variant.sku.presence || '—' %></td>
+            <td><%= qty %></td>
+            <td>
+              <% if qty == 0 %>
+                <span class="sp-badge sp-badge--critical">Out of Stock</span>
+              <% elsif qty <= (variant.low_stock_threshold || 10) %>
+                <span class="sp-badge sp-badge--warning">Low</span>
+              <% else %>
+                <span class="sp-badge sp-badge--success">In Stock</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
       <% end %>
-    <% end %>
-  </tbody>
-</table>
+    </tbody>
+  </table>
 
-<%= render "shared/pagination", collection: products %>
+  <%= render "shared/pagination", collection: products %>
+</div>

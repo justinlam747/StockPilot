@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Sends purchase order drafts to suppliers via email.
 class PurchaseOrderMailer < ApplicationMailer
   def send_po(purchase_order)
     @po = purchase_order

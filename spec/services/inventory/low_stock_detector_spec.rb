@@ -1,14 +1,16 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe Inventory::LowStockDetector do
-  let(:shop) { create(:shop, settings: { "low_stock_threshold" => 10 }) }
+  let(:shop) { create(:shop, settings: { 'low_stock_threshold' => 10 }) }
   let(:detector) { described_class.new(shop) }
 
   before do
     ActsAsTenant.current_tenant = shop
   end
 
-  it "flags low-stock variants" do
+  it 'flags low-stock variants' do
     product = create(:product, shop: shop)
     variant = create(:variant, shop: shop, product: product)
     InventorySnapshot.create!(shop: shop, variant: variant, available: 5, on_hand: 5)
@@ -19,7 +21,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(results.first[:available]).to eq(5)
   end
 
-  it "flags out-of-stock variants" do
+  it 'flags out-of-stock variants' do
     product = create(:product, shop: shop)
     variant = create(:variant, shop: shop, product: product)
     InventorySnapshot.create!(shop: shop, variant: variant, available: 0, on_hand: 0)
@@ -29,7 +31,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(results.first[:status]).to eq(:out_of_stock)
   end
 
-  it "does not flag ok variants" do
+  it 'does not flag ok variants' do
     product = create(:product, shop: shop)
     variant = create(:variant, shop: shop, product: product)
     InventorySnapshot.create!(shop: shop, variant: variant, available: 50, on_hand: 50)
@@ -38,7 +40,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(results).to be_empty
   end
 
-  it "respects variant-level threshold override" do
+  it 'respects variant-level threshold override' do
     product = create(:product, shop: shop)
     variant = create(:variant, shop: shop, product: product, low_stock_threshold: 3)
     InventorySnapshot.create!(shop: shop, variant: variant, available: 5, on_hand: 5)
@@ -47,7 +49,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(results).to be_empty # 5 is above variant threshold of 3
   end
 
-  it "excludes soft-deleted products" do
+  it 'excludes soft-deleted products' do
     product = create(:product, shop: shop, deleted_at: Time.current)
     variant = create(:variant, shop: shop, product: product)
     InventorySnapshot.create!(shop: shop, variant: variant, available: 1, on_hand: 1)
@@ -56,7 +58,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(results).to be_empty
   end
 
-  it "handles multiple variants with mixed statuses" do
+  it 'handles multiple variants with mixed statuses' do
     product = create(:product, shop: shop)
     low_variant = create(:variant, shop: shop, product: product)
     InventorySnapshot.create!(shop: shop, variant: low_variant, available: 3, on_hand: 3)
@@ -73,7 +75,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(statuses).to include(:low_stock, :out_of_stock)
   end
 
-  it "does not flag variant when available equals threshold exactly" do
+  it 'does not flag variant when available equals threshold exactly' do
     product = create(:product, shop: shop)
     variant = create(:variant, shop: shop, product: product)
     InventorySnapshot.create!(shop: shop, variant: variant, available: 10, on_hand: 10)
@@ -82,7 +84,7 @@ RSpec.describe Inventory::LowStockDetector do
     expect(results).to be_empty
   end
 
-  it "returns empty when no snapshots exist" do
+  it 'returns empty when no snapshots exist' do
     product = create(:product, shop: shop)
     create(:variant, shop: shop, product: product)
     # No snapshots created

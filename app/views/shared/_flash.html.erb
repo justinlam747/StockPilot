@@ -1,5 +1,8 @@
 <% flash.each do |type, message| %>
-  <div role="alert" class="flash flash--<%= type %>">
-    <%= message %>
+  <div role="alert"
+       class="flash flash--<%= type %>"
+       aria-live="polite"
+       tabindex="-1">
+    <span><%= message %></span>
   </div>
 <% end %>

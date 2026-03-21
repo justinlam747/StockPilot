@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DropUnusedTables < ActiveRecord::Migration[7.2]
   def up
     drop_table :customers, if_exists: true

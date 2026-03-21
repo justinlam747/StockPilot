@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 module Inventory
+  # Upserts products and variants from Shopify GraphQL data.
   class Persister
     def initialize(shop)
       @shop = shop
@@ -6,8 +9,7 @@ module Inventory
     end
 
     def upsert(data)
-      products = data[:products]
-      products.each do |product_node|
+      data[:products].each do |product_node|
         product = upsert_product_from_graphql(product_node)
         @cache.write_product(product.reload) if product
       end
@@ -15,64 +17,72 @@ module Inventory
     end
 
     def upsert_single_product(shopify_data)
-      shopify_id = shopify_data["id"].to_s
-      product = Product.find_or_initialize_by(shopify_product_id: shopify_id)
-      product.assign_attributes(
-        title: shopify_data["title"],
-        product_type: shopify_data["product_type"],
-        vendor: shopify_data["vendor"],
-        status: shopify_data["status"] || "active",
-        deleted_at: nil,
-        synced_at: Time.current
-      )
+      product = find_or_init_product(shopify_data['id'].to_s)
+      assign_product_attrs(product, shopify_data)
       product.save!
-
-      (shopify_data["variants"] || []).each do |variant_data|
-        variant = Variant.find_or_initialize_by(
-          shopify_variant_id: variant_data["id"].to_s
-        )
-        variant.assign_attributes(
-          product: product,
-          sku: variant_data["sku"],
-          title: variant_data["title"],
-          price: variant_data["price"].to_f
-        )
-        variant.save!
-      end
-
+      upsert_webhook_variants(product, shopify_data['variants'] || [])
       product
     end
 
     private
 
-    def upsert_product_from_graphql(node)
-      shopify_id = node["legacyResourceId"].to_s
-      product = Product.find_or_initialize_by(shopify_product_id: shopify_id)
+    def find_or_init_product(shopify_id)
+      Product.find_or_initialize_by(shopify_product_id: shopify_id)
+    end
+
+    def assign_product_attrs(product, data)
       product.assign_attributes(
-        title: node["title"],
-        product_type: node["productType"],
-        vendor: node["vendor"],
-        status: node["status"]&.downcase || "active",
+        title: data['title'],
+        product_type: data['product_type'] || data['productType'],
+        vendor: data['vendor'],
+        status: (data['status'] || 'active').downcase,
         deleted_at: nil,
         synced_at: Time.current
       )
-      product.save!
+    end
 
-      variant_nodes = node.dig("variants", "nodes") || []
-      variant_nodes.each do |vnode|
-        variant = Variant.find_or_initialize_by(
-          shopify_variant_id: vnode["legacyResourceId"].to_s
-        )
+    def upsert_webhook_variants(product, variants_data)
+      variants_data.each do |vd|
+        variant = Variant.find_or_initialize_by(shopify_variant_id: vd['id'].to_s)
         variant.assign_attributes(
-          product: product,
-          sku: vnode["sku"],
-          title: vnode["title"],
-          price: vnode["price"].to_f
+          product: product, sku: vd['sku'],
+          title: vd['title'], price: vd['price'].to_f
         )
         variant.save!
       end
+    end
 
+    def upsert_product_from_graphql(node)
+      product = find_or_init_product(node['legacyResourceId'].to_s)
+      assign_graphql_product_attrs(product, node)
+      product.save!
+      upsert_graphql_variants(product, node.dig('variants', 'nodes') || [])
       product
+    end
+
+    def assign_graphql_product_attrs(product, node)
+      product.assign_attributes(
+        title: node['title'],
+        product_type: node['productType'],
+        vendor: node['vendor'],
+        status: node['status']&.downcase || 'active',
+        image_url: node.dig('featuredMedia', 'preview', 'image', 'url'),
+        deleted_at: nil,
+        synced_at: Time.current
+      )
+    end
+
+    def upsert_graphql_variants(product, variant_nodes)
+      variant_nodes.each do |vnode|
+        variant = Variant.find_or_initialize_by(
+          shopify_variant_id: vnode['legacyResourceId'].to_s
+        )
+        variant.assign_attributes(
+          product: product, sku: vnode['sku'],
+          title: vnode['title'], price: vnode['price'].to_f
+        )
+        variant.save!
+      end
     end
   end
 end

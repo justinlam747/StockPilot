@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Base controller providing authentication, tenant scoping, and cache helpers.
 class ApplicationController < ActionController::Base
   before_action :require_login
   before_action :set_tenant
@@ -5,7 +8,7 @@ class ApplicationController < ActionController::Base
   private
 
   def require_login
-    redirect_to root_path, alert: "Please log in" unless current_shop
+    redirect_to root_path, alert: 'Please log in' unless current_shop
   end
 
   def current_shop

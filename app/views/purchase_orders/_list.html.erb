@@ -1,26 +1,39 @@
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Supplier</th>
-      <th>Status</th>
-      <th>Created</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% purchase_orders.each do |po| %>
+<div class="sp-card">
+  <table aria-label="Purchase orders">
+    <thead>
       <tr>
-        <td><a href="/purchase_orders/<%= po.id %>">#<%= po.id %></a></td>
-        <td><%= po.supplier&.name %></td>
-        <td><mark><%= po.status %></mark></td>
-        <td><%= po.created_at.strftime("%b %d, %Y") %></td>
-        <td>
-          <a href="/purchase_orders/<%= po.id %>">View</a>
-        </td>
+        <th scope="col">#</th>
+        <th scope="col">Supplier</th>
+        <th scope="col">Status</th>
+        <th scope="col">Created</th>
+        <th scope="col">Actions</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% purchase_orders.each do |po| %>
+        <tr>
+          <td>
+            <a href="/purchase_orders/<%= po.id %>">#<%= po.id %></a>
+          </td>
+          <td><%= po.supplier&.name %></td>
+          <td>
+            <% status = po.status %>
+            <span class="sp-badge sp-badge--<%= status == 'draft' ? 'neutral' : status == 'sent' ? 'info' : 'success' %>">
+              <%= status.capitalize %>
+            </span>
+          </td>
+          <td><%= po.created_at.strftime("%b %d, %Y") %></td>
+          <td>
+            <a href="/purchase_orders/<%= po.id %>"
+               class="sp-btn sp-btn--sm"
+               aria-label="View purchase order #<%= po.id %>">
+              View
+            </a>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 
-<%= render "shared/pagination", collection: purchase_orders %>
+  <%= render "shared/pagination", collection: purchase_orders %>
+</div>

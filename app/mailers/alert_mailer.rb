@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Sends low-stock alert notification emails to merchants.
 class AlertMailer < ApplicationMailer
   def low_stock(shop, flagged_variants, to)
     @shop = shop
