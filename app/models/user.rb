@@ -2,7 +2,7 @@
 
 # A SaaS user authenticated via Clerk. Owns one or more Shopify stores.
 class User < ApplicationRecord
-  has_many :shops, dependent: :nullify
+  has_many :shops, dependent: :destroy
   belongs_to :active_shop, class_name: 'Shop', optional: true
 
   STORE_CATEGORIES = %w[apparel home electronics other].freeze
