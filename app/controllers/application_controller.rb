@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   before_action :require_onboarding
   before_action :require_shop_connection
   before_action :set_tenant
+  before_action :enforce_demo_read_only
 
   private
 
@@ -36,17 +37,54 @@ class ApplicationController < ActionController::Base
     return @current_user if defined?(@current_user)
 
     clerk_user_id = clerk_session_user_id
-    @current_user = clerk_user_id ? User.active.find_by(clerk_user_id: clerk_user_id) : nil
+    return @current_user = nil unless clerk_user_id
+
+    @current_user = User.active.find_by(clerk_user_id: clerk_user_id)
+
+    # If we have a valid Clerk session but no User record yet (webhook race condition),
+    # create the user on-demand from session claims.
+    unless @current_user
+      clerk_claims = request.env['clerk'] || {}
+      if clerk_claims['user_id'].present? || clerk_claims['sub'].present?
+        @current_user = User.create_or_find_by!(clerk_user_id: clerk_user_id) do |u|
+          u.email = clerk_claims['email'] || "#{clerk_user_id}@pending.clerk"
+          u.name = [clerk_claims['first_name'], clerk_claims['last_name']].compact.join(' ').presence
+          u.onboarding_step = 1
+        end
+      end
+    end
+
+    @current_user
   end
   helper_method :current_user
 
   def current_shop
-    @current_shop ||= current_user&.active_shop
+    return @current_shop if defined?(@current_shop)
+
+    if demo_mode?
+      @current_shop = Shop.find_by(id: session[:demo_shop_id])
+    else
+      @current_shop = current_user&.active_shop
+    end
   end
   helper_method :current_shop
 
   def set_tenant
     ActsAsTenant.current_tenant = current_shop
+  end
+
+  def demo_mode?
+    session[:demo_mode].present? && session[:demo_shop_id].present?
+  end
+  helper_method :demo_mode?
+
+  def enforce_demo_read_only
+    return unless demo_mode?
+    return if request.get? || request.head?
+    return if controller_name == 'dashboard' && action_name == 'toggle_demo'
+    return if controller_name == 'dashboard' && action_name == 'run_agent'
+
+    redirect_to '/dashboard', alert: 'Demo mode is read-only'
   end
 
   def shop_cache

@@ -31,6 +31,23 @@ class DashboardController < ApplicationController
     handle_agent_error(e)
   end
 
+  def toggle_demo
+    if session[:demo_mode]
+      session.delete(:demo_mode)
+      session.delete(:demo_shop_id)
+      redirect_to '/dashboard', notice: 'Demo mode off'
+    else
+      demo_shop = Shop.find_by(shop_domain: 'demo.myshopify.com')
+      unless demo_shop
+        redirect_to '/dashboard', alert: 'Demo data not seeded. Run: rails demo:seed'
+        return
+      end
+      session[:demo_mode] = true
+      session[:demo_shop_id] = demo_shop.id
+      redirect_to '/dashboard', notice: 'Demo mode on'
+    end
+  end
+
   private
 
   def load_dashboard_stats

@@ -31,6 +31,7 @@ Rails.application.routes.draw do
 
   # App
   get '/dashboard', to: 'dashboard#index'
+  post '/dashboard/toggle_demo', to: 'dashboard#toggle_demo'
   post '/agents/run', to: 'dashboard#run_agent'
 
   resources :inventory, only: %i[index show]
