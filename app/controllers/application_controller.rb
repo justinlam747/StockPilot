@@ -44,11 +44,12 @@ class ApplicationController < ActionController::Base
     # If we have a valid Clerk session but no User record yet (webhook race condition),
     # create the user on-demand from session claims.
     unless @current_user
-      clerk_claims = request.env['clerk'] || {}
-      if clerk_claims['user_id'].present? || clerk_claims['sub'].present?
+      clerk = request.env['clerk']
+      if clerk.is_a?(Clerk::Proxy) && clerk.user?
+        claims = clerk.session_claims || {}
         @current_user = User.create_or_find_by!(clerk_user_id: clerk_user_id) do |u|
-          u.email = clerk_claims['email'] || "#{clerk_user_id}@pending.clerk"
-          u.name = [clerk_claims['first_name'], clerk_claims['last_name']].compact.join(' ').presence
+          u.email = claims['email'] || "#{clerk_user_id}@pending.clerk"
+          u.name = [claims['first_name'], claims['last_name']].compact.join(' ').presence
           u.onboarding_step = 1
         end
       end
@@ -92,11 +93,15 @@ class ApplicationController < ActionController::Base
   end
 
   # Extract Clerk user ID from session token.
-  # clerk-sdk-ruby sets request.env['clerk'] with session claims.
+  # clerk-sdk-ruby v4 sets request.env['clerk'] to a Clerk::Proxy object
+  # (not a hash), which exposes #user_id (returns session_claims["sub"]).
   # Falls back to session-stored ID for dev_login in development.
   def clerk_session_user_id
-    request.env.dig('clerk', 'user_id') ||
-      request.env.dig('clerk', 'sub') ||
-      (Rails.env.development? && session[:dev_clerk_user_id])
+    clerk = request.env['clerk']
+    if clerk.is_a?(Clerk::Proxy) && clerk.user?
+      clerk.user_id
+    else
+      Rails.env.development? && session[:dev_clerk_user_id]
+    end
   end
 end

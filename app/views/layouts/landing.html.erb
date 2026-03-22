@@ -8,11 +8,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <%= csrf_meta_tags %>
+  <meta name="clerk-key" content="<%= ENV['CLERK_PUBLISHABLE_KEY'] %>">
   <%= stylesheet_link_tag "landing" %>
   <%= stylesheet_link_tag "vision" if controller_name == 'vision' %>
 </head>
-<body class="<%= controller_name == 'landing' ? 'lp-body--hero' : 'lp-body--vision' %>">
+<body class="<%= controller_name == 'landing' ? 'lp-body--hero' : 'lp-body--vision' %>" data-env="<%= Rails.env %>">
   <%= yield %>
   <%= javascript_include_tag "vision-tabs" if controller_name == 'vision' %>
+  <%= javascript_include_tag "landing-clerk" if controller_name == 'landing' %>
 </body>
 </html>

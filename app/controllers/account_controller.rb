@@ -2,6 +2,8 @@
 
 # User account management and logout.
 class AccountController < ApplicationController
+  skip_before_action :require_clerk_session, only: :dev_login
+  skip_before_action :require_onboarding, only: :dev_login
   skip_before_action :require_shop_connection
 
   def show

@@ -9,10 +9,12 @@ Rails.application.config.action_dispatch.default_headers = {
   'Content-Security-Policy' => [
     "default-src 'self'",
     "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://*.clerk.accounts.dev",
-    "style-src 'self' https://unpkg.com https://fonts.googleapis.com 'unsafe-inline'",
-    "img-src 'self' data: https://cdn.shopify.com https://img.clerk.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://*.clerk.accounts.dev",
+    "style-src 'self' https://unpkg.com https://fonts.googleapis.com https://*.clerk.accounts.dev 'unsafe-inline'",
+    "img-src 'self' data: https://cdn.shopify.com https://img.clerk.com https://*.clerk.com",
+    "font-src 'self' https://fonts.gstatic.com https://*.clerk.accounts.dev",
+    "connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com",
+    "worker-src 'self' blob:",
+    "frame-src 'self' https://*.clerk.accounts.dev",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action *"

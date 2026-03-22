@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <%= stylesheet_link_tag "onboarding" %>
+  <script
+    async crossorigin="anonymous"
+    data-clerk-publishable-key="<%= ENV['CLERK_PUBLISHABLE_KEY'] %>"
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+  ></script>
   <%= csrf_meta_tags %>
 </head>
 <body>

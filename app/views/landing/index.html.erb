@@ -36,23 +36,9 @@
     </p>
 
     <div class="lp-hero__buttons">
-      <button onclick="window.Clerk && Clerk.openSignUp()" class="lp-hero__cta">Get Started</button>
+      <a href="<%= Rails.env.development? ? '/dev/login' : '#' %>" id="get-started-btn" class="lp-hero__cta">Get Started</a>
       <a href="/vision" class="lp-hero__vision">Vision</a>
     </div>
-
-    <script
-      async crossorigin="anonymous"
-      data-clerk-publishable-key="<%= ENV['CLERK_PUBLISHABLE_KEY'] %>"
-      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-    ></script>
-    <script>
-      window.addEventListener('load', async () => {
-        if (window.Clerk) {
-          await Clerk.load();
-          if (Clerk.user) { window.location = '/dashboard'; }
-        }
-      });
-    </script>
   </div>
 
   <div class="lp-split__right"></div>
