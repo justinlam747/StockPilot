@@ -44,6 +44,17 @@
       <div id="agent-status">
         <%= render "agent_results", results: @last_run %>
       </div>
+      <% if @ai_insights.present? %>
+        <div class="agent-insights">
+          <span class="agent-insights__label">AI Insights</span>
+          <div class="agent-insights__text"><%= simple_format(h(@ai_insights), {}, wrapper_tag: 'span') %></div>
+        </div>
+      <% elsif ENV['ANTHROPIC_API_KEY'].blank? %>
+        <div class="agent-insights agent-insights--muted">
+          <span class="agent-insights__label">AI Insights</span>
+          <span class="agent-insights__text">Connect your Anthropic API key to unlock AI-powered inventory insights.</span>
+        </div>
+      <% end %>
     </div>
   </div>
 
@@ -55,7 +66,10 @@
       <span class="bento__health"><%= @health_pct %>%</span>
     </div>
     <div class="bento__content">
-      <span class="bento__value"><%= @total_products %></span>
+      <span class="bento__value">
+        <%= @total_products %>
+        <span class="bento__trend bento__trend--<%= @trends[:total_products] %>" aria-label="Trend: <%= @trends[:total_products] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:total_products]] %></span>
+      </span>
       <span class="bento__label">Active Products</span>
       <span class="bento__sub"><%= @total_variants %> total SKUs tracked &middot; <%= @healthy_products %> healthy, <%= @low_stock %> low, <%= @out_of_stock %> out</span>
     </div>
@@ -70,7 +84,10 @@
       <span class="bento__tile-label">Warning</span>
     </div>
     <div class="bento__content">
-      <span class="bento__value"><%= @low_stock %></span>
+      <span class="bento__value">
+        <%= @low_stock %>
+        <span class="bento__trend bento__trend--<%= @trends[:low_stock] %>" aria-label="Trend: <%= @trends[:low_stock] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:low_stock]] %></span>
+      </span>
       <span class="bento__label">Low Stock Items</span>
       <span class="bento__sub">These variants have dropped below their reorder threshold and need restocking soon to avoid stockouts.</span>
     </div>
@@ -85,7 +102,10 @@
       <span class="bento__tile-label">Critical</span>
     </div>
     <div class="bento__content">
-      <span class="bento__value"><%= @out_of_stock %></span>
+      <span class="bento__value">
+        <%= @out_of_stock %>
+        <span class="bento__trend bento__trend--<%= @trends[:out_of_stock] %>" aria-label="Trend: <%= @trends[:out_of_stock] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:out_of_stock]] %></span>
+      </span>
       <span class="bento__label">Out of Stock</span>
       <span class="bento__sub">Zero available inventory. Customers attempting to purchase will see "sold out." Every hour without stock is lost revenue.</span>
     </div>
@@ -98,7 +118,10 @@
       <span class="bento__tile-label">Orders</span>
     </div>
     <div class="bento__content">
-      <span class="bento__value"><%= @pending_pos %></span>
+      <span class="bento__value">
+        <%= @pending_pos %>
+        <span class="bento__trend bento__trend--<%= @trends[:pending_pos] %>" aria-label="Trend: <%= @trends[:pending_pos] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:pending_pos]] %></span>
+      </span>
       <span class="bento__label">Draft Purchase Orders</span>
       <span class="bento__sub"><%= @sent_pos %> already sent to suppliers and awaiting delivery. Draft orders can be reviewed and sent with one click.</span>
     </div>

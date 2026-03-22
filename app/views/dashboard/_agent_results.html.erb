@@ -1,5 +1,5 @@
 <% if results.present? %>
-  <div class="agent-summary">
+  <div class="agent-summary" data-agent-stream>
     <div class="agent-summary__stats">
       <div class="agent-stat">
         <span class="agent-stat__value"><%= results["low_stock_count"] || 0 %></span>
@@ -10,7 +10,7 @@
         <span class="agent-stat__label">Agent turns</span>
       </div>
       <div class="agent-stat">
-        <span class="agent-stat__value"><%= results["ran_at"] ? Time.parse(results["ran_at"]).strftime("%H:%M") : "—" %></span>
+        <span class="agent-stat__value"><%= results["ran_at"] ? Time.parse(results["ran_at"]).strftime("%H:%M") : "---" %></span>
         <span class="agent-stat__label">Completed</span>
       </div>
     </div>
@@ -28,11 +28,11 @@
   </div>
 
   <% if results["log"].present? %>
-    <details class="agent-log">
+    <details class="agent-log" open>
       <summary>Agent reasoning (<%= results["log"].size %> steps)</summary>
-      <div class="agent-log__entries">
+      <div class="agent-log__entries" data-agent-stream-entries>
         <% results["log"].each_with_index do |entry, i| %>
-          <div class="agent-log__entry">
+          <div class="agent-log__entry" data-stream-index="<%= i %>">
             <span class="agent-log__step"><%= i + 1 %></span>
             <span class="agent-log__text"><%= h(entry) %></span>
           </div>
