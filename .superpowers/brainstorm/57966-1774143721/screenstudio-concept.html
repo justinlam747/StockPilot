@@ -1,0 +1,73 @@
+<h2>ScreenStudio-style bento boxes — is this the idea?</h2>
+<p class="subtitle">Each bento cell = Apple wallpaper background + floating app screen mockup + idle animation</p>
+
+<div class="mockup" style="margin-bottom:32px;">
+  <div class="mockup-header">Concept: "Low Stock Alerts" bento cell</div>
+  <div class="mockup-body" style="padding:0;overflow:hidden;height:360px;">
+    <!-- macOS Big Sur inspired wallpaper background -->
+    <div style="width:100%;height:100%;position:relative;overflow:hidden;">
+      <!-- Wallpaper layer - Big Sur colorful hills style -->
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 30%,#0f3460 50%,#533483 65%,#e94560 80%,#f97316 90%,#fbbf24 100%);"></div>
+      <!-- Flowing hill shapes -->
+      <svg viewBox="0 0 600 360" style="position:absolute;inset:0;width:100%;height:100%;" preserveAspectRatio="none">
+        <path d="M0,220 C100,180 200,260 300,200 C400,140 500,230 600,190 L600,360 L0,360 Z" fill="rgba(139,92,246,0.6)"/>
+        <path d="M0,250 C150,210 250,280 350,230 C450,180 550,260 600,220 L600,360 L0,360 Z" fill="rgba(99,102,241,0.5)"/>
+        <path d="M0,280 C120,250 220,300 350,260 C480,220 550,280 600,260 L600,360 L0,360 Z" fill="rgba(59,130,246,0.4)"/>
+      </svg>
+
+      <!-- Floating app screen mockup -->
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:75%;max-width:380px;background:rgba(255,255,255,0.97);border-radius:12px;box-shadow:0 25px 60px rgba(0,0,0,0.4),0 8px 20px rgba(0,0,0,0.2);overflow:hidden;">
+        <!-- Title bar -->
+        <div style="padding:10px 14px;background:#f9fafb;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></div>
+          <span style="margin-left:8px;font-size:11px;color:#6b7280;font-family:system-ui;">Low Stock Alerts</span>
+        </div>
+        <!-- App content -->
+        <div style="padding:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;"></div>
+            <span style="font-size:12px;color:#1a1a1a;font-family:system-ui;font-weight:500;">3 items critically low</span>
+          </div>
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;margin-bottom:8px;">
+            <div style="font-size:11px;color:#991b1b;font-family:system-ui;font-weight:600;">Organic Cotton Tee — White / M</div>
+            <div style="font-size:10px;color:#b91c1c;font-family:system-ui;">2 remaining · Reorder point: 15</div>
+          </div>
+          <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px;">
+            <div style="font-size:11px;color:#92400e;font-family:system-ui;font-weight:600;">Recycled Hoodie — Navy / L</div>
+            <div style="font-size:10px;color:#b45309;font-family:system-ui;">7 remaining · Reorder point: 20</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="color:#6b7280;font-size:14px;margin-bottom:24px;">Each of the 6 bento boxes would have a <strong>different macOS wallpaper</strong> as its background, with a <strong>floating screen</strong> showing that feature. Idle animations would gently move the wallpaper elements and the screen would have subtle hover lift.</p>
+
+<h3 style="margin-top:32px;">Quick questions to nail this down:</h3>
+
+<div class="options">
+  <div class="option" data-choice="real-wallpapers" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <h3>Use actual Apple wallpaper images</h3>
+      <p>Download real macOS wallpapers (Big Sur, Sonoma, Sequoia, etc.) and use them as backgrounds. Most authentic but involves hosting large images.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="css-recreations" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <h3>CSS recreations of the wallpaper aesthetic</h3>
+      <p>Recreate the wallpaper feel with CSS gradients, SVG shapes, and animations. Lighter weight, animatable, no image hosting needed. Like the mockup above.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>Hybrid — real wallpapers + CSS animation layers</h3>
+      <p>Use real wallpaper images as the base, with animated CSS overlays (floating particles, subtle parallax, light rays) to bring them alive on scroll.</p>
+    </div>
+  </div>
+</div>

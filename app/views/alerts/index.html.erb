@@ -1,52 +1,71 @@
-<div class="sp-page-header">
-  <h1>Alerts</h1>
+<div class="alt-header">
+  <div class="alt-header__top">
+    <div>
+      <h1 class="alt-header__title">Alerts</h1>
+      <span class="alt-header__count"><%= @alerts.total_count %> alert<%= @alerts.total_count == 1 ? '' : 's' %></span>
+    </div>
+  </div>
+
+  <div class="alt-filters inv-filters">
+    <span class="inv-filters__label">Filter</span>
+    <a href="<%= alerts_path %>"
+       class="inv-filter-btn <%= 'is-active' unless params[:severity].present? || params[:status].present? %>"
+       aria-label="Show all alerts">All</a>
+    <a href="<%= alerts_path(severity: 'critical') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:severity] == 'critical' %>">
+      <span class="inv-filter-dot inv-filter-dot--danger" aria-hidden="true"></span>
+      Critical
+    </a>
+    <a href="<%= alerts_path(severity: 'warning') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:severity] == 'warning' %>">
+      <span class="inv-filter-dot inv-filter-dot--warn" aria-hidden="true"></span>
+      Warning
+    </a>
+    <a href="<%= alerts_path(status: 'active') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:status] == 'active' %>">Active</a>
+    <a href="<%= alerts_path(status: 'dismissed') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:status] == 'dismissed' %>">Dismissed</a>
+  </div>
 </div>
 
 <% if @alerts.any? %>
-  <div class="sp-card">
-    <table aria-label="Inventory alerts">
-      <thead>
-        <tr>
-          <th scope="col">Severity</th>
-          <th scope="col">Message</th>
-          <th scope="col">Created</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @alerts.each do |alert| %>
-          <tr id="alert-<%= alert.id %>">
-            <td>
-              <span class="sp-badge sp-badge--<%= alert.severity == 'critical' ? 'critical' : 'warning' %>">
-                <%= (alert.severity || "warning").capitalize %>
-              </span>
-            </td>
-            <td><%= alert.message %></td>
-            <td><%= alert.created_at.strftime("%b %d, %Y %H:%M") %></td>
-            <td>
-              <% unless alert.dismissed? %>
-                <button hx-patch="<%= dismiss_alert_path(alert) %>"
-                        hx-target="#alert-<%= alert.id %>"
-                        hx-swap="outerHTML"
-                        class="sp-btn--sm"
-                        aria-label="Dismiss alert: <%= alert.message %>">
-                  Dismiss
-                </button>
-              <% else %>
-                <span class="text-secondary">Dismissed</span>
-              <% end %>
-            </td>
-          </tr>
+  <%
+    today_alerts = @alerts.select { |a| a.created_at.to_date == Date.current }
+    older_alerts = @alerts.reject { |a| a.created_at.to_date == Date.current }
+  %>
+
+  <% if today_alerts.any? %>
+    <div class="alt-group">
+      <h2 class="alt-group__title">Today</h2>
+      <div class="alt-list bento__tile">
+        <% today_alerts.each do |alert| %>
+          <%= render "alert_row", alert: alert %>
         <% end %>
-      </tbody>
-    </table>
-  </div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if older_alerts.any? %>
+    <div class="alt-group">
+      <h2 class="alt-group__title">Older</h2>
+      <div class="alt-list bento__tile">
+        <% older_alerts.each do |alert| %>
+          <%= render "alert_row", alert: alert %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 
   <%= render "shared/pagination", collection: @alerts %>
 <% else %>
-  <div class="sp-card">
+  <div class="bento__tile" style="padding: var(--space-12) var(--space-6); text-align: center;">
     <div class="sp-empty">
-      <p class="sp-empty__title">No alerts</p>
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green-400)"
+           stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="margin-bottom: var(--space-4);">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <p class="sp-empty__title">All clear</p>
       <p class="sp-empty__desc">No alerts to display. Your inventory is looking good.</p>
     </div>
   </div>

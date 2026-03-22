@@ -1,0 +1,12 @@
+<div class="onboarding-page">
+  <div class="onboarding-content">
+    <% case @step %>
+    <% when 1 %>
+      <%= render 'onboarding/step_1' %>
+    <% when 2 %>
+      <%= render 'onboarding/step_2' %>
+    <% when 3 %>
+      <%= render 'onboarding/step_3' %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StockPilot — Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <%= stylesheet_link_tag "onboarding" %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+  <div class="progress-track">
+    <div class="progress-fill" style="width: <%= (@step.to_i / 3.0 * 100).round %>%"></div>
+  </div>
+  <div class="top-bar">
+    <div class="logo">stockpilot <span>/ setup</span></div>
+    <div class="step-count"><%= @step %> of 3</div>
+  </div>
+  <%= yield %>
+</body>
+</html>

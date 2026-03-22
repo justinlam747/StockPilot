@@ -15,7 +15,7 @@ module Agents
 
     def initialize(shop, provider: nil, model: nil)
       @shop = shop
-      @llm = LLM::Factory.build(provider: provider, model: model)
+      @llm = LLM::Factory.build(provider: provider, model: model, shop: shop)
       @flagged_cache = nil
       @log = []
     end

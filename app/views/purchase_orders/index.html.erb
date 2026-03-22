@@ -1,17 +1,48 @@
-<div class="sp-page-header">
-  <h1>Purchase Orders</h1>
-  <div class="sp-page-header__actions">
-    <button hx-post="/purchase_orders/generate_draft"
-            hx-target="#draft-area"
-            hx-indicator="#draft-spinner"
-            class="sp-btn--primary"
-            aria-label="Generate a draft purchase order using AI">
-      Generate Draft PO
-    </button>
-    <span id="draft-spinner" class="htmx-indicator">
-      <span class="sp-spinner" aria-hidden="true"></span>
-      Generating with AI...
-    </span>
+<div class="po-header">
+  <div class="po-header__top">
+    <div>
+      <h1 class="po-header__title">Purchase Orders</h1>
+      <span class="po-header__count"><%= @purchase_orders.total_count %> order<%= @purchase_orders.total_count == 1 ? '' : 's' %></span>
+    </div>
+    <div class="po-header__actions">
+      <button hx-post="<%= generate_draft_purchase_orders_path %>"
+              hx-target="#draft-area"
+              hx-indicator="#draft-spinner"
+              class="bento__btn"
+              aria-label="Generate a draft purchase order using AI">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        Generate Draft PO
+      </button>
+      <span id="draft-spinner" class="htmx-indicator">
+        <span class="sp-spinner" aria-hidden="true"></span>
+        Generating with AI...
+      </span>
+    </div>
+  </div>
+
+  <div class="po-filters inv-filters">
+    <span class="inv-filters__label">Status</span>
+    <a href="<%= purchase_orders_path %>"
+       class="inv-filter-btn <%= 'is-active' unless params[:status].present? %>"
+       aria-label="Show all purchase orders">All</a>
+    <a href="<%= purchase_orders_path(status: 'draft') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:status] == 'draft' %>">
+      <span class="inv-filter-dot" style="background: var(--color-text-disabled);" aria-hidden="true"></span>
+      Draft
+    </a>
+    <a href="<%= purchase_orders_path(status: 'sent') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:status] == 'sent' %>">
+      <span class="inv-filter-dot inv-filter-dot--warn" aria-hidden="true"></span>
+      Sent
+    </a>
+    <a href="<%= purchase_orders_path(status: 'received') %>"
+       class="inv-filter-btn <%= 'is-active' if params[:status] == 'received' %>">
+      <span class="inv-filter-dot" style="background: var(--green-500);" aria-hidden="true"></span>
+      Received
+    </a>
   </div>
 </div>
 

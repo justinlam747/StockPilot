@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_20_214411) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -121,7 +121,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_20_214411) do
     t.datetime "updated_at", null: false
     t.datetime "last_agent_run_at"
     t.jsonb "last_agent_results", default: {}
+    t.bigint "user_id", null: false
     t.index ["shop_domain"], name: "index_shops_on_shop_domain", unique: true
+    t.index ["user_id", "shop_domain"], name: "index_shops_on_user_id_and_shop_domain", unique: true
+    t.index ["user_id"], name: "index_shops_on_user_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -138,6 +141,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_20_214411) do
     t.string "phone"
     t.index ["shop_id", "name"], name: "index_suppliers_on_shop_id_and_name"
     t.index ["shop_id"], name: "index_suppliers_on_shop_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "clerk_user_id", null: false
+    t.string "email", null: false
+    t.string "name"
+    t.string "store_name"
+    t.string "store_category"
+    t.integer "onboarding_step", default: 1, null: false
+    t.datetime "onboarding_completed_at"
+    t.bigint "active_shop_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["clerk_user_id"], name: "index_users_on_clerk_user_id", unique: true
+    t.index ["deleted_at"], name: "index_users_on_deleted_at"
+    t.index ["email"], name: "index_users_on_email"
   end
 
   create_table "variants", force: :cascade do |t|
@@ -169,7 +189,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_20_214411) do
   add_foreign_key "purchase_order_line_items", "variants"
   add_foreign_key "purchase_orders", "shops", on_delete: :cascade
   add_foreign_key "purchase_orders", "suppliers"
+  add_foreign_key "shops", "users"
   add_foreign_key "suppliers", "shops", on_delete: :cascade
+  add_foreign_key "users", "shops", column: "active_shop_id"
   add_foreign_key "variants", "products", on_delete: :cascade
   add_foreign_key "variants", "shops", on_delete: :cascade
   add_foreign_key "variants", "suppliers", on_delete: :nullify

@@ -11,6 +11,8 @@ class DashboardController < ApplicationController
 
   def index
     load_dashboard_stats
+    load_trends
+    load_ai_insights
     @recent_alerts = Alert.includes(variant: :product).order(created_at: :desc).limit(10)
     @last_run = current_shop.last_agent_results
     @last_run_at = current_shop.last_agent_run_at
@@ -41,6 +43,56 @@ class DashboardController < ApplicationController
     @alerts_today = Alert.where(shop_id: current_shop.id)
                         .where('created_at >= ?', Time.current.beginning_of_day).count
     @avg_variants_per_product = @total_products.positive? ? (@total_variants.to_f / @total_products).round(1) : 0
+  end
+
+  def load_trends
+    @trends = compute_trends
+  end
+
+  def compute_trends
+    snapshots = InventorySnapshot.where(shop_id: current_shop.id)
+                                 .where('created_at < ?', 24.hours.ago)
+    return default_trends unless snapshots.exists?
+
+    prev = previous_counts(snapshots)
+    {
+      total_products: trend_direction(@total_products, prev[:total]),
+      low_stock: trend_direction(@low_stock, prev[:low]),
+      out_of_stock: trend_direction(@out_of_stock, prev[:out]),
+      pending_pos: :flat
+    }
+  end
+
+  def previous_counts(snapshots)
+    prev_total = Product.where(shop_id: current_shop.id)
+                        .where('created_at < ?', 24.hours.ago).count
+    {
+      total: prev_total.zero? ? @total_products : prev_total,
+      low: snapshots.where('available > 0 AND available <= 10').count,
+      out: snapshots.where('available <= 0').count
+    }
+  end
+
+  def default_trends
+    { total_products: :flat, low_stock: :flat, out_of_stock: :flat, pending_pos: :flat }
+  end
+
+  def trend_direction(current, previous)
+    return :flat if current == previous
+
+    current > previous ? :up : :down
+  end
+
+  def load_ai_insights
+    @ai_insights = Rails.cache.fetch(
+      "shop:#{current_shop.id}:ai_insights",
+      expires_in: 30.minutes
+    ) do
+      AI::InsightsGenerator.new(current_shop).generate
+    end
+  rescue StandardError => e
+    Rails.logger.warn("[DashboardController] AI insights failed: #{e.class}")
+    @ai_insights = nil
   end
 
   def execute_agent_run
@@ -80,6 +132,7 @@ class DashboardController < ApplicationController
 
   def respond_to_agent_run(results)
     if request.headers['HX-Request']
+      response.headers['HX-Trigger'] = 'agent-run-complete'
       render partial: 'agent_results', locals: { results: results }
     else
       redirect_to '/dashboard', notice: 'Agent run complete'

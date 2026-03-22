@@ -105,4 +105,13 @@ A running record of architectural and engineering decisions made in StockPilot, 
 
 ---
 
+## TD-012: Clerk for Authentication over Devise/Auth0
+
+**Date:** 2026-03-22
+**Decision:** Use Clerk (clerk-sdk-ruby) for user authentication instead of Devise, Auth0, or rolling our own.
+**Why:** Clerk provides production-grade auth (email+password, Google OAuth, MFA) with minimal code. The Ruby SDK integrates with Rails middleware for session validation. The free tier covers 10K MAU which is sufficient for launch. Moving from embedded Shopify app to standalone SaaS requires our own auth system — Clerk lets us ship in days instead of weeks.
+**Trade-off:** Adds a SaaS dependency (~$25/mo after free tier). If Clerk has downtime, users can't log in. Mitigated by the fact that Clerk has 99.99% uptime SLA and we can migrate to Devise later if needed since our User model is decoupled from Clerk internals (only stores clerk_user_id).
+
+---
+
 *Add new entries as decisions are made. Format: TD-XXX, date, decision, why, trade-offs.*

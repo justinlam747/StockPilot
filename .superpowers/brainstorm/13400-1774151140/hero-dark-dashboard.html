@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockPilot Hero Concept — Dark Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #0A0F0D;
+    color: #E8E8E8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ─── HERO GLOW ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  .hero__glow {
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 500px;
+    background: radial-gradient(ellipse at center, rgba(0,128,96,0.35) 0%, rgba(149,191,71,0.12) 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero__glow-2 {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 350px;
+    background: radial-gradient(ellipse at center, rgba(149,191,71,0.2) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── NAV ─── */
+  .nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 40px;
+  }
+  .nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav__brand svg { flex-shrink: 0; }
+  .nav__links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .nav__link {
+    color: #9CA3AF;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: color 0.2s;
+  }
+  .nav__link:hover { color: #fff; }
+  .nav__cta {
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid rgba(149,191,71,0.5);
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .nav__cta:hover {
+    background: rgba(149,191,71,0.15);
+    border-color: #95BF47;
+  }
+
+  /* ─── HERO CONTENT ─── */
+  .hero__content {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 80px 40px 0;
+  }
+  .hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(149,191,71,0.12);
+    border: 1px solid rgba(149,191,71,0.25);
+    padding: 8px 20px;
+    border-radius: 24px;
+    margin-bottom: 32px;
+  }
+  .hero__badge-icons {
+    display: flex;
+    gap: 4px;
+  }
+  .hero__badge-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .hero__badge-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #95BF47;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .hero__headline {
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -1.5px;
+    color: #FFFFFF;
+    max-width: 750px;
+    margin: 0 auto 20px;
+  }
+  .hero__subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: #9CA3AF;
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto 0;
+  }
+
+  /* ─── DASHBOARD MOCKUP ─── */
+  .dashboard-wrap {
+    position: relative;
+    z-index: 5;
+    max-width: 1100px;
+    margin: 60px auto 0;
+    padding: 0 40px;
+  }
+  .dashboard {
+    background: #111916;
+    border: 1px solid rgba(149,191,71,0.15);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0,128,96,0.15), 0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  /* Dashboard top bar */
+  .dash-topbar {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    gap: 8px;
+  }
+  .dash-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dash-dot--red { background: #FF5F57; }
+  .dash-dot--yellow { background: #FFBD2E; }
+  .dash-dot--green { background: #28CA41; }
+
+  /* Dashboard layout */
+  .dash-body {
+    display: flex;
+    min-height: 520px;
+  }
+
+  /* Sidebar */
+  .dash-sidebar {
+    width: 200px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 0;
+    flex-shrink: 0;
+  }
+  .dash-sidebar__brand {
+    padding: 0 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .dash-sidebar__brand svg { flex-shrink: 0; }
+  .dash-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    color: #6B7280;
+    cursor: default;
+    transition: all 0.15s;
+  }
+  .dash-nav-item.active {
+    background: rgba(149,191,71,0.12);
+    color: #95BF47;
+    border-right: 2px solid #95BF47;
+  }
+  .dash-nav-item svg { flex-shrink: 0; opacity: 0.5; }
+  .dash-nav-item.active svg { opacity: 1; }
+  .dash-nav-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 12px 0;
+  }
+
+  /* Main content */
+  .dash-main {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Header row */
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dash-title { font-size: 20px; font-weight: 700; color: #fff; }
+  .dash-actions { display: flex; gap: 8px; }
+  .dash-action-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: #9CA3AF;
+    cursor: default;
+  }
+  .dash-action-btn--primary {
+    background: rgba(149,191,71,0.15);
+    border-color: rgba(149,191,71,0.3);
+    color: #95BF47;
+  }
+
+  /* Product cards row */
+  .dash-products {
+    display: flex;
+    gap: 10px;
+    overflow: hidden;
+  }
+  .dash-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .dash-product__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .dash-product__name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #E5E7EB;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-product__meta {
+    font-size: 10px;
+    color: #6B7280;
+    margin-top: 1px;
+  }
+  .dash-product__stock {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* Content grid */
+  .dash-grid {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+  }
+  .dash-grid__left { flex: 1.6; display: flex; flex-direction: column; gap: 20px; }
+  .dash-grid__right { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Chart card */
+  .dash-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 18px;
+    flex: 1;
+  }
+  .dash-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .dash-card__title { font-size: 13px; font-weight: 600; color: #D1D5DB; }
+  .dash-card__badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: #9CA3AF;
+  }
+
+  /* Big number */
+  .dash-big-num {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin: 4px 0 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .dash-big-num__change {
+    font-size: 12px;
+    font-weight: 600;
+    color: #95BF47;
+  }
+
+  /* Bar chart */
+  .dash-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 140px;
+    padding-top: 10px;
+  }
+  .dash-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: rgba(0,128,96,0.5);
+    transition: background 0.2s;
+    position: relative;
+  }
+  .dash-bar:hover { background: #008060; }
+  .dash-bar:nth-child(odd) { background: rgba(149,191,71,0.4); }
+  .dash-bar:nth-child(odd):hover { background: #95BF47; }
+  .dash-chart-labels {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .dash-chart-labels span {
+    flex: 1;
+    text-align: center;
+    font-size: 9px;
+    color: #4B5563;
+  }
+
+  /* Activity list */
+  .dash-activity { display: flex; flex-direction: column; }
+  .dash-activity-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 12px;
+  }
+  .dash-activity-row:last-child { border-bottom: none; }
+  .dash-activity-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dash-activity-dot--green { background: #95BF47; }
+  .dash-activity-dot--yellow { background: #FFBD2E; }
+  .dash-activity-dot--red { background: #FF5F57; }
+  .dash-activity-name {
+    color: #D1D5DB;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-activity-val {
+    color: #9CA3AF;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .dash-activity-count {
+    color: #6B7280;
+    font-size: 11px;
+    flex-shrink: 0;
+    min-width: 24px;
+    text-align: right;
+  }
+
+  /* Favourite products */
+  .dash-fav-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 12px;
+  }
+  .dash-fav-row:last-child { border-bottom: none; }
+  .dash-fav-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .dash-fav-name { color: #D1D5DB; flex: 1; }
+  .dash-fav-price { color: #9CA3AF; font-weight: 500; width: 60px; }
+  .dash-fav-qty { color: #9CA3AF; width: 70px; }
+  .dash-fav-change { font-weight: 600; width: 55px; text-align: right; }
+  .dash-fav-change--up { color: #95BF47; }
+  .dash-fav-change--down { color: #FF5F57; }
+  .dash-fav-spark {
+    width: 50px; height: 20px; flex-shrink: 0;
+  }
+
+  /* Bottom fade */
+  .dashboard-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: linear-gradient(transparent, #0A0F0D);
+    z-index: 6;
+    pointer-events: none;
+  }
+
+  /* Footer hint */
+  .hero__scroll-hint {
+    position: relative;
+    z-index: 7;
+    text-align: center;
+    padding: 40px 0 60px;
+    color: #4B5563;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero__glow"></div>
+  <div class="hero__glow-2"></div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="#" class="nav__brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="6" fill="#008060"/>
+        <path d="M7 17V7l5 3v7l5-3V7" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      StockPilot
+    </a>
+    <div class="nav__links">
+      <a href="#" class="nav__link">Features</a>
+      <a href="#" class="nav__link">Vision</a>
+      <a href="#" class="nav__link">Pricing</a>
+      <a href="#" class="nav__link" style="color: #D1D5DB;">Sign In</a>
+      <a href="#" class="nav__cta">Start for Free</a>
+    </div>
+  </nav>
+
+  <!-- Hero text -->
+  <div class="hero__content">
+    <div class="hero__badge">
+      <div class="hero__badge-icons">
+        <svg width="20" height="22" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="#95BF47"/><path d="M213.3 50.7l-21.7-3.5-14.4-14.8c-1.1-1.2-2.7-1.8-4.3-2l-5 168.3 72.8-15.8s-17.8-121-18.8-125.5c-1.4-4.2-5.5-6.3-8.6-6.7z" fill="#5E8E3E"/></svg>
+      </div>
+      <span class="hero__badge-text">Built for Shopify</span>
+    </div>
+
+    <h1 class="hero__headline">Inventory intelligence starts here</h1>
+    <p class="hero__subtitle">AI agents that monitor every SKU, predict demand, and auto-generate purchase orders — so you never lose a sale.</p>
+  </div>
+
+  <!-- Dashboard mockup -->
+  <div class="dashboard-wrap">
+    <div class="dashboard">
+      <div class="dash-topbar">
+        <span class="dash-dot dash-dot--red"></span>
+        <span class="dash-dot dash-dot--yellow"></span>
+        <span class="dash-dot dash-dot--green"></span>
+      </div>
+      <div class="dash-body">
+        <!-- Sidebar -->
+        <div class="dash-sidebar">
+          <div class="dash-sidebar__brand">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect width="24" height="24" rx="5" fill="#008060"/>
+              <path d="M7 17V7l5 3v7l5-3V7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            StockPilot
+          </div>
+          <div class="dash-nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </div>
+          <div class="dash-nav-item active">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Inventory
+          </div>
+          <div class="dash-nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Alerts
+          </div>
+          <div class="dash-nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Purchase Orders
+          </div>
+          <div class="dash-nav-divider"></div>
+          <div class="dash-nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Suppliers
+          </div>
+          <div class="dash-nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Reports
+          </div>
+          <div class="dash-nav-divider"></div>
+          <div class="dash-nav-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="dash-main">
+          <!-- Header -->
+          <div class="dash-header">
+            <span class="dash-title">Inventory</span>
+            <div class="dash-actions">
+              <span class="dash-action-btn">⟳ Sync All</span>
+              <span class="dash-action-btn dash-action-btn--primary">+ Add Product</span>
+            </div>
+          </div>
+
+          <!-- Product cards -->
+          <div class="dash-products">
+            <div class="dash-product">
+              <div class="dash-product__icon" style="background: rgba(149,191,71,0.2);">🧵</div>
+              <div>
+                <div class="dash-product__name">Organic Cotton Tee</div>
+                <div class="dash-product__meta">12 variants</div>
+              </div>
+              <span class="dash-product__stock">142</span>
+            </div>
+            <div class="dash-product">
+              <div class="dash-product__icon" style="background: rgba(0,128,96,0.2);">🧥</div>
+              <div>
+                <div class="dash-product__name">Recycled Hoodie</div>
+                <div class="dash-product__meta">8 variants</div>
+              </div>
+              <span class="dash-product__stock">7</span>
+            </div>
+            <div class="dash-product">
+              <div class="dash-product__icon" style="background: rgba(255,189,46,0.15);">👖</div>
+              <div>
+                <div class="dash-product__name">Linen Pants</div>
+                <div class="dash-product__meta">6 variants</div>
+              </div>
+              <span class="dash-product__stock" style="color: #FF5F57;">0</span>
+            </div>
+            <div class="dash-product">
+              <div class="dash-product__icon" style="background: rgba(149,191,71,0.15);">🧢</div>
+              <div>
+                <div class="dash-product__name">Canvas Cap</div>
+                <div class="dash-product__meta">4 variants</div>
+              </div>
+              <span class="dash-product__stock">89</span>
+            </div>
+          </div>
+
+          <!-- Content grid -->
+          <div class="dash-grid">
+            <div class="dash-grid__left">
+              <!-- Chart -->
+              <div class="dash-card">
+                <div class="dash-card__header">
+                  <span class="dash-card__title">Total Stock Value</span>
+                  <span class="dash-card__badge">Last synced 19 min ago</span>
+                </div>
+                <div class="dash-big-num">
+                  $48,389.71
+                  <span class="dash-big-num__change">↑ 12.4%</span>
+                </div>
+                <div class="dash-chart">
+                  <div class="dash-bar" style="height: 55%"></div>
+                  <div class="dash-bar" style="height: 48%"></div>
+                  <div class="dash-bar" style="height: 62%"></div>
+                  <div class="dash-bar" style="height: 70%"></div>
+                  <div class="dash-bar" style="height: 58%"></div>
+                  <div class="dash-bar" style="height: 45%"></div>
+                  <div class="dash-bar" style="height: 40%"></div>
+                  <div class="dash-bar" style="height: 52%"></div>
+                  <div class="dash-bar" style="height: 68%"></div>
+                  <div class="dash-bar" style="height: 75%"></div>
+                  <div class="dash-bar" style="height: 82%"></div>
+                  <div class="dash-bar" style="height: 78%"></div>
+                  <div class="dash-bar" style="height: 65%"></div>
+                  <div class="dash-bar" style="height: 88%"></div>
+                </div>
+                <div class="dash-chart-labels">
+                  <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span>
+                </div>
+              </div>
+
+              <!-- Favourite products -->
+              <div class="dash-card">
+                <div class="dash-card__header">
+                  <span class="dash-card__title">Top Movers</span>
+                  <span class="dash-card__badge">+ Add Product</span>
+                </div>
+                <div style="margin-top: 10px;">
+                  <div class="dash-fav-row">
+                    <div class="dash-fav-dot" style="background: #008060;">OC</div>
+                    <span class="dash-fav-name">Organic Cotton Tee</span>
+                    <span class="dash-fav-price">$24.99</span>
+                    <span class="dash-fav-qty">142 units</span>
+                    <span class="dash-fav-change dash-fav-change--up">+8.2% ↑</span>
+                  </div>
+                  <div class="dash-fav-row">
+                    <div class="dash-fav-dot" style="background: #95BF47;">RH</div>
+                    <span class="dash-fav-name">Recycled Hoodie</span>
+                    <span class="dash-fav-price">$59.00</span>
+                    <span class="dash-fav-qty">7 units</span>
+                    <span class="dash-fav-change dash-fav-change--down">-24.1% ↓</span>
+                  </div>
+                  <div class="dash-fav-row">
+                    <div class="dash-fav-dot" style="background: #FFBD2E;">LP</div>
+                    <span class="dash-fav-name">Linen Pants</span>
+                    <span class="dash-fav-price">$42.00</span>
+                    <span class="dash-fav-qty">0 units</span>
+                    <span class="dash-fav-change dash-fav-change--down">-100% ↓</span>
+                  </div>
+                  <div class="dash-fav-row">
+                    <div class="dash-fav-dot" style="background: #5E8E3E;">CC</div>
+                    <span class="dash-fav-name">Canvas Cap</span>
+                    <span class="dash-fav-price">$18.00</span>
+                    <span class="dash-fav-qty">89 units</span>
+                    <span class="dash-fav-change dash-fav-change--up">+3.2% ↑</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right column -->
+            <div class="dash-grid__right">
+              <div class="dash-card">
+                <div class="dash-card__header">
+                  <span class="dash-card__title">Recent Activity</span>
+                  <span class="dash-card__badge">This Week</span>
+                </div>
+                <div class="dash-activity" style="margin-top: 10px;">
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--red"></span>
+                    <span class="dash-activity-name">Linen Pants</span>
+                    <span class="dash-activity-val">Out of stock</span>
+                    <span class="dash-activity-count">0</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--yellow"></span>
+                    <span class="dash-activity-name">Recycled Hoodie</span>
+                    <span class="dash-activity-val">Low stock</span>
+                    <span class="dash-activity-count">7</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--green"></span>
+                    <span class="dash-activity-name">PO #1042 sent</span>
+                    <span class="dash-activity-val">TextileCo</span>
+                    <span class="dash-activity-count">6</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--green"></span>
+                    <span class="dash-activity-name">Cotton Tee restock</span>
+                    <span class="dash-activity-val">+50 units</span>
+                    <span class="dash-activity-count">142</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--yellow"></span>
+                    <span class="dash-activity-name">Canvas Cap</span>
+                    <span class="dash-activity-val">Threshold hit</span>
+                    <span class="dash-activity-count">89</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--green"></span>
+                    <span class="dash-activity-name">Weekly report</span>
+                    <span class="dash-activity-val">Generated</span>
+                    <span class="dash-activity-count">1</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--green"></span>
+                    <span class="dash-activity-name">AI analysis</span>
+                    <span class="dash-activity-val">Complete</span>
+                    <span class="dash-activity-count">24</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--red"></span>
+                    <span class="dash-activity-name">Wool Scarf</span>
+                    <span class="dash-activity-val">Out of stock</span>
+                    <span class="dash-activity-count">0</span>
+                  </div>
+                  <div class="dash-activity-row">
+                    <span class="dash-activity-dot dash-activity-dot--green"></span>
+                    <span class="dash-activity-name">Supplier added</span>
+                    <span class="dash-activity-val">FabricHouse</span>
+                    <span class="dash-activity-count">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

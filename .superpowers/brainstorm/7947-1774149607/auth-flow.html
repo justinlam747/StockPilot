@@ -1,0 +1,139 @@
+<h2>Clerk + Shopify OAuth — Auth Flow & Data Model</h2>
+<p class="subtitle">How users move from sign-up to connected dashboard</p>
+
+<div class="section">
+  <h3>User Journey</h3>
+  <div class="mockup">
+    <div class="mockup-header">Authentication Flow</div>
+    <div class="mockup-body" style="padding: 24px; font-family: monospace; font-size: 13px; line-height: 2;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="background: #E1E3E5; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</span>
+          <span>User visits <code style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">app.stockpilot.com</code> → Marketing landing page</span>
+        </div>
+        <div style="border-left: 2px solid #C9CCCF; margin-left: 14px; height: 16px;"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="background: #E1E3E5; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</span>
+          <span>Clicks "Sign Up" → <strong>Clerk hosted sign-up</strong> (email+password or Google)</span>
+        </div>
+        <div style="border-left: 2px solid #C9CCCF; margin-left: 14px; height: 16px;"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="background: #E1E3E5; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</span>
+          <span>Email verified → Redirect to <code style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">/onboarding</code></span>
+        </div>
+        <div style="border-left: 2px solid #C9CCCF; margin-left: 14px; height: 16px;"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="background: #2C6ECB; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</span>
+          <span><strong>Onboarding wizard:</strong> Store name → Connect Shopify (OAuth) → Configure alerts</span>
+        </div>
+        <div style="border-left: 2px solid #C9CCCF; margin-left: 14px; height: 16px;"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="background: #E1E3E5; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">5</span>
+          <span>Shopify OAuth callback → Shop linked to User → Initial inventory sync</span>
+        </div>
+        <div style="border-left: 2px solid #C9CCCF; margin-left: 14px; height: 16px;"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="background: #1A1A1A; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">6</span>
+          <span>Redirect to <code style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">/dashboard</code> — fully connected</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Data Model Change</h3>
+  <div class="mockup">
+    <div class="mockup-header">New: Users table + Shop relationship</div>
+    <div class="mockup-body" style="padding: 24px; font-family: monospace; font-size: 13px;">
+      <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+        <!-- Users table -->
+        <div style="border: 1px solid #C9CCCF; border-radius: 8px; min-width: 260px; flex: 1;">
+          <div style="background: #F6F6F7; padding: 10px 14px; font-weight: bold; border-bottom: 1px solid #C9CCCF; border-radius: 8px 8px 0 0;">
+            <span style="color: #2C6ECB;">users</span> (NEW)
+          </div>
+          <div style="padding: 10px 14px; line-height: 1.8;">
+            <div><span style="color: #6D7175;">id</span> bigint PK</div>
+            <div><span style="color: #2C6ECB; font-weight: bold;">clerk_user_id</span> string UNIQUE</div>
+            <div><span style="color: #6D7175;">email</span> string</div>
+            <div><span style="color: #6D7175;">name</span> string</div>
+            <div><span style="color: #6D7175;">onboarding_completed_at</span> timestamp</div>
+            <div><span style="color: #6D7175;">created_at / updated_at</span></div>
+          </div>
+        </div>
+        <!-- Arrow -->
+        <div style="display: flex; align-items: center; font-size: 24px; color: #6D7175;">
+          1 → N
+        </div>
+        <!-- Shops table -->
+        <div style="border: 1px solid #C9CCCF; border-radius: 8px; min-width: 260px; flex: 1;">
+          <div style="background: #F6F6F7; padding: 10px 14px; font-weight: bold; border-bottom: 1px solid #C9CCCF; border-radius: 8px 8px 0 0;">
+            shops (MODIFIED)
+          </div>
+          <div style="padding: 10px 14px; line-height: 1.8;">
+            <div><span style="color: #6D7175;">id</span> bigint PK</div>
+            <div><span style="color: #2C6ECB; font-weight: bold;">user_id</span> bigint FK → users</div>
+            <div><span style="color: #6D7175;">shop_domain</span> string</div>
+            <div><span style="color: #6D7175;">access_token</span> encrypted</div>
+            <div><span style="color: #6D7175;">plan, settings, ...</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 20px; padding: 12px; background: #F6F6F7; border-radius: 6px; font-size: 12px; color: #6D7175;">
+        <strong>Key change:</strong> User owns Shop(s). Multi-tenancy stays on Shop — <code>acts_as_tenant :shop</code> unchanged. A User can connect multiple Shopify stores.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Auth Architecture</h3>
+  <div class="mockup">
+    <div class="mockup-header">Request Flow — Every Authenticated Request</div>
+    <div class="mockup-body" style="padding: 24px; font-family: monospace; font-size: 13px; line-height: 2;">
+      <div>Browser → <span style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">Clerk JS</span> adds session cookie automatically</div>
+      <div style="color: #6D7175;">↓</div>
+      <div>Rails → <span style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">clerk-sdk-ruby middleware</span> validates session</div>
+      <div style="color: #6D7175;">↓</div>
+      <div>ApplicationController → <span style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">current_user</span> from Clerk session</div>
+      <div style="color: #6D7175;">↓</div>
+      <div>ApplicationController → <span style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">current_shop</span> from user's active shop</div>
+      <div style="color: #6D7175;">↓</div>
+      <div>ActsAsTenant → scopes all queries to <span style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">current_shop</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>What Changes vs What Stays</h3>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 250px;">
+      <div class="pros">
+        <h4>New / Changed</h4>
+        <ul>
+          <li><code>clerk-sdk-ruby</code> gem + Clerk JS CDN</li>
+          <li>New <code>users</code> table + <code>User</code> model</li>
+          <li><code>shops.user_id</code> foreign key</li>
+          <li>Landing page → marketing + Clerk sign-in</li>
+          <li>Onboarding wizard (3 steps)</li>
+          <li><code>ApplicationController</code> auth rewrite</li>
+          <li>Replace OmniAuth Shopify init flow</li>
+        </ul>
+      </div>
+    </div>
+    <div style="flex: 1; min-width: 250px;">
+      <div class="cons">
+        <h4>Stays the Same</h4>
+        <ul>
+          <li><code>acts_as_tenant :shop</code> — all models</li>
+          <li>Shopify OAuth for store connection</li>
+          <li>All existing controllers/views/jobs</li>
+          <li>Sidekiq, Redis, Sentry config</li>
+          <li>HMAC webhook verification</li>
+          <li>Rack::Attack rate limiting</li>
+          <li>Security headers, CORS</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

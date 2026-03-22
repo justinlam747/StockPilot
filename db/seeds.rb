@@ -7,15 +7,24 @@ return if Rails.env.production?
 
 puts 'Seeding development data...'
 
-# Create a demo shop
-shop = Shop.find_or_create_by!(shop_domain: 'demo-store.myshopify.com') do |s|
-  s.access_token = 'shpat_demo_token_for_development'
-  s.settings = {
-    'low_stock_threshold' => 10,
-    'timezone' => 'America/Toronto',
-    'alert_email' => 'demo@example.com'
-  }
+user = User.find_or_create_by!(clerk_user_id: 'dev_user_001') do |u|
+  u.email = 'dev@stockpilot.com'
+  u.name = 'Dev User'
+  u.store_name = 'Demo Store'
+  u.store_category = 'apparel'
+  u.onboarding_step = 4
+  u.onboarding_completed_at = Time.current
 end
+
+# Find or update the existing demo shop to link to the user
+shop = Shop.find_by(shop_domain: 'demo-store.myshopify.com')
+if shop
+  shop.update!(user: user) unless shop.user_id
+else
+  shop = Shop.create!(shop_domain: 'demo-store.myshopify.com', access_token: 'dev-token', user: user)
+end
+
+user.update!(active_shop_id: shop.id) unless user.active_shop_id
 
 ActsAsTenant.with_tenant(shop) do
   # Suppliers

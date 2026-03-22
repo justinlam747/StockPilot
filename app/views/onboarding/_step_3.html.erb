@@ -1,0 +1,59 @@
+<div class="step-icon">
+  <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+  </svg>
+</div>
+<h1>When should we<br>give you a heads up?</h1>
+<p class="subtitle">We'll watch your stock and notify you before things run out. Customize per-product later.</p>
+
+<%= form_tag onboarding_step_path(step: 3), method: :post do %>
+  <div class="input-wrap">
+    <label>Low-stock threshold</label>
+    <div class="threshold-control">
+      <button type="button" class="threshold-btn" onclick="adjustThreshold(-5)">−</button>
+      <%= number_field_tag :threshold, 10, min: 1, max: 999, class: 'threshold-value', id: 'thresholdVal' %>
+      <button type="button" class="threshold-btn" onclick="adjustThreshold(5)">+</button>
+      <span class="threshold-label">units remaining</span>
+    </div>
+    <p class="threshold-hint">Most stores use 10–25 depending on how fast items sell</p>
+  </div>
+
+  <div class="input-wrap">
+    <label>How should we reach you?</label>
+    <div class="select-list">
+      <label class="select-row selected" data-channel="in_app">
+        <%= check_box_tag 'channels[]', 'in_app', true, class: 'sr-only' %>
+        <div class="row-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div class="row-text"><h3>In-app notifications</h3><p>See alerts on your dashboard</p></div>
+        <div class="row-check"></div>
+      </label>
+      <label class="select-row" data-channel="email">
+        <%= check_box_tag 'channels[]', 'email', false, class: 'sr-only' %>
+        <div class="row-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1.636 6.21v12.152c0 .904.733 1.638 1.636 1.638h1.637V8.486L12 13.714l7.09-5.228V20h1.637c.904 0 1.637-.734 1.637-1.636V6.21c0-1.125-1.283-1.77-2.185-1.098L12 11.077 3.821 5.113C2.92 4.44 1.636 5.086 1.636 6.21z" fill="#EA4335"/><path d="M1.636 6.21v12.152c0 .904.733 1.638 1.636 1.638h1.637V8.486L12 13.714" fill="#4285F4"/><path d="M12 13.714l7.09-5.228V20h1.637c.904 0 1.637-.734 1.637-1.636V6.21c0-1.125-1.283-1.77-2.185-1.098L12 13.714" fill="#34A853"/><path d="M1.636 6.21c0-1.125 1.284-1.77 2.185-1.098L12 11.077" fill="#FBBC05"/><path d="M12 11.077l8.179-5.964c.902-.672 2.185-.027 2.185 1.098" fill="#EA4335"/></svg>
+        </div>
+        <div class="row-text"><h3>Email digests</h3><p>Daily summary of low-stock items</p></div>
+        <div class="row-check"></div>
+      </label>
+      <div class="select-row disabled">
+        <div class="row-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5.042 15.165a2.528 2.528 0 01-2.52 2.523A2.528 2.528 0 010 15.165a2.527 2.527 0 012.522-2.52h2.52v2.52zm1.268 0a2.527 2.527 0 012.521-2.52 2.527 2.527 0 012.521 2.52v6.313A2.528 2.528 0 018.831 24a2.528 2.528 0 01-2.52-2.522v-6.313z" fill="#E01E5A"/><path d="M8.831 5.042a2.528 2.528 0 01-2.52-2.52A2.528 2.528 0 018.83 0a2.528 2.528 0 012.521 2.522v2.52H8.831zm0 1.268a2.528 2.528 0 012.521 2.521 2.527 2.527 0 01-2.52 2.521H2.522A2.528 2.528 0 010 8.831a2.528 2.528 0 012.522-2.52h6.309z" fill="#36C5F0"/><path d="M18.958 8.831a2.528 2.528 0 012.522-2.52A2.528 2.528 0 0124 8.831a2.528 2.528 0 01-2.52 2.521h-2.522V8.831zm-1.268 0a2.528 2.528 0 01-2.52 2.521 2.527 2.527 0 01-2.522-2.52V2.522A2.527 2.527 0 0115.17 0a2.528 2.528 0 012.52 2.522v6.309z" fill="#2EB67D"/><path d="M15.17 18.958a2.527 2.527 0 012.52 2.522A2.528 2.528 0 0115.17 24a2.527 2.527 0 01-2.522-2.52v-2.522h2.521zm0-1.268a2.527 2.527 0 01-2.522-2.52 2.528 2.528 0 012.521-2.522h6.313A2.527 2.527 0 0124 15.17a2.528 2.528 0 01-2.52 2.52H15.17z" fill="#ECB22E"/></svg>
+        </div>
+        <div class="row-text"><h3>Slack <span class="badge-soon">Coming soon</span></h3><p>Get pinged in your team channel</p></div>
+        <div class="row-check"></div>
+      </div>
+    </div>
+  </div>
+
+  <%= submit_tag 'Start using StockPilot', class: 'btn btn-primary' %>
+<% end %>
+
+<script>
+function adjustThreshold(delta) {
+  const input = document.getElementById('thresholdVal');
+  let val = parseInt(input.value) || 10;
+  input.value = Math.max(1, Math.min(999, val + delta));
+}
+</script>
