@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_22_045238) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -121,7 +121,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_045238) do
     t.datetime "updated_at", null: false
     t.datetime "last_agent_run_at"
     t.jsonb "last_agent_results", default: {}
-    t.bigint "user_id"
+    t.bigint "user_id", null: false
     t.index ["shop_domain"], name: "index_shops_on_shop_domain", unique: true
     t.index ["user_id", "shop_domain"], name: "index_shops_on_user_id_and_shop_domain", unique: true
     t.index ["user_id"], name: "index_shops_on_user_id"
