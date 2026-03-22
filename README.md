@@ -2,7 +2,6 @@
 
 An embedded Shopify app that gives merchants real-time inventory intelligence — low-stock alerts, automated purchase order drafts, supplier management, and weekly inventory reports with AI-powered insights.
 
-![Landing](landing-v3.png)
 
 ## Tech Stack
 
