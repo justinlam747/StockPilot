@@ -237,12 +237,20 @@
 
 </div>
 
-<button class="demo-toggle" id="demo-toggle" aria-label="Toggle demo data" title="Toggle demo data">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="4"/><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/>
-  </svg>
-  <span class="demo-toggle__label">Demo</span>
-</button>
+<form action="/dashboard/toggle_demo" method="post" style="display:inline">
+  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+  <button type="submit"
+    class="bento__demo-toggle <%= 'is-active' if demo_mode? %>"
+    id="demo-toggle"
+    title="<%= demo_mode? ? 'Exit demo mode' : 'Enter demo mode' %>"
+    aria-label="<%= demo_mode? ? 'Exit demo mode' : 'Enter demo mode' %>">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <%= demo_mode? ? 'Demo On' : 'Demo' %>
+  </button>
+</form>
 
 <%= javascript_include_tag "demo-toggle" %>
 <%= javascript_include_tag "agent-provider" %>
