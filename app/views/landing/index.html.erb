@@ -1,19 +1,20 @@
-<% content_for :landing_scripts do %>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollToPlugin.min.js"></script>
-  <%= javascript_include_tag "landing" %>
-<% end %>
-
 <a href="#lp-main" class="sr-only">Skip to main content</a>
 
 <!-- Sticky nav -->
 <nav class="lp-nav" aria-label="StockPilot navigation">
   <div class="lp-nav__inner">
-    <a href="/" class="lp-nav__brand" aria-label="StockPilot home">StockPilot</a>
+    <a href="/" class="lp-nav__brand" aria-label="StockPilot home">
+      <svg class="lp-nav__logo" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      StockPilot
+    </a>
     <div class="lp-nav__links">
+      <a href="#features" class="lp-nav__link">Features</a>
+      <a href="#how-it-works" class="lp-nav__link">How it works</a>
       <a href="/vision" class="lp-nav__link">Vision</a>
-      <a href="/install" class="lp-btn" aria-label="Get started with StockPilot">Get Started</a>
+      <a href="/install" class="lp-btn lp-btn--primary" aria-label="Install StockPilot on Shopify">
+        <svg width="16" height="16" viewBox="0 0 109.5 124.5" fill="currentColor" aria-hidden="true"><path d="M74.7,14.8c0,0-1.4,0.4-3.7,1.1c-0.4-1.3-1-2.8-1.8-4.4c-2.6-5-6.5-7.7-11.1-7.7c0,0,0,0,0,0 c-0.3,0-0.6,0-1,0.1c-0.1-0.2-0.3-0.3-0.4-0.5c-2-2.2-4.6-3.2-7.7-3.2c-6,0.2-12,4.5-16.8,12.2c-3.4,5.4-6,12.2-6.7,17.5 c-6.9,2.1-11.7,3.6-11.8,3.7c-3.5,1.1-3.6,1.2-4,4.5C9.4,40.7,0,111.2,0,111.2l75.6,13.1V14.6C75.2,14.7,74.9,14.7,74.7,14.8z M57.2,20.2c-4,1.2-8.4,2.6-12.7,3.9c1.2-4.7,3.6-9.4,6.4-12.5c1.1-1.1,2.6-2.4,4.3-3.2C57,12.2,57.3,17,57.2,20.2z M49.1,4.3 c1.4,0,2.6,0.3,3.6,0.9c-1.6,0.8-3.2,2.1-4.7,3.7c-3.8,4.1-6.7,10.5-7.9,16.6c-3.6,1.1-7.2,2.2-10.5,3.2 C31.7,19.1,39.9,4.6,49.1,4.3z M37.4,59.3c0.4,6.4,17.3,7.8,18.3,22.9c0.7,11.9-6.3,20-16.4,20.6c-12.2,0.8-18.9-6.4-18.9-6.4 l2.6-11c0,0,6.7,5.1,12.1,4.7c3.5-0.2,4.8-3.1,4.7-5.1c-0.5-8.4-14.3-7.9-15.2-21.7C23.8,51.8,31.4,40.1,48.4,39 c6.6-0.4,9.9,1.3,9.9,1.3l-3.7,13.7c0,0-4.3-2-9.4-1.6C38.4,52.8,37.3,56.3,37.4,59.3z M61.2,19c0-2.9-0.4-7-1.8-10.5 c4.5,0.9,6.7,5.9,7.7,8.9C65.2,18,63.1,18.6,61.2,19z"/><path d="M78.1,123.9l31.4-7.8c0,0-13.5-91.3-13.6-91.9c-0.1-0.6-0.6-1-1.1-1c-0.5,0-9.3-0.2-9.3-0.2s-5.4-5.2-7.4-7.2 V123.9z"/></svg>
+        Install on Shopify
+      </a>
     </div>
   </div>
 </nav>
@@ -21,23 +22,98 @@
 <!-- Hero -->
 <main id="lp-main">
   <section class="lp-hero">
-    <h1 class="lp-hero__headline">Inventory intelligence for modern merchants</h1>
-    <p class="lp-hero__subtitle">AI agents that watch your stock so you don't have to.</p>
-    <div class="lp-hero__media" aria-hidden="true"></div>
+    <div class="lp-hero__badge">AI-powered inventory management for Shopify</div>
+    <h1 class="lp-hero__headline">Never lose a sale to<br>an empty shelf</h1>
+    <p class="lp-hero__subtitle">StockPilot watches every SKU in your store 24/7. When stock runs low, it fires alerts, drafts purchase orders, and sends you a weekly intelligence report — so you restock before customers notice.</p>
+    <div id="clerk-auth-buttons" style="display: flex; gap: 12px; margin-top: 24px;">
+      <button onclick="window.Clerk && Clerk.openSignUp()" class="btn btn-primary" style="padding: 14px 32px; background: #22c55e; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer;">
+        Get Started Free
+      </button>
+      <button onclick="window.Clerk && Clerk.openSignIn()" class="btn btn-secondary" style="padding: 14px 32px; background: #fff; color: #1A1A1A; border: 1.5px solid #E1E3E5; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer;">
+        Log In
+      </button>
+    </div>
+    <script>
+      window.addEventListener('load', async () => {
+        if (window.Clerk) {
+          await Clerk.load();
+          if (Clerk.user) { window.location = '/dashboard'; }
+        }
+      });
+    </script>
   </section>
 
-  <!-- Bento grid -->
-  <section class="lp-grid-section" aria-label="Features">
+  <!-- Trust strip -->
+  <section class="lp-trust" aria-label="Trusted by">
+    <div class="lp-trust__inner">
+      <span class="lp-trust__label">Built for</span>
+      <div class="lp-trust__logo">
+        <img src="/images/logos/shopify.svg" alt="Shopify" height="28">
+      </div>
+      <span class="lp-trust__divider"></span>
+      <span class="lp-trust__label">Powered by</span>
+      <div class="lp-trust__providers">
+        <div class="lp-trust__provider">
+          <img src="/images/logos/claude.svg" alt="Claude" width="20" height="20">
+          <span>Claude</span>
+        </div>
+        <div class="lp-trust__provider">
+          <img src="/images/logos/openai.svg" alt="OpenAI" width="20" height="20">
+          <span>OpenAI</span>
+        </div>
+        <div class="lp-trust__provider">
+          <img src="/images/logos/gemini.svg" alt="Gemini" width="20" height="20">
+          <span>Gemini</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem → Solution -->
+  <section class="lp-problems" aria-label="Problems we solve">
+    <div class="lp-problems__inner">
+      <div class="lp-problems__card">
+        <div class="lp-problems__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D72C0D" stroke-width="1.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3 class="lp-problems__title">Stockouts cost you sales</h3>
+        <p class="lp-problems__desc">Every hour a product shows "sold out" is revenue lost forever. StockPilot monitors every variant and fires alerts the moment stock drops below your threshold — before customers ever see an empty shelf.</p>
+      </div>
+      <div class="lp-problems__card">
+        <div class="lp-problems__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B98900" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3 class="lp-problems__title">Manual reorders waste hours</h3>
+        <p class="lp-problems__desc">Checking spreadsheets, emailing suppliers, guessing quantities — it's tedious and error-prone. StockPilot's AI agent analyzes your stock levels and drafts purchase orders automatically, ready for you to review and send.</p>
+      </div>
+      <div class="lp-problems__card">
+        <div class="lp-problems__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2C6ECB" stroke-width="1.5" stroke-linecap="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        </div>
+        <h3 class="lp-problems__title">No visibility into trends</h3>
+        <p class="lp-problems__desc">You can't manage what you can't see. StockPilot tracks 14-day stock history, identifies selling patterns, and delivers a weekly intelligence report every Monday — top sellers, stockout events, and reorder suggestions in one email.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features bento grid -->
+  <section class="lp-features" id="features" aria-label="Features">
+    <div class="lp-features__header">
+      <span class="lp-section-label">Features</span>
+      <h2 class="lp-section-title">Everything you need to keep shelves stocked</h2>
+      <p class="lp-section-subtitle">Six tools that work together to give you complete inventory intelligence — from real-time alerts to AI-generated purchase orders.</p>
+    </div>
+
     <div class="lp-grid">
 
-      <!-- 1. Low Stock Alerts (Wide) — Big Sur: blue → purple → coral -->
-      <div class="lp-grid__cell lp-grid__cell--wide">
+      <!-- 1. Low Stock Alerts (Wide) -->
+      <div class="lp-grid__cell">
         <div class="lp-wallpaper lp-wallpaper--bigsur-1" aria-hidden="true">
-          <svg class="lp-wallpaper__svg" viewBox="0 0 800 320" preserveAspectRatio="none">
-            <path d="M0,180 C130,140 260,220 400,170 C540,120 670,200 800,160 L800,320 L0,320 Z" fill="rgba(168,85,247,0.5)"/>
-            <path d="M0,210 C160,175 280,240 440,195 C600,150 720,225 800,195 L800,320 L0,320 Z" fill="rgba(129,140,248,0.45)"/>
-            <path d="M0,245 C140,220 300,265 460,235 C620,205 740,255 800,240 L800,320 L0,320 Z" fill="rgba(99,102,241,0.4)"/>
-            <path d="M0,270 C180,255 340,285 500,265 C660,245 760,275 800,268 L800,320 L0,320 Z" fill="rgba(67,56,202,0.35)"/>
+          <svg class="lp-wallpaper__svg" viewBox="0 0 800 400" preserveAspectRatio="none">
+            <path d="M0,220 C130,180 260,260 400,210 C540,160 670,240 800,200 L800,400 L0,400 Z" fill="rgba(168,85,247,0.5)"/>
+            <path d="M0,255 C160,220 280,285 440,240 C600,195 720,270 800,240 L800,400 L0,400 Z" fill="rgba(129,140,248,0.45)"/>
+            <path d="M0,290 C140,265 300,310 460,280 C620,250 740,300 800,285 L800,400 L0,400 Z" fill="rgba(99,102,241,0.4)"/>
+            <path d="M0,320 C180,305 340,335 500,315 C660,295 760,325 800,318 L800,400 L0,400 Z" fill="rgba(67,56,202,0.35)"/>
           </svg>
         </div>
         <div class="lp-window">
@@ -47,50 +123,23 @@
             <span class="lp-window__dot lp-window__dot--green"></span>
             <span class="lp-window__title">Low Stock Alerts</span>
           </div>
-          <div class="lp-window__content">
-            <div class="lp-mock-header">
-              <span class="lp-mock-title">Alerts</span>
-              <span class="lp-mock-count">12 alerts</span>
-            </div>
-            <div class="lp-mock-filters">
-              <span class="lp-mock-filter is-active">All</span>
-              <span class="lp-mock-filter"><span class="lp-mock-dot lp-mock-dot--red"></span>Critical</span>
-              <span class="lp-mock-filter"><span class="lp-mock-dot lp-mock-dot--orange"></span>Warning</span>
-            </div>
-            <div class="lp-mock-group-label">Today</div>
-            <div class="lp-mock-alert-row">
-              <span class="lp-mock-dot lp-mock-dot--red"></span>
-              <div class="lp-mock-alert-body">
-                <span class="lp-mock-alert-msg">Organic Cotton Tee — White / M is critically low (2 remaining)</span>
-                <span class="lp-mock-alert-time">12 min ago</span>
-              </div>
-            </div>
-            <div class="lp-mock-alert-row">
-              <span class="lp-mock-dot lp-mock-dot--orange"></span>
-              <div class="lp-mock-alert-body">
-                <span class="lp-mock-alert-msg">Recycled Hoodie — Navy / L dropped below threshold (7 left)</span>
-                <span class="lp-mock-alert-time">1 hr ago</span>
-              </div>
-            </div>
-            <div class="lp-mock-alert-row">
-              <span class="lp-mock-dot lp-mock-dot--red"></span>
-              <div class="lp-mock-alert-body">
-                <span class="lp-mock-alert-msg">Linen Pants — Sand / 32 out of stock</span>
-                <span class="lp-mock-alert-time">3 hrs ago</span>
-              </div>
-            </div>
+          <div class="lp-window__body">
+            <img src="/images/screenshots/alerts.png" alt="Real-time low stock alert dashboard showing critical and warning alerts with dismiss controls" class="lp-window__screenshot" loading="lazy">
           </div>
         </div>
-        <span class="lp-grid__label">Low stock alerts</span>
+        <div class="lp-grid__info">
+          <h3 class="lp-grid__heading">Low stock alerts</h3>
+          <p class="lp-grid__desc">Instant notifications when any variant drops below its reorder threshold. Filter by severity, dismiss when handled.</p>
+        </div>
       </div>
 
-      <!-- 2. AI Purchase Orders (Narrow) — Sonoma: teal → emerald → lime -->
-      <div class="lp-grid__cell lp-grid__cell--narrow">
+      <!-- 2. AI Purchase Orders (Narrow) -->
+      <div class="lp-grid__cell">
         <div class="lp-wallpaper lp-wallpaper--sonoma-1" aria-hidden="true">
-          <svg class="lp-wallpaper__svg" viewBox="0 0 400 320" preserveAspectRatio="none">
-            <path d="M0,160 C60,130 140,180 220,145 C300,110 360,155 400,135 L400,320 L0,320 Z" fill="rgba(52,211,153,0.35)"/>
-            <path d="M0,200 C80,175 180,215 280,185 C360,160 400,190 400,180 L400,320 L0,320 Z" fill="rgba(16,185,129,0.3)"/>
-            <path d="M0,240 C100,225 200,250 300,235 C370,222 400,240 400,238 L400,320 L0,320 Z" fill="rgba(5,150,105,0.25)"/>
+          <svg class="lp-wallpaper__svg" viewBox="0 0 400 400" preserveAspectRatio="none">
+            <path d="M0,200 C60,170 140,220 220,185 C300,150 360,195 400,175 L400,400 L0,400 Z" fill="rgba(52,211,153,0.35)"/>
+            <path d="M0,245 C80,220 180,260 280,230 C360,205 400,235 400,225 L400,400 L0,400 Z" fill="rgba(16,185,129,0.3)"/>
+            <path d="M0,285 C100,270 200,295 300,280 C370,267 400,285 400,283 L400,400 L0,400 Z" fill="rgba(5,150,105,0.25)"/>
           </svg>
         </div>
         <div class="lp-window lp-window--sm">
@@ -100,35 +149,23 @@
             <span class="lp-window__dot lp-window__dot--green"></span>
             <span class="lp-window__title">Purchase Orders</span>
           </div>
-          <div class="lp-window__content">
-            <div class="lp-mock-po-btn">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              Generate Draft PO
-            </div>
-            <div class="lp-mock-po-card">
-              <div class="lp-mock-po-top">
-                <span class="lp-mock-po-num">#1042</span>
-                <span class="lp-mock-badge lp-mock-badge--neutral">Draft</span>
-              </div>
-              <div class="lp-mock-po-supplier">TextileCo International</div>
-              <div class="lp-mock-po-details">
-                <div><span class="lp-mock-po-label">Items</span><span class="lp-mock-po-val">6</span></div>
-                <div><span class="lp-mock-po-label">Value</span><span class="lp-mock-po-val">$2,340.00</span></div>
-              </div>
-              <div class="lp-mock-po-date">Ordered Mar 21, 2026</div>
-            </div>
+          <div class="lp-window__body">
+            <img src="/images/screenshots/purchase-orders.png" alt="AI-generated purchase order with supplier, items, and value details" class="lp-window__screenshot" loading="lazy">
           </div>
         </div>
-        <span class="lp-grid__label">AI purchase orders</span>
+        <div class="lp-grid__info">
+          <h3 class="lp-grid__heading">AI purchase orders</h3>
+          <p class="lp-grid__desc">One click generates a draft PO matched to the right supplier.</p>
+        </div>
       </div>
 
-      <!-- 3. Supplier Hub (Narrow) — Big Sur: indigo → violet → pink -->
-      <div class="lp-grid__cell lp-grid__cell--narrow">
+      <!-- 3. Supplier Hub (Narrow) -->
+      <div class="lp-grid__cell">
         <div class="lp-wallpaper lp-wallpaper--bigsur-2" aria-hidden="true">
-          <svg class="lp-wallpaper__svg" viewBox="0 0 400 320" preserveAspectRatio="none">
-            <path d="M0,170 C70,140 150,190 230,155 C310,120 370,165 400,145 L400,320 L0,320 Z" fill="rgba(192,132,252,0.45)"/>
-            <path d="M0,205 C90,180 170,220 270,190 C350,165 400,195 400,188 L400,320 L0,320 Z" fill="rgba(168,85,247,0.4)"/>
-            <path d="M0,240 C80,225 200,255 300,238 C370,225 400,242 400,240 L400,320 L0,320 Z" fill="rgba(139,92,246,0.35)"/>
+          <svg class="lp-wallpaper__svg" viewBox="0 0 400 400" preserveAspectRatio="none">
+            <path d="M0,210 C70,180 150,230 230,195 C310,160 370,205 400,185 L400,400 L0,400 Z" fill="rgba(192,132,252,0.45)"/>
+            <path d="M0,250 C90,225 170,265 270,235 C350,210 400,240 400,233 L400,400 L0,400 Z" fill="rgba(168,85,247,0.4)"/>
+            <path d="M0,285 C80,270 200,300 300,283 C370,270 400,287 400,285 L400,400 L0,400 Z" fill="rgba(139,92,246,0.35)"/>
           </svg>
         </div>
         <div class="lp-window lp-window--sm">
@@ -138,39 +175,23 @@
             <span class="lp-window__dot lp-window__dot--green"></span>
             <span class="lp-window__title">Suppliers</span>
           </div>
-          <div class="lp-window__content">
-            <div class="lp-mock-supplier">
-              <div class="lp-mock-supplier-top">
-                <div class="lp-mock-avatar">TC</div>
-                <div class="lp-mock-supplier-info">
-                  <span class="lp-mock-supplier-name">TextileCo International</span>
-                  <span class="lp-mock-supplier-email">orders@textileco.com</span>
-                </div>
-              </div>
-              <div class="lp-mock-supplier-details">
-                <span>14 days lead time</span>
-                <span>8 linked variants</span>
-              </div>
-              <div class="lp-mock-stars">
-                <span class="lp-mock-star filled">&#9733;</span>
-                <span class="lp-mock-star filled">&#9733;</span>
-                <span class="lp-mock-star filled">&#9733;</span>
-                <span class="lp-mock-star filled">&#9733;</span>
-                <span class="lp-mock-star">&#9733;</span>
-              </div>
-            </div>
+          <div class="lp-window__body">
+            <img src="/images/screenshots/suppliers.png" alt="Supplier management with contact details, lead times, and star ratings" class="lp-window__screenshot" loading="lazy">
           </div>
         </div>
-        <span class="lp-grid__label">Supplier hub</span>
+        <div class="lp-grid__info">
+          <h3 class="lp-grid__heading">Supplier hub</h3>
+          <p class="lp-grid__desc">Track lead times, contacts, and rate supplier performance.</p>
+        </div>
       </div>
 
-      <!-- 4. Inventory Trends (Wide) — Sonoma: amber → orange → warm gold -->
-      <div class="lp-grid__cell lp-grid__cell--wide">
+      <!-- 4. Inventory Trends (Wide) -->
+      <div class="lp-grid__cell">
         <div class="lp-wallpaper lp-wallpaper--sonoma-2" aria-hidden="true">
-          <svg class="lp-wallpaper__svg" viewBox="0 0 800 320" preserveAspectRatio="none">
-            <path d="M0,175 C120,145 260,200 400,165 C540,130 680,190 800,158 L800,320 L0,320 Z" fill="rgba(251,191,36,0.35)"/>
-            <path d="M0,210 C150,185 300,235 450,200 C600,165 720,215 800,198 L800,320 L0,320 Z" fill="rgba(245,158,11,0.3)"/>
-            <path d="M0,248 C140,235 320,260 480,243 C640,226 750,255 800,248 L800,320 L0,320 Z" fill="rgba(217,119,6,0.25)"/>
+          <svg class="lp-wallpaper__svg" viewBox="0 0 800 400" preserveAspectRatio="none">
+            <path d="M0,215 C120,185 260,240 400,205 C540,170 680,230 800,198 L800,400 L0,400 Z" fill="rgba(251,191,36,0.35)"/>
+            <path d="M0,255 C150,230 300,280 450,245 C600,210 720,260 800,243 L800,400 L0,400 Z" fill="rgba(245,158,11,0.3)"/>
+            <path d="M0,293 C140,280 320,305 480,288 C640,271 750,300 800,293 L800,400 L0,400 Z" fill="rgba(217,119,6,0.25)"/>
           </svg>
         </div>
         <div class="lp-window">
@@ -180,40 +201,24 @@
             <span class="lp-window__dot lp-window__dot--green"></span>
             <span class="lp-window__title">Inventory Trends</span>
           </div>
-          <div class="lp-window__content">
-            <div class="lp-mock-chart-header">Stock History (14 days)</div>
-            <div class="lp-mock-chart">
-              <div class="lp-mock-bar" style="height: 65%"><span>42</span></div>
-              <div class="lp-mock-bar" style="height: 60%"><span>38</span></div>
-              <div class="lp-mock-bar" style="height: 72%"><span>46</span></div>
-              <div class="lp-mock-bar" style="height: 55%"><span>35</span></div>
-              <div class="lp-mock-bar" style="height: 48%"><span>30</span></div>
-              <div class="lp-mock-bar" style="height: 40%"><span>25</span></div>
-              <div class="lp-mock-bar" style="height: 35%"><span>22</span></div>
-              <div class="lp-mock-bar" style="height: 58%"><span>37</span></div>
-              <div class="lp-mock-bar" style="height: 70%"><span>45</span></div>
-              <div class="lp-mock-bar" style="height: 80%"><span>51</span></div>
-              <div class="lp-mock-bar" style="height: 75%"><span>48</span></div>
-              <div class="lp-mock-bar" style="height: 68%"><span>43</span></div>
-              <div class="lp-mock-bar" style="height: 50%"><span>32</span></div>
-              <div class="lp-mock-bar" style="height: 45%"><span>28</span></div>
-            </div>
-            <div class="lp-mock-chart-labels">
-              <span>08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
-            </div>
+          <div class="lp-window__body">
+            <img src="/images/screenshots/inventory-detail.png" alt="14-day stock history chart with variant-level breakdown and supplier info" class="lp-window__screenshot" loading="lazy">
           </div>
         </div>
-        <span class="lp-grid__label">Inventory trends</span>
+        <div class="lp-grid__info">
+          <h3 class="lp-grid__heading">Inventory trends</h3>
+          <p class="lp-grid__desc">14-day stock charts for every product. Spot patterns, predict restocks, prevent stockouts before they happen.</p>
+        </div>
       </div>
 
-      <!-- 5. Weekly Reports (Wide) — Big Sur: slate → steel → silver -->
-      <div class="lp-grid__cell lp-grid__cell--wide">
+      <!-- 5. Weekly Reports (Wide) -->
+      <div class="lp-grid__cell">
         <div class="lp-wallpaper lp-wallpaper--bigsur-3" aria-hidden="true">
-          <svg class="lp-wallpaper__svg" viewBox="0 0 800 320" preserveAspectRatio="none">
-            <path d="M0,185 C140,150 270,210 410,175 C550,140 680,195 800,165 L800,320 L0,320 Z" fill="rgba(148,163,184,0.4)"/>
-            <path d="M0,215 C160,190 310,240 460,208 C610,176 730,225 800,205 L800,320 L0,320 Z" fill="rgba(100,116,139,0.35)"/>
-            <path d="M0,250 C130,238 290,262 450,245 C610,228 740,255 800,248 L800,320 L0,320 Z" fill="rgba(71,85,105,0.3)"/>
-            <path d="M0,275 C170,265 340,282 500,272 C660,262 760,278 800,274 L800,320 L0,320 Z" fill="rgba(51,65,85,0.25)"/>
+          <svg class="lp-wallpaper__svg" viewBox="0 0 800 400" preserveAspectRatio="none">
+            <path d="M0,225 C140,190 270,250 410,215 C550,180 680,235 800,205 L800,400 L0,400 Z" fill="rgba(148,163,184,0.4)"/>
+            <path d="M0,260 C160,235 310,285 460,253 C610,221 730,270 800,250 L800,400 L0,400 Z" fill="rgba(100,116,139,0.35)"/>
+            <path d="M0,295 C130,283 290,307 450,290 C610,273 740,300 800,293 L800,400 L0,400 Z" fill="rgba(71,85,105,0.3)"/>
+            <path d="M0,325 C170,315 340,332 500,322 C660,312 760,328 800,324 L800,400 L0,400 Z" fill="rgba(51,65,85,0.25)"/>
           </svg>
         </div>
         <div class="lp-window">
@@ -221,36 +226,25 @@
             <span class="lp-window__dot lp-window__dot--red"></span>
             <span class="lp-window__dot lp-window__dot--yellow"></span>
             <span class="lp-window__dot lp-window__dot--green"></span>
-            <span class="lp-window__title">Weekly Report</span>
+            <span class="lp-window__title">Dashboard</span>
           </div>
-          <div class="lp-window__content">
-            <div class="lp-mock-report-title">Weekly Inventory Report</div>
-            <div class="lp-mock-report-meta">my-store.myshopify.com &mdash; Week of March 21, 2026</div>
-            <div class="lp-mock-report-section">Top Sellers</div>
-            <table class="lp-mock-table">
-              <thead><tr><th>SKU</th><th>Product</th><th>Sold</th></tr></thead>
-              <tbody>
-                <tr><td>OCT-WHT-M</td><td>Organic Cotton Tee</td><td>142</td></tr>
-                <tr><td>RH-NVY-L</td><td>Recycled Hoodie</td><td>89</td></tr>
-                <tr><td>LP-SND-32</td><td>Linen Pants</td><td>67</td></tr>
-              </tbody>
-            </table>
-            <div class="lp-mock-report-stats">
-              <span>Stockout Events: <strong>3</strong></span>
-              <span>Low Stock SKUs: <strong>8</strong></span>
-            </div>
+          <div class="lp-window__body">
+            <img src="/images/screenshots/dashboard.png" alt="Full dashboard with KPIs, alerts, AI agent, and weekly report overview" class="lp-window__screenshot" loading="lazy">
           </div>
         </div>
-        <span class="lp-grid__label">Weekly reports</span>
+        <div class="lp-grid__info">
+          <h3 class="lp-grid__heading">Weekly reports</h3>
+          <p class="lp-grid__desc">Every Monday at 8 AM: top sellers, stockout events, low stock counts, and AI-generated reorder suggestions — straight to your inbox.</p>
+        </div>
       </div>
 
-      <!-- 6. Smart Reorder (Narrow) — Sonoma: rose → magenta → plum -->
-      <div class="lp-grid__cell lp-grid__cell--narrow">
+      <!-- 6. Smart Reorder (Narrow) -->
+      <div class="lp-grid__cell">
         <div class="lp-wallpaper lp-wallpaper--sonoma-3" aria-hidden="true">
-          <svg class="lp-wallpaper__svg" viewBox="0 0 400 320" preserveAspectRatio="none">
-            <path d="M0,165 C65,135 145,185 225,150 C305,115 365,160 400,140 L400,320 L0,320 Z" fill="rgba(244,114,182,0.35)"/>
-            <path d="M0,205 C85,180 175,218 275,190 C355,167 400,195 400,188 L400,320 L0,320 Z" fill="rgba(236,72,153,0.3)"/>
-            <path d="M0,242 C90,228 200,252 300,240 C370,230 400,245 400,242 L400,320 L0,320 Z" fill="rgba(219,39,119,0.25)"/>
+          <svg class="lp-wallpaper__svg" viewBox="0 0 400 400" preserveAspectRatio="none">
+            <path d="M0,205 C65,175 145,225 225,190 C305,155 365,200 400,180 L400,400 L0,400 Z" fill="rgba(244,114,182,0.35)"/>
+            <path d="M0,250 C85,225 175,263 275,235 C355,212 400,240 400,233 L400,400 L0,400 Z" fill="rgba(236,72,153,0.3)"/>
+            <path d="M0,287 C90,273 200,297 300,285 C370,275 400,290 400,287 L400,400 L0,400 Z" fill="rgba(219,39,119,0.25)"/>
           </svg>
         </div>
         <div class="lp-window lp-window--sm">
@@ -260,36 +254,96 @@
             <span class="lp-window__dot lp-window__dot--green"></span>
             <span class="lp-window__title">Inventory Agent</span>
           </div>
-          <div class="lp-window__content">
-            <div class="lp-mock-agent-title">Inventory Agent</div>
-            <div class="lp-mock-agent-desc">Scans every SKU for low-stock risks and drafts purchase orders.</div>
-            <div class="lp-mock-agent-features">
-              <div class="lp-mock-agent-feat">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Low-stock detection
-              </div>
-              <div class="lp-mock-agent-feat">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Reorder recommendations
-              </div>
-              <div class="lp-mock-agent-feat">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Auto-draft purchase orders
-              </div>
-            </div>
-            <div class="lp-mock-agent-btn">Run Analysis</div>
+          <div class="lp-window__body">
+            <img src="/images/screenshots/agent-tile.png" alt="AI inventory agent with low-stock detection, reorder recommendations, and auto-draft capabilities" class="lp-window__screenshot" loading="lazy">
           </div>
         </div>
-        <span class="lp-grid__label">Smart reorder</span>
+        <div class="lp-grid__info">
+          <h3 class="lp-grid__heading">Smart reorder</h3>
+          <p class="lp-grid__desc">AI scans every SKU, flags risks, and drafts POs automatically.</p>
+        </div>
       </div>
 
     </div>
   </section>
 
-  <!-- Statement CTA -->
-  <section class="lp-statement">
-    <h2 class="lp-statement__text">Inventory on autopilot.</h2>
-    <a href="/install" class="lp-btn" aria-label="Get started with StockPilot">Get Started</a>
+  <!-- How it works -->
+  <section class="lp-steps" id="how-it-works" aria-label="How it works">
+    <div class="lp-steps__inner">
+      <span class="lp-section-label">How it works</span>
+      <h2 class="lp-section-title">Up and running in 3 minutes</h2>
+
+      <div class="lp-steps__grid">
+        <div class="lp-step">
+          <div class="lp-step__num">1</div>
+          <h3 class="lp-step__title">Install the app</h3>
+          <p class="lp-step__desc">One-click install from the Shopify App Store. No code changes, no developer needed. StockPilot connects to your store securely via Shopify's OAuth flow.</p>
+        </div>
+        <div class="lp-step__arrow" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9CCCF" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="lp-step">
+          <div class="lp-step__num">2</div>
+          <h3 class="lp-step__title">Sync your inventory</h3>
+          <p class="lp-step__desc">StockPilot pulls your products, variants, and stock levels automatically. Updates every 4 hours plus instant webhook updates when products change.</p>
+        </div>
+        <div class="lp-step__arrow" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9CCCF" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="lp-step">
+          <div class="lp-step__num">3</div>
+          <h3 class="lp-step__title">Relax &mdash; we've got it</h3>
+          <p class="lp-step__desc">Alerts fire when stock runs low. AI drafts purchase orders. Weekly reports land in your inbox Monday morning. You focus on selling, we focus on stock.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Providers -->
+  <section class="lp-ai" aria-label="AI providers">
+    <div class="lp-ai__inner">
+      <span class="lp-section-label">Multi-provider AI</span>
+      <h2 class="lp-section-title">Choose your AI engine</h2>
+      <p class="lp-section-subtitle">StockPilot isn't locked to one AI provider. Pick the model that fits your needs — switch anytime from the dashboard.</p>
+
+      <div class="lp-ai__grid">
+        <div class="lp-ai__card">
+          <div class="lp-ai__logo" style="background: #FEF3C7;">
+            <img src="/images/logos/claude.svg" alt="" width="28" height="28">
+          </div>
+          <h3 class="lp-ai__name">Claude</h3>
+          <span class="lp-ai__provider">by Anthropic</span>
+          <p class="lp-ai__desc">Sonnet 4 &amp; Haiku 4.5. Best for nuanced inventory analysis and detailed purchase order reasoning. Default provider.</p>
+          <span class="lp-ai__badge">Default</span>
+        </div>
+        <div class="lp-ai__card">
+          <div class="lp-ai__logo" style="background: #F3F4F6;">
+            <img src="/images/logos/openai.svg" alt="" width="28" height="28">
+          </div>
+          <h3 class="lp-ai__name">GPT-4o</h3>
+          <span class="lp-ai__provider">by OpenAI</span>
+          <p class="lp-ai__desc">GPT-4o &amp; GPT-4o Mini. Fast, reliable, great for straightforward reorder recommendations and bulk analysis.</p>
+        </div>
+        <div class="lp-ai__card">
+          <div class="lp-ai__logo" style="background: #DBEAFE;">
+            <img src="/images/logos/gemini.svg" alt="" width="28" height="28">
+          </div>
+          <h3 class="lp-ai__name">Gemini</h3>
+          <span class="lp-ai__provider">by Google</span>
+          <p class="lp-ai__desc">Gemini 2.0 Flash &amp; 2.5 Pro. Excellent cost-to-performance ratio for high-volume stores with thousands of SKUs.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="lp-final-cta">
+    <h2 class="lp-final-cta__text">Inventory on autopilot.</h2>
+    <p class="lp-final-cta__sub">Join merchants who never worry about stockouts again.</p>
+    <a href="/install" class="lp-btn lp-btn--primary lp-btn--lg">
+      <svg width="18" height="18" viewBox="0 0 109.5 124.5" fill="currentColor" aria-hidden="true"><path d="M74.7,14.8c0,0-1.4,0.4-3.7,1.1c-0.4-1.3-1-2.8-1.8-4.4c-2.6-5-6.5-7.7-11.1-7.7c0,0,0,0,0,0 c-0.3,0-0.6,0-1,0.1c-0.1-0.2-0.3-0.3-0.4-0.5c-2-2.2-4.6-3.2-7.7-3.2c-6,0.2-12,4.5-16.8,12.2c-3.4,5.4-6,12.2-6.7,17.5 c-6.9,2.1-11.7,3.6-11.8,3.7c-3.5,1.1-3.6,1.2-4,4.5C9.4,40.7,0,111.2,0,111.2l75.6,13.1V14.6C75.2,14.7,74.9,14.7,74.7,14.8z"/><path d="M78.1,123.9l31.4-7.8c0,0-13.5-91.3-13.6-91.9c-0.1-0.6-0.6-1-1.1-1c-0.5,0-9.3-0.2-9.3-0.2s-5.4-5.2-7.4-7.2 V123.9z"/></svg>
+      Install on Shopify &mdash; Free
+    </a>
   </section>
 </main>
 
@@ -297,7 +351,7 @@
 <footer class="lp-footer">
   <div class="lp-footer__inner">
     <div class="lp-footer__left">
-      <p>&copy; 2026 StockPilot</p>
+      <p>&copy; 2026 StockPilot &mdash; AI inventory intelligence for Shopify</p>
     </div>
     <nav class="lp-footer__right" aria-label="Footer links">
       <a href="/vision">Vision</a>
