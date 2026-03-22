@@ -10,6 +10,11 @@ class DashboardController < ApplicationController
   }.freeze
 
   def index
+    unless current_shop
+      @show_connect_banner = true
+      return
+    end
+
     load_dashboard_stats
     load_trends
     load_ai_insights

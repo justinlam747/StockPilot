@@ -1,3 +1,9 @@
+<%= render 'shared/connect_banner' %>
+<% if @show_connect_banner %>
+<div style="padding: 60px 20px; text-align: center; color: var(--color-text-secondary);">
+  <p style="font-size: 16px;">Connect your Shopify store above to see your inventory dashboard.</p>
+</div>
+<% else %>
 <div class="bento" role="list" aria-label="Dashboard overview">
 
   <!-- R1-2 C1-2: AI Agent -->
@@ -240,3 +246,4 @@
 
 <%= javascript_include_tag "demo-toggle" %>
 <%= javascript_include_tag "agent-provider" %>
+<% end %>

@@ -44,13 +44,16 @@ module Webhooks
     end
 
     def handle_user_created(data)
+      email = data.dig(:email_addresses, 0, :email_address)
       User.find_or_create_by!(clerk_user_id: data[:id]) do |user|
-        user.email = data.dig(:email_addresses, 0, :email_address)
+        user.email = email
         user.name = [data[:first_name], data[:last_name]].compact.join(' ')
       end
-    rescue ActiveRecord::RecordNotUnique
-      # Race condition: concurrent webhook delivery. Retry with find.
-      retry
+    rescue ActiveRecord::RecordNotUnique => e
+      retries ||= 0
+      retries += 1
+      retry if retries < 3
+      raise e
     end
 
     def handle_user_updated(data)
