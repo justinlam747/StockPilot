@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   describe 'associations' do
-    it { is_expected.to have_many(:shops).dependent(:nullify) }
+    it { is_expected.to have_many(:shops).dependent(:destroy) }
     it { is_expected.to belong_to(:active_shop).class_name('Shop').optional }
   end
 
