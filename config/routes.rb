@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   # Health check (unauthenticated)
   get '/health', to: 'health#show'
 
+  # Vision / Blog (public)
+  get '/vision', to: 'vision#index'
+
   # Dev-only auto-login (bypasses Shopify OAuth for local viewing)
   get '/dev/login', to: 'auth#dev_login' if Rails.env.development?
 

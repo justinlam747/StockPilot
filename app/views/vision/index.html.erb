@@ -1,0 +1,315 @@
+<nav class="lp-nav" aria-label="StockPilot navigation">
+  <div class="lp-nav__inner">
+    <a href="/" class="lp-nav__brand" aria-label="StockPilot home">StockPilot</a>
+    <div class="lp-nav__links">
+      <a href="/vision" class="lp-nav__link lp-nav__link--active">Vision</a>
+      <a href="/install" class="lp-btn" aria-label="Get started">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<main class="vision">
+
+  <!-- Hero -->
+  <header class="vision__hero">
+    <span class="vision__label">Engineering Vision</span>
+    <h1 class="vision__title">How We Built StockPilot</h1>
+    <p class="vision__subtitle">Every architectural decision, design tradeoff, and technology choice — explained. This is the engineering story behind an AI-powered inventory intelligence platform for Shopify.</p>
+  </header>
+
+  <!-- TOC -->
+  <nav class="vision__toc" aria-label="Table of contents">
+    <span class="vision__toc-label">Contents</span>
+    <ol>
+      <li><a href="#architecture">Architecture & Stack</a></li>
+      <li><a href="#multi-tenancy">Multi-Tenancy & Data Isolation</a></li>
+      <li><a href="#auth">Authentication & OAuth</a></li>
+      <li><a href="#security">Security Hardening</a></li>
+      <li><a href="#ai-agents">AI Agent System</a></li>
+      <li><a href="#multi-provider">Multi-Provider LLM Abstraction</a></li>
+      <li><a href="#inventory">Inventory Sync Pipeline</a></li>
+      <li><a href="#design">Design System</a></li>
+      <li><a href="#performance">Performance & Caching</a></li>
+      <li><a href="#tradeoffs">Key Tradeoffs</a></li>
+    </ol>
+  </nav>
+
+  <!-- Articles -->
+  <article class="vision__article" id="architecture">
+    <span class="vision__article-num">01</span>
+    <h2>Architecture & Stack</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Architecture</span>
+      <span class="vision__date">March 2026</span>
+    </div>
+    <p>StockPilot is a server-rendered Rails 7.2 application embedded inside Shopify Admin. We chose Rails over Node/React for three reasons: mature ActiveRecord for complex inventory queries, Sidekiq for reliable background job processing, and server-rendered ERB for simplicity over SPA complexity.</p>
+    <div class="vision__stack">
+      <div class="vision__stack-item">
+        <span class="vision__stack-name">Ruby on Rails 7.2</span>
+        <span class="vision__stack-why">Convention over configuration. Fast development. Rich ecosystem.</span>
+      </div>
+      <div class="vision__stack-item">
+        <span class="vision__stack-name">PostgreSQL 16</span>
+        <span class="vision__stack-why">JSONB for flexible settings, DISTINCT ON for snapshot queries, robust at scale.</span>
+      </div>
+      <div class="vision__stack-item">
+        <span class="vision__stack-name">Redis 7 + Sidekiq 7</span>
+        <span class="vision__stack-why">Background jobs for syncing, alerting, AI agent runs, and weekly reports.</span>
+      </div>
+      <div class="vision__stack-item">
+        <span class="vision__stack-name">HTMX</span>
+        <span class="vision__stack-why">Interactive UI without a JavaScript framework. Partial page updates, zero build step.</span>
+      </div>
+      <div class="vision__stack-item">
+        <span class="vision__stack-name">Anthropic Claude API</span>
+        <span class="vision__stack-why">Agentic inventory analysis with tool use. Multi-provider abstraction for OpenAI and Google.</span>
+      </div>
+    </div>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>We chose server-rendered ERB over a React SPA. This means no client-side routing, no hydration complexity, and no API layer to maintain. The tradeoff: less interactive UI out of the box. HTMX bridges this gap — giving us AJAX partial updates with HTML attributes instead of JavaScript.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="multi-tenancy">
+    <span class="vision__article-num">02</span>
+    <h2>Multi-Tenancy & Data Isolation</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Security</span>
+      <span class="vision__tag">TD-001</span>
+    </div>
+    <p>Every Shopify app serves thousands of merchants. A single missing <code>WHERE shop_id = ?</code> clause could leak one merchant's data to another. We use <code>acts_as_tenant</code> scoped to <code>Shop</code> on every model. This automatically injects tenant scoping on all queries — making cross-tenant data access impossible at the ORM level.</p>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>Admin/cross-tenant queries become harder — you need <code>ActsAsTenant.without_tenant</code> blocks. Worth it for the safety guarantee. In the AI agent, we additionally verify tenant isolation on every tool result as a defense-in-depth measure.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="auth">
+    <span class="vision__article-num">03</span>
+    <h2>Authentication & OAuth</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Auth</span>
+      <span class="vision__tag">TD-006</span>
+    </div>
+    <p>We implement OAuth directly via <code>omniauth-shopify-oauth2</code> instead of the higher-level <code>shopify_app</code> gem. This gives full control over the auth flow, session management, and error handling.</p>
+    <p>Access tokens are encrypted at rest using Rails 7.2's <code>encrypts :access_token</code> — if the database is compromised, tokens are useless without the master key. Sessions expire after 24 hours. HMAC-SHA256 verification protects every inbound webhook.</p>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>More boilerplate than the <code>shopify_app</code> gem, but every line is intentional. We found and fixed a double <code>request.body.read</code> bug (TD-010) that silently dropped all webhook payloads — a bug that would have been hidden by the gem's abstraction.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="security">
+    <span class="vision__article-num">04</span>
+    <h2>Security Hardening</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Security</span>
+      <span class="vision__tag">8 Vulnerabilities Patched</span>
+    </div>
+    <p>We audited the entire LLM/agent infrastructure and found 8 vulnerabilities — 3 critical, 4 high, 1 medium. All patched before launch.</p>
+    <div class="vision__table">
+      <div class="vision__table-row vision__table-row--header">
+        <span>Vulnerability</span>
+        <span>Severity</span>
+        <span>Fix</span>
+      </div>
+      <div class="vision__table-row">
+        <span>Unvalidated provider/model params</span>
+        <span class="vision__severity vision__severity--critical">Critical</span>
+        <span>Whitelist of allowed values</span>
+      </div>
+      <div class="vision__table-row">
+        <span>Prompt injection via shop domain</span>
+        <span class="vision__severity vision__severity--critical">Critical</span>
+        <span>Use shop ID, never user strings</span>
+      </div>
+      <div class="vision__table-row">
+        <span>API key leaked in Google URL</span>
+        <span class="vision__severity vision__severity--critical">Critical</span>
+        <span>Moved to request header</span>
+      </div>
+      <div class="vision__table-row">
+        <span>Unchecked tool input types</span>
+        <span class="vision__severity vision__severity--high">High</span>
+        <span>Strict integer validation</span>
+      </div>
+      <div class="vision__table-row">
+        <span>XSS in agent output</span>
+        <span class="vision__severity vision__severity--high">High</span>
+        <span>Explicit h() escaping</span>
+      </div>
+      <div class="vision__table-row">
+        <span>Missing tenant verification</span>
+        <span class="vision__severity vision__severity--high">High</span>
+        <span>verify_tenant_isolation! on every result</span>
+      </div>
+      <div class="vision__table-row">
+        <span>Cost abuse via unlimited turns</span>
+        <span class="vision__severity vision__severity--high">High</span>
+        <span>MAX_TURNS 10→5, rate limits 3/min</span>
+      </div>
+      <div class="vision__table-row">
+        <span>Backtrace info disclosure</span>
+        <span class="vision__severity vision__severity--medium">Medium</span>
+        <span>Log class only, Sentry for details</span>
+      </div>
+    </div>
+  </article>
+
+  <article class="vision__article" id="ai-agents">
+    <span class="vision__article-num">05</span>
+    <h2>AI Agent System</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">AI</span>
+      <span class="vision__tag">Agentic Loop</span>
+    </div>
+    <p>The inventory monitor agent runs an autonomous loop — Claude receives tools, decides which to call, processes results, and continues until it's satisfied. Up to 5 turns per run with 5 tools available:</p>
+    <div class="vision__tools">
+      <div class="vision__tool">
+        <span class="vision__tool-name">check_inventory</span>
+        <span class="vision__tool-desc">Scans all SKUs for low-stock and out-of-stock variants</span>
+      </div>
+      <div class="vision__tool">
+        <span class="vision__tool-name">get_stock_summary</span>
+        <span class="vision__tool-desc">High-level health metrics across the catalog</span>
+      </div>
+      <div class="vision__tool">
+        <span class="vision__tool-name">send_alerts</span>
+        <span class="vision__tool-desc">Fire email/in-app notifications with deduplication</span>
+      </div>
+      <div class="vision__tool">
+        <span class="vision__tool-name">get_recent_alerts</span>
+        <span class="vision__tool-desc">Check what's already been alerted today</span>
+      </div>
+      <div class="vision__tool">
+        <span class="vision__tool-name">draft_purchase_order</span>
+        <span class="vision__tool-desc">Create a PO with calculated quantities and supplier info</span>
+      </div>
+    </div>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Why agentic, not scripted?</span>
+      <p>A scripted pipeline (check → alert → done) would be simpler. But an agent can reason: "I see 4 low-stock items from the same supplier — instead of 4 separate alerts, I'll draft one purchase order." This emergent behavior is only possible when the AI decides its own control flow.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="multi-provider">
+    <span class="vision__article-num">06</span>
+    <h2>Multi-Provider LLM Abstraction</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">AI</span>
+      <span class="vision__tag">Architecture</span>
+    </div>
+    <p>We built a provider-agnostic LLM layer so agents can run on any model. A factory auto-detects the provider from the model name and handles all schema translation:</p>
+    <div class="vision__code">
+      <code>LLM::Factory.build(model: 'claude-sonnet-4-20250514')  # → AnthropicProvider</code>
+      <code>LLM::Factory.build(model: 'gpt-4o')                    # → OpenAIProvider</code>
+      <code>LLM::Factory.build(model: 'gemini-2.0-flash')          # → GoogleProvider</code>
+    </div>
+    <p>Each provider translates our canonical tool schema (Anthropic format) into its native format — OpenAI function calling, Google function declarations — and normalizes responses back. The agent code never touches provider-specific APIs.</p>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>Tool use behavior differs across providers. Claude follows tool schemas precisely. GPT-4o sometimes hallucinates tool inputs. Gemini has stricter parameter requirements. We handle this with input validation in the agent layer, not the provider layer — so the same safety checks protect against all models.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="inventory">
+    <span class="vision__article-num">07</span>
+    <h2>Inventory Sync Pipeline</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Data</span>
+      <span class="vision__tag">Shopify GraphQL</span>
+    </div>
+    <p>Inventory data flows through a 5-stage pipeline: Fetch → Persist → Snapshot → Detect → Alert. Each stage is a separate service class with single responsibility.</p>
+    <p>We use Shopify's GraphQL Admin API with cursor-based pagination. The initial query cost exceeded Shopify's 1000-point limit — we reduced page size from 50 to 25 products and removed the <code>location { name }</code> field (which required an extra scope we didn't need).</p>
+    <p>Snapshots create a time-series record of every variant's stock level. A nightly cleanup job deletes snapshots older than 90 days to prevent unbounded database growth.</p>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>We aggregate inventory across all locations rather than tracking per-location. This simplifies the data model but loses location granularity. For the MVP target audience (single-location merchants), this is the right abstraction. Multi-location support is a V2 feature.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="design">
+    <span class="vision__article-num">08</span>
+    <h2>Design System</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Frontend</span>
+      <span class="vision__tag">CSS</span>
+    </div>
+    <p>The UI follows a "glass theme" with green accents — semi-transparent white tiles on a light grey background, with subtle borders that simulate light catching on glass edges. No CSS framework, no Tailwind — all custom CSS with design tokens as CSS variables.</p>
+    <p>The dashboard uses a bento grid layout inspired by Framer and Notion. KPI tiles show monospace numbers, contextual descriptions, and trend arrows. The AI agent tile is dark green (#14532d) with concentric ring decorations — visually distinct as the centerpiece feature.</p>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>Custom CSS means no component library to fall back on. Every button, card, badge, and layout is hand-authored. This gives complete design control but takes longer than using shadcn/Tailwind. For a portfolio piece demonstrating design sensibility, the tradeoff is worth it.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="performance">
+    <span class="vision__article-num">09</span>
+    <h2>Performance & Caching</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Performance</span>
+      <span class="vision__tag">TD-007</span>
+    </div>
+    <p>The <code>Cache::ShopCache</code> layer provides three caching tiers: products (6-hour TTL), suppliers (12-hour TTL), and inventory stats (2-minute TTL). Write-through caching ensures reads never serve stale data after mutations.</p>
+    <p>Redis powers both caching and Sidekiq — but we plan separate instances with different eviction policies. Cache Redis uses LRU eviction (oldest cached data gets dropped under memory pressure). Sidekiq Redis uses <code>noeviction</code> (never silently drop job data).</p>
+    <div class="vision__callout">
+      <span class="vision__callout-label">Tradeoff</span>
+      <p>Two Redis instances doubles operational overhead. But a single instance with LRU eviction could silently drop Sidekiq jobs — an alert that should fire at 3 AM might just vanish. Separate instances trade ops complexity for data reliability.</p>
+    </div>
+  </article>
+
+  <article class="vision__article" id="tradeoffs">
+    <span class="vision__article-num">10</span>
+    <h2>Key Tradeoffs Summary</h2>
+    <div class="vision__meta">
+      <span class="vision__tag">Philosophy</span>
+    </div>
+    <div class="vision__tradeoff-grid">
+      <div class="vision__tradeoff">
+        <span class="vision__tradeoff-chose">Chose: ERB + HTMX</span>
+        <span class="vision__tradeoff-over">Over: React SPA</span>
+        <span class="vision__tradeoff-why">Simpler deployment, no API layer, no build step. HTMX handles interactivity.</span>
+      </div>
+      <div class="vision__tradeoff">
+        <span class="vision__tradeoff-chose">Chose: OmniAuth direct</span>
+        <span class="vision__tradeoff-over">Over: shopify_app gem</span>
+        <span class="vision__tradeoff-why">Full control, explainable auth flow, found bugs the gem would hide.</span>
+      </div>
+      <div class="vision__tradeoff">
+        <span class="vision__tradeoff-chose">Chose: Agentic loop</span>
+        <span class="vision__tradeoff-over">Over: scripted pipeline</span>
+        <span class="vision__tradeoff-why">Emergent behavior — agent batches related actions instead of firing sequentially.</span>
+      </div>
+      <div class="vision__tradeoff">
+        <span class="vision__tradeoff-chose">Chose: Custom CSS</span>
+        <span class="vision__tradeoff-over">Over: Tailwind/shadcn</span>
+        <span class="vision__tradeoff-why">Complete design control. Portfolio demonstrates CSS mastery.</span>
+      </div>
+      <div class="vision__tradeoff">
+        <span class="vision__tradeoff-chose">Chose: Aggregated inventory</span>
+        <span class="vision__tradeoff-over">Over: per-location tracking</span>
+        <span class="vision__tradeoff-why">Simpler model for MVP. Multi-location is V2.</span>
+      </div>
+      <div class="vision__tradeoff">
+        <span class="vision__tradeoff-chose">Chose: Provider abstraction</span>
+        <span class="vision__tradeoff-over">Over: Anthropic-only</span>
+        <span class="vision__tradeoff-why">Vendor flexibility. Test same agent on Claude, GPT-4o, Gemini.</span>
+      </div>
+    </div>
+  </article>
+
+</main>
+
+<footer class="lp-footer">
+  <div class="lp-footer__inner">
+    <div class="lp-footer__left">
+      <p>&copy; 2026 StockPilot</p>
+    </div>
+    <nav class="lp-footer__right" aria-label="Footer links">
+      <a href="/">Home</a>
+      <a href="/vision">Vision</a>
+      <a href="/install">Get Started</a>
+    </nav>
+  </div>
+</footer>
