@@ -3,9 +3,9 @@
 # CRUD and lifecycle management for purchase orders (draft, send, receive).
 class PurchaseOrdersController < ApplicationController
   def index
-    @purchase_orders = PurchaseOrder.includes(:supplier, :line_items)
-                                    .order(created_at: :desc)
-                                    .page(params[:page]).per(25)
+    scope = PurchaseOrder.includes(:supplier, :line_items)
+    scope = scope.where(status: params[:status]) if PurchaseOrder::STATUSES.include?(params[:status])
+    @purchase_orders = scope.order(created_at: :desc).page(params[:page]).per(25)
   end
 
   def show

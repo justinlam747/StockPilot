@@ -17,7 +17,8 @@ class InventoryController < ApplicationController
   end
 
   def show
-    @product = Product.includes(variants: :inventory_snapshots).find(params[:id])
+    @product = Product.includes(variants: %i[inventory_snapshots supplier]).find(params[:id])
+    @snapshot_data = load_snapshot_history(@product)
   end
 
   private
@@ -68,6 +69,29 @@ class InventoryController < ApplicationController
     when 'vendor' then scope.order(:vendor, :title)
     else scope.order(:title)
     end
+  end
+
+  def load_snapshot_history(product)
+    variant_ids = product.variants.map(&:id)
+    return {} if variant_ids.empty?
+
+    snapshots = fetch_daily_snapshots(variant_ids)
+    build_date_map(snapshots)
+  end
+
+  def fetch_daily_snapshots(variant_ids)
+    InventorySnapshot.where(variant_id: variant_ids)
+                     .where('created_at >= ?', 14.days.ago)
+                     .select('DATE(created_at) AS snap_date, SUM(available) AS total_available')
+                     .group('DATE(created_at)')
+                     .order('snap_date')
+  end
+
+  def build_date_map(snapshots)
+    data = {}
+    (13.days.ago.to_date..Date.current).each { |d| data[d] = 0 }
+    snapshots.each { |s| data[s.snap_date.to_date] = s.total_available.to_i }
+    data
   end
 
   def load_inventory_stats

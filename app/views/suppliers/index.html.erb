@@ -1,14 +1,43 @@
-<div class="sp-page-header">
-  <h1>Suppliers</h1>
+<div class="sup-header">
+  <div class="sup-header__top">
+    <div>
+      <h1 class="sup-header__title">Suppliers</h1>
+      <span class="sup-header__count"><%= @suppliers.size %> supplier<%= @suppliers.size == 1 ? '' : 's' %></span>
+    </div>
+  </div>
+
+  <div class="sup-toolbar">
+    <div class="sup-search sp-search">
+      <svg class="sp-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="search"
+             name="q"
+             placeholder="Search suppliers..."
+             hx-get="<%= suppliers_path %>"
+             hx-trigger="input changed delay:300ms, search"
+             hx-target="#supplier-list"
+             hx-select="#supplier-list-inner"
+             hx-swap="innerHTML"
+             aria-label="Search suppliers">
+    </div>
+  </div>
 </div>
 
-<details>
-  <summary aria-label="Toggle add supplier form">Add Supplier</summary>
+<details class="sup-add-form">
+  <summary aria-label="Toggle add supplier form">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Add Supplier
+  </summary>
   <div>
     <%= render "form", supplier: @supplier, url: suppliers_path, method: :post %>
   </div>
 </details>
 
-<div id="supplier-list" class="sp-section">
+<div id="supplier-list">
   <%= render "list", suppliers: @suppliers %>
 </div>
