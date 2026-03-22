@@ -63,4 +63,30 @@ RSpec.describe 'Demo Mode', type: :request do
       expect(response).to redirect_to('/dashboard')
     end
   end
+
+  describe 'full demo flow integration' do
+    it 'enables demo mode, views all major pages, then disables' do
+      post '/dashboard/toggle_demo'
+      expect(response).to redirect_to('/dashboard')
+
+      get '/dashboard'
+      expect(response).to have_http_status(:ok)
+
+      get '/inventory'
+      expect(response).to have_http_status(:ok)
+
+      get '/suppliers'
+      expect(response).to have_http_status(:ok)
+
+      get '/alerts'
+      expect(response).to have_http_status(:ok)
+
+      get '/purchase_orders'
+      expect(response).to have_http_status(:ok)
+
+      post '/dashboard/toggle_demo'
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end
