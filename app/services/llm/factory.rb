@@ -32,10 +32,10 @@ module LLM
     }.freeze
 
     class << self
-      def build(provider: nil, model: nil, api_key: nil)
+      def build(provider: nil, model: nil, api_key: nil, shop: nil)
         provider_name = resolve_provider(provider, model)
-        model ||= DEFAULT_MODELS[provider_name]
-        api_key ||= resolve_api_key(provider_name)
+        model ||= shop&.llm_model || DEFAULT_MODELS[provider_name]
+        api_key ||= shop&.llm_api_key(provider_name) || resolve_api_key(provider_name)
         klass = PROVIDER_MAP[provider_name]
         raise ArgumentError, "Unknown LLM provider: #{provider_name}" unless klass
 

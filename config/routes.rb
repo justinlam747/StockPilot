@@ -39,6 +39,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # Settings
+  get '/settings', to: 'settings#show'
+  patch '/settings', to: 'settings#update'
+
   # Shopify webhooks
   post '/webhooks/:topic', to: 'webhooks#receive'
 

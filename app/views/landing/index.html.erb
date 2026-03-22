@@ -29,24 +29,260 @@
   <!-- Bento grid -->
   <section class="lp-grid-section" aria-label="Features">
     <div class="lp-grid">
+
+      <!-- 1. Low Stock Alerts (Wide) — Big Sur: blue → purple → coral -->
       <div class="lp-grid__cell lp-grid__cell--wide">
+        <div class="lp-wallpaper lp-wallpaper--bigsur-1" aria-hidden="true">
+          <svg class="lp-wallpaper__svg" viewBox="0 0 800 320" preserveAspectRatio="none">
+            <path d="M0,180 C130,140 260,220 400,170 C540,120 670,200 800,160 L800,320 L0,320 Z" fill="rgba(168,85,247,0.5)"/>
+            <path d="M0,210 C160,175 280,240 440,195 C600,150 720,225 800,195 L800,320 L0,320 Z" fill="rgba(129,140,248,0.45)"/>
+            <path d="M0,245 C140,220 300,265 460,235 C620,205 740,255 800,240 L800,320 L0,320 Z" fill="rgba(99,102,241,0.4)"/>
+            <path d="M0,270 C180,255 340,285 500,265 C660,245 760,275 800,268 L800,320 L0,320 Z" fill="rgba(67,56,202,0.35)"/>
+          </svg>
+        </div>
+        <div class="lp-window">
+          <div class="lp-window__titlebar">
+            <span class="lp-window__dot lp-window__dot--red"></span>
+            <span class="lp-window__dot lp-window__dot--yellow"></span>
+            <span class="lp-window__dot lp-window__dot--green"></span>
+            <span class="lp-window__title">Low Stock Alerts</span>
+          </div>
+          <div class="lp-window__content">
+            <div class="lp-mock-header">
+              <span class="lp-mock-title">Alerts</span>
+              <span class="lp-mock-count">12 alerts</span>
+            </div>
+            <div class="lp-mock-filters">
+              <span class="lp-mock-filter is-active">All</span>
+              <span class="lp-mock-filter"><span class="lp-mock-dot lp-mock-dot--red"></span>Critical</span>
+              <span class="lp-mock-filter"><span class="lp-mock-dot lp-mock-dot--orange"></span>Warning</span>
+            </div>
+            <div class="lp-mock-group-label">Today</div>
+            <div class="lp-mock-alert-row">
+              <span class="lp-mock-dot lp-mock-dot--red"></span>
+              <div class="lp-mock-alert-body">
+                <span class="lp-mock-alert-msg">Organic Cotton Tee — White / M is critically low (2 remaining)</span>
+                <span class="lp-mock-alert-time">12 min ago</span>
+              </div>
+            </div>
+            <div class="lp-mock-alert-row">
+              <span class="lp-mock-dot lp-mock-dot--orange"></span>
+              <div class="lp-mock-alert-body">
+                <span class="lp-mock-alert-msg">Recycled Hoodie — Navy / L dropped below threshold (7 left)</span>
+                <span class="lp-mock-alert-time">1 hr ago</span>
+              </div>
+            </div>
+            <div class="lp-mock-alert-row">
+              <span class="lp-mock-dot lp-mock-dot--red"></span>
+              <div class="lp-mock-alert-body">
+                <span class="lp-mock-alert-msg">Linen Pants — Sand / 32 out of stock</span>
+                <span class="lp-mock-alert-time">3 hrs ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <span class="lp-grid__label">Low stock alerts</span>
       </div>
+
+      <!-- 2. AI Purchase Orders (Narrow) — Sonoma: teal → emerald → lime -->
       <div class="lp-grid__cell lp-grid__cell--narrow">
+        <div class="lp-wallpaper lp-wallpaper--sonoma-1" aria-hidden="true">
+          <svg class="lp-wallpaper__svg" viewBox="0 0 400 320" preserveAspectRatio="none">
+            <path d="M0,160 C60,130 140,180 220,145 C300,110 360,155 400,135 L400,320 L0,320 Z" fill="rgba(52,211,153,0.35)"/>
+            <path d="M0,200 C80,175 180,215 280,185 C360,160 400,190 400,180 L400,320 L0,320 Z" fill="rgba(16,185,129,0.3)"/>
+            <path d="M0,240 C100,225 200,250 300,235 C370,222 400,240 400,238 L400,320 L0,320 Z" fill="rgba(5,150,105,0.25)"/>
+          </svg>
+        </div>
+        <div class="lp-window lp-window--sm">
+          <div class="lp-window__titlebar">
+            <span class="lp-window__dot lp-window__dot--red"></span>
+            <span class="lp-window__dot lp-window__dot--yellow"></span>
+            <span class="lp-window__dot lp-window__dot--green"></span>
+            <span class="lp-window__title">Purchase Orders</span>
+          </div>
+          <div class="lp-window__content">
+            <div class="lp-mock-po-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              Generate Draft PO
+            </div>
+            <div class="lp-mock-po-card">
+              <div class="lp-mock-po-top">
+                <span class="lp-mock-po-num">#1042</span>
+                <span class="lp-mock-badge lp-mock-badge--neutral">Draft</span>
+              </div>
+              <div class="lp-mock-po-supplier">TextileCo International</div>
+              <div class="lp-mock-po-details">
+                <div><span class="lp-mock-po-label">Items</span><span class="lp-mock-po-val">6</span></div>
+                <div><span class="lp-mock-po-label">Value</span><span class="lp-mock-po-val">$2,340.00</span></div>
+              </div>
+              <div class="lp-mock-po-date">Ordered Mar 21, 2026</div>
+            </div>
+          </div>
+        </div>
         <span class="lp-grid__label">AI purchase orders</span>
       </div>
+
+      <!-- 3. Supplier Hub (Narrow) — Big Sur: indigo → violet → pink -->
       <div class="lp-grid__cell lp-grid__cell--narrow">
+        <div class="lp-wallpaper lp-wallpaper--bigsur-2" aria-hidden="true">
+          <svg class="lp-wallpaper__svg" viewBox="0 0 400 320" preserveAspectRatio="none">
+            <path d="M0,170 C70,140 150,190 230,155 C310,120 370,165 400,145 L400,320 L0,320 Z" fill="rgba(192,132,252,0.45)"/>
+            <path d="M0,205 C90,180 170,220 270,190 C350,165 400,195 400,188 L400,320 L0,320 Z" fill="rgba(168,85,247,0.4)"/>
+            <path d="M0,240 C80,225 200,255 300,238 C370,225 400,242 400,240 L400,320 L0,320 Z" fill="rgba(139,92,246,0.35)"/>
+          </svg>
+        </div>
+        <div class="lp-window lp-window--sm">
+          <div class="lp-window__titlebar">
+            <span class="lp-window__dot lp-window__dot--red"></span>
+            <span class="lp-window__dot lp-window__dot--yellow"></span>
+            <span class="lp-window__dot lp-window__dot--green"></span>
+            <span class="lp-window__title">Suppliers</span>
+          </div>
+          <div class="lp-window__content">
+            <div class="lp-mock-supplier">
+              <div class="lp-mock-supplier-top">
+                <div class="lp-mock-avatar">TC</div>
+                <div class="lp-mock-supplier-info">
+                  <span class="lp-mock-supplier-name">TextileCo International</span>
+                  <span class="lp-mock-supplier-email">orders@textileco.com</span>
+                </div>
+              </div>
+              <div class="lp-mock-supplier-details">
+                <span>14 days lead time</span>
+                <span>8 linked variants</span>
+              </div>
+              <div class="lp-mock-stars">
+                <span class="lp-mock-star filled">&#9733;</span>
+                <span class="lp-mock-star filled">&#9733;</span>
+                <span class="lp-mock-star filled">&#9733;</span>
+                <span class="lp-mock-star filled">&#9733;</span>
+                <span class="lp-mock-star">&#9733;</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <span class="lp-grid__label">Supplier hub</span>
       </div>
+
+      <!-- 4. Inventory Trends (Wide) — Sonoma: amber → orange → warm gold -->
       <div class="lp-grid__cell lp-grid__cell--wide">
+        <div class="lp-wallpaper lp-wallpaper--sonoma-2" aria-hidden="true">
+          <svg class="lp-wallpaper__svg" viewBox="0 0 800 320" preserveAspectRatio="none">
+            <path d="M0,175 C120,145 260,200 400,165 C540,130 680,190 800,158 L800,320 L0,320 Z" fill="rgba(251,191,36,0.35)"/>
+            <path d="M0,210 C150,185 300,235 450,200 C600,165 720,215 800,198 L800,320 L0,320 Z" fill="rgba(245,158,11,0.3)"/>
+            <path d="M0,248 C140,235 320,260 480,243 C640,226 750,255 800,248 L800,320 L0,320 Z" fill="rgba(217,119,6,0.25)"/>
+          </svg>
+        </div>
+        <div class="lp-window">
+          <div class="lp-window__titlebar">
+            <span class="lp-window__dot lp-window__dot--red"></span>
+            <span class="lp-window__dot lp-window__dot--yellow"></span>
+            <span class="lp-window__dot lp-window__dot--green"></span>
+            <span class="lp-window__title">Inventory Trends</span>
+          </div>
+          <div class="lp-window__content">
+            <div class="lp-mock-chart-header">Stock History (14 days)</div>
+            <div class="lp-mock-chart">
+              <div class="lp-mock-bar" style="height: 65%"><span>42</span></div>
+              <div class="lp-mock-bar" style="height: 60%"><span>38</span></div>
+              <div class="lp-mock-bar" style="height: 72%"><span>46</span></div>
+              <div class="lp-mock-bar" style="height: 55%"><span>35</span></div>
+              <div class="lp-mock-bar" style="height: 48%"><span>30</span></div>
+              <div class="lp-mock-bar" style="height: 40%"><span>25</span></div>
+              <div class="lp-mock-bar" style="height: 35%"><span>22</span></div>
+              <div class="lp-mock-bar" style="height: 58%"><span>37</span></div>
+              <div class="lp-mock-bar" style="height: 70%"><span>45</span></div>
+              <div class="lp-mock-bar" style="height: 80%"><span>51</span></div>
+              <div class="lp-mock-bar" style="height: 75%"><span>48</span></div>
+              <div class="lp-mock-bar" style="height: 68%"><span>43</span></div>
+              <div class="lp-mock-bar" style="height: 50%"><span>32</span></div>
+              <div class="lp-mock-bar" style="height: 45%"><span>28</span></div>
+            </div>
+            <div class="lp-mock-chart-labels">
+              <span>08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
+            </div>
+          </div>
+        </div>
         <span class="lp-grid__label">Inventory trends</span>
       </div>
+
+      <!-- 5. Weekly Reports (Wide) — Big Sur: slate → steel → silver -->
       <div class="lp-grid__cell lp-grid__cell--wide">
+        <div class="lp-wallpaper lp-wallpaper--bigsur-3" aria-hidden="true">
+          <svg class="lp-wallpaper__svg" viewBox="0 0 800 320" preserveAspectRatio="none">
+            <path d="M0,185 C140,150 270,210 410,175 C550,140 680,195 800,165 L800,320 L0,320 Z" fill="rgba(148,163,184,0.4)"/>
+            <path d="M0,215 C160,190 310,240 460,208 C610,176 730,225 800,205 L800,320 L0,320 Z" fill="rgba(100,116,139,0.35)"/>
+            <path d="M0,250 C130,238 290,262 450,245 C610,228 740,255 800,248 L800,320 L0,320 Z" fill="rgba(71,85,105,0.3)"/>
+            <path d="M0,275 C170,265 340,282 500,272 C660,262 760,278 800,274 L800,320 L0,320 Z" fill="rgba(51,65,85,0.25)"/>
+          </svg>
+        </div>
+        <div class="lp-window">
+          <div class="lp-window__titlebar">
+            <span class="lp-window__dot lp-window__dot--red"></span>
+            <span class="lp-window__dot lp-window__dot--yellow"></span>
+            <span class="lp-window__dot lp-window__dot--green"></span>
+            <span class="lp-window__title">Weekly Report</span>
+          </div>
+          <div class="lp-window__content">
+            <div class="lp-mock-report-title">Weekly Inventory Report</div>
+            <div class="lp-mock-report-meta">my-store.myshopify.com &mdash; Week of March 21, 2026</div>
+            <div class="lp-mock-report-section">Top Sellers</div>
+            <table class="lp-mock-table">
+              <thead><tr><th>SKU</th><th>Product</th><th>Sold</th></tr></thead>
+              <tbody>
+                <tr><td>OCT-WHT-M</td><td>Organic Cotton Tee</td><td>142</td></tr>
+                <tr><td>RH-NVY-L</td><td>Recycled Hoodie</td><td>89</td></tr>
+                <tr><td>LP-SND-32</td><td>Linen Pants</td><td>67</td></tr>
+              </tbody>
+            </table>
+            <div class="lp-mock-report-stats">
+              <span>Stockout Events: <strong>3</strong></span>
+              <span>Low Stock SKUs: <strong>8</strong></span>
+            </div>
+          </div>
+        </div>
         <span class="lp-grid__label">Weekly reports</span>
       </div>
+
+      <!-- 6. Smart Reorder (Narrow) — Sonoma: rose → magenta → plum -->
       <div class="lp-grid__cell lp-grid__cell--narrow">
+        <div class="lp-wallpaper lp-wallpaper--sonoma-3" aria-hidden="true">
+          <svg class="lp-wallpaper__svg" viewBox="0 0 400 320" preserveAspectRatio="none">
+            <path d="M0,165 C65,135 145,185 225,150 C305,115 365,160 400,140 L400,320 L0,320 Z" fill="rgba(244,114,182,0.35)"/>
+            <path d="M0,205 C85,180 175,218 275,190 C355,167 400,195 400,188 L400,320 L0,320 Z" fill="rgba(236,72,153,0.3)"/>
+            <path d="M0,242 C90,228 200,252 300,240 C370,230 400,245 400,242 L400,320 L0,320 Z" fill="rgba(219,39,119,0.25)"/>
+          </svg>
+        </div>
+        <div class="lp-window lp-window--sm">
+          <div class="lp-window__titlebar">
+            <span class="lp-window__dot lp-window__dot--red"></span>
+            <span class="lp-window__dot lp-window__dot--yellow"></span>
+            <span class="lp-window__dot lp-window__dot--green"></span>
+            <span class="lp-window__title">Inventory Agent</span>
+          </div>
+          <div class="lp-window__content">
+            <div class="lp-mock-agent-title">Inventory Agent</div>
+            <div class="lp-mock-agent-desc">Scans every SKU for low-stock risks and drafts purchase orders.</div>
+            <div class="lp-mock-agent-features">
+              <div class="lp-mock-agent-feat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Low-stock detection
+              </div>
+              <div class="lp-mock-agent-feat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Reorder recommendations
+              </div>
+              <div class="lp-mock-agent-feat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Auto-draft purchase orders
+              </div>
+            </div>
+            <div class="lp-mock-agent-btn">Run Analysis</div>
+          </div>
+        </div>
         <span class="lp-grid__label">Smart reorder</span>
       </div>
+
     </div>
   </section>
 

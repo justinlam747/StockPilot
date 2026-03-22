@@ -12,6 +12,7 @@
 </head>
 <body>
   <%= yield %>
+  <%= javascript_include_tag "vision-tabs" %>
   <% if content_for?(:landing_scripts) %>
     <%= yield :landing_scripts %>
   <% end %>
