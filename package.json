@@ -9,5 +9,8 @@
     "test": "bundle exec rspec",
     "lint": "bundle exec rubocop",
     "security": "bundle exec bundler-audit check --update && bundle exec brakeman -q --no-pager"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.40.0"
   }
 }

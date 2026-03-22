@@ -1,0 +1,258 @@
+<style>
+  .concept { margin-bottom: 48px; border: 1px solid #e1e3e5; border-radius: 12px; overflow: hidden; }
+  .concept-label { padding: 16px 20px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6D7175; border-bottom: 1px solid #e1e3e5; background: #fafafa; }
+  .concept-label span { font-weight: 400; color: #8C9196; margin-left: 8px; }
+
+  /* === CONCEPT A: Classic Split === */
+  .hero-a {
+    display: flex; height: 420px; font-family: 'DM Sans', system-ui, sans-serif;
+  }
+  .hero-a__left {
+    flex: 1; background: #FFFFFF; display: flex; flex-direction: column; justify-content: center; padding: 48px 56px;
+  }
+  .hero-a__right {
+    flex: 1; background: #008060; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+  }
+  .hero-a__right::before {
+    content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px;
+    border-radius: 50%; background: rgba(149,191,71,0.25);
+  }
+  .hero-a__right::after {
+    content: ''; position: absolute; bottom: -40px; left: -40px; width: 160px; height: 160px;
+    border-radius: 50%; background: rgba(255,255,255,0.08);
+  }
+  .hero-a__badge {
+    display: inline-flex; align-items: center; gap: 6px; background: #F0FDF4; color: #008060;
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 20px;
+    border: 1px solid #BBF7D0;
+  }
+  .hero-a__badge svg { flex-shrink: 0; }
+  .hero-a h1 { font-size: 40px; font-weight: 700; line-height: 1.1; color: #1A1A1A; letter-spacing: -0.5px; margin: 0 0 14px; }
+  .hero-a h1 em { font-style: normal; color: #008060; }
+  .hero-a p { font-size: 17px; color: #6D7175; line-height: 1.5; margin: 0 0 28px; max-width: 420px; }
+  .hero-a__cta {
+    display: inline-flex; align-items: center; gap: 8px; background: #008060; color: white;
+    padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; border: none; cursor: pointer;
+  }
+  .hero-a__cta svg { flex-shrink: 0; }
+  .hero-a__shopify-logo {
+    width: 80px; height: 92px; opacity: 0.95; filter: drop-shadow(0 8px 32px rgba(0,0,0,0.15));
+  }
+  .hero-a__mock {
+    background: rgba(255,255,255,0.12); border-radius: 10px; padding: 20px; width: 280px;
+    backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15);
+  }
+  .hero-a__mock-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1); color: white; font-size: 13px;
+  }
+  .hero-a__mock-row:last-child { border-bottom: none; }
+  .hero-a__mock-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .hero-a__mock-dot--green { background: #95BF47; }
+  .hero-a__mock-dot--yellow { background: #FBB03B; }
+  .hero-a__mock-dot--red { background: #FF6B6B; }
+  .hero-a__mock-title { font-weight: 600; font-size: 14px; color: white; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+  /* === CONCEPT B: Diagonal Split === */
+  .hero-b {
+    height: 420px; font-family: 'DM Sans', system-ui, sans-serif; position: relative; overflow: hidden; background: #FFFFFF;
+  }
+  .hero-b__green {
+    position: absolute; top: 0; right: 0; width: 55%; height: 100%; background: #008060;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+  }
+  .hero-b__green::before {
+    content: ''; position: absolute; top: 20%; right: 10%; width: 120px; height: 120px;
+    border: 2px solid rgba(149,191,71,0.3); border-radius: 50%;
+  }
+  .hero-b__content {
+    position: relative; z-index: 2; height: 100%; display: flex; align-items: center;
+    padding: 0 56px; max-width: 1100px; margin: 0 auto;
+  }
+  .hero-b__text { max-width: 480px; }
+  .hero-b__tag {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px;
+  }
+  .hero-b__tag img { width: 20px; height: 23px; }
+  .hero-b__tag span { font-size: 12px; font-weight: 600; color: #008060; text-transform: uppercase; letter-spacing: 0.05em; }
+  .hero-b h1 { font-size: 44px; font-weight: 700; line-height: 1.08; color: #1A1A1A; letter-spacing: -0.5px; margin: 0 0 16px; }
+  .hero-b h1 .green { color: #008060; }
+  .hero-b p { font-size: 17px; color: #6D7175; line-height: 1.5; margin: 0 0 28px; }
+  .hero-b__buttons { display: flex; gap: 12px; }
+  .hero-b__btn-primary {
+    display: inline-flex; align-items: center; gap: 8px; background: #008060; color: white;
+    padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none;
+  }
+  .hero-b__btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px; background: white; color: #008060;
+    padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; border: 1px solid #C9CCCF;
+  }
+
+  /* === CONCEPT C: Full-width with Green Accent Bar === */
+  .hero-c {
+    height: 420px; font-family: 'DM Sans', system-ui, sans-serif; position: relative;
+    background: #FFFFFF; display: flex; align-items: center; justify-content: center; text-align: center;
+  }
+  .hero-c__accent {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(90deg, #95BF47, #008060);
+  }
+  .hero-c__top-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: #008060;
+  }
+  .hero-c__inner { max-width: 700px; padding: 0 40px; }
+  .hero-c__shopify-row {
+    display: inline-flex; align-items: center; gap: 10px; margin-bottom: 24px;
+    background: #F0FDF4; padding: 8px 18px; border-radius: 24px; border: 1px solid #BBF7D0;
+  }
+  .hero-c__shopify-row svg { width: 18px; height: 20px; }
+  .hero-c__shopify-row span { font-size: 13px; font-weight: 600; color: #008060; }
+  .hero-c h1 { font-size: 52px; font-weight: 700; line-height: 1.06; color: #1A1A1A; letter-spacing: -1px; margin: 0 0 16px; }
+  .hero-c h1 em { font-style: normal; color: #008060; }
+  .hero-c p { font-size: 18px; color: #6D7175; line-height: 1.5; margin: 0 0 32px; }
+  .hero-c__cta {
+    display: inline-flex; align-items: center; gap: 10px; background: #008060; color: white;
+    padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; border: none;
+  }
+  .hero-c__stats {
+    display: flex; gap: 40px; justify-content: center; margin-top: 32px;
+  }
+  .hero-c__stat-num { font-size: 28px; font-weight: 700; color: #008060; }
+  .hero-c__stat-label { font-size: 12px; color: #8C9196; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+  /* Shopify bag SVG inline */
+  .shopify-bag { fill: #95BF47; }
+  .shopify-bag-shadow { fill: #6D9331; }
+  .shopify-bag-s { fill: white; }
+</style>
+
+<h2>Hero Split-Screen Concepts</h2>
+<p class="subtitle">Three directions for the StockPilot hero — all use Shopify green (#008060 / #95BF47), clean typography, and a modern split layout</p>
+
+<div class="options">
+
+  <!-- CONCEPT A -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content" style="width:100%">
+      <h3>Classic Split — Text Left, Green Right</h3>
+      <p>Clean 50/50 split. White left with copy + CTA, Shopify green right with a floating mock UI card showing live inventory status.</p>
+      <div class="concept">
+        <div class="concept-label">Preview<span>Desktop 1440px</span></div>
+        <div class="hero-a">
+          <div class="hero-a__left">
+            <div class="hero-a__badge">
+              <svg width="14" height="16" viewBox="0 0 24 28"><path d="M15.5 1.5c.5 2-1 3.5-1 3.5s2-.5 3 1c-1.5.5-2.5 0-2.5 0s.5 2 0 3.5c-1-1-2-1-2-1s0 2-1.5 3c-.5-1.5-1-2.5-1-2.5s-1.5 1-3 1c.5-1.5 1.5-2.5 1.5-2.5s-2 0-3-1.5c1.5-.5 3 0 3 0s-1-2 0-3.5c1 1 1.5 2 1.5 2s1-1.5 2.5-2c0 1-.5 2-.5 2s2-1 3-1z" fill="#95BF47"/><path d="M20 8v14l-8 4-8-4V8l8-4z" fill="none" stroke="#95BF47" stroke-width="1.5"/></svg>
+              Built for Shopify
+            </div>
+            <h1>Inventory intelligence for <em>modern merchants</em></h1>
+            <p>AI agents that watch your stock, predict demand, and auto-generate purchase orders — so you never miss a sale.</p>
+            <button class="hero-a__cta">
+              Install on Shopify
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="hero-a__right">
+            <div class="hero-a__mock">
+              <div class="hero-a__mock-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Live Inventory
+              </div>
+              <div class="hero-a__mock-row">
+                <span class="hero-a__mock-dot hero-a__mock-dot--green"></span>
+                <span>Organic Cotton Tee</span>
+                <span style="margin-left:auto; opacity:0.7">142 units</span>
+              </div>
+              <div class="hero-a__mock-row">
+                <span class="hero-a__mock-dot hero-a__mock-dot--yellow"></span>
+                <span>Recycled Hoodie</span>
+                <span style="margin-left:auto; opacity:0.7">7 units</span>
+              </div>
+              <div class="hero-a__mock-row">
+                <span class="hero-a__mock-dot hero-a__mock-dot--red"></span>
+                <span>Linen Pants</span>
+                <span style="margin-left:auto; opacity:0.7">0 units</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCEPT B -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content" style="width:100%">
+      <h3>Diagonal Split — Dynamic Angle</h3>
+      <p>White background with a diagonal green slice cutting across the right side. Text stays on white for readability, the angle adds energy and movement.</p>
+      <div class="concept">
+        <div class="concept-label">Preview<span>Desktop 1440px</span></div>
+        <div class="hero-b">
+          <div class="hero-b__green"></div>
+          <div class="hero-b__content">
+            <div class="hero-b__text">
+              <div class="hero-b__tag">
+                <svg width="20" height="23" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="#95BF47"/><path d="M213.3 50.7l-21.7-3.5-14.4-14.8c-1.1-1.2-2.7-1.8-4.3-2l-5 168.3 72.8-15.8s-17.8-121-18.8-125.5c-1.4-4.2-5.5-6.3-8.6-6.7z" fill="#5E8E3E"/><path d="M147.7 100l-8.2 30.5s-7.2-3.8-16-3.8c-12.8 0-13.5 8-13.5 10 0 11 28.8 15.2 28.8 41 0 20.3-12.8 33.3-30.2 33.3-20.8 0-31.5-13-31.5-13l5.5-18.5s11 9.3 20.2 9.3c6 0 8.5-4.8 8.5-8.2 0-14.3-23.7-15-23.7-38.5 0-19.8 14.2-39 42.8-39 11 0 17.3 3 17.3 3z" fill="white"/></svg>
+                <span>Shopify App</span>
+              </div>
+              <h1>Never lose a sale to <span class="green">empty shelves</span></h1>
+              <p>StockPilot's AI agents monitor every SKU, predict when you'll run out, and draft purchase orders before it's too late.</p>
+              <div class="hero-b__buttons">
+                <button class="hero-b__btn-primary">
+                  <svg width="14" height="16" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="white"/></svg>
+                  Install on Shopify
+                </button>
+                <button class="hero-b__btn-secondary">See how it works</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCEPT C -->
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content" style="width:100%">
+      <h3>Centered Hero — Green Accents + Stats Bar</h3>
+      <p>Full-width white with centered copy, a "Built for Shopify" pill badge, green accent bars top and bottom, and trust-building stats. Clean and confident.</p>
+      <div class="concept">
+        <div class="concept-label">Preview<span>Desktop 1440px</span></div>
+        <div class="hero-c">
+          <div class="hero-c__top-bar"></div>
+          <div class="hero-c__inner">
+            <div class="hero-c__shopify-row">
+              <svg width="18" height="20" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="#95BF47"/><path d="M213.3 50.7l-21.7-3.5-14.4-14.8c-1.1-1.2-2.7-1.8-4.3-2l-5 168.3 72.8-15.8s-17.8-121-18.8-125.5c-1.4-4.2-5.5-6.3-8.6-6.7z" fill="#5E8E3E"/></svg>
+              <span>Built for Shopify</span>
+            </div>
+            <h1>Your inventory, <em>on autopilot</em></h1>
+            <p>AI agents that monitor stock levels, predict demand, and auto-generate purchase orders — so you never lose a sale to an empty shelf.</p>
+            <button class="hero-c__cta">
+              Get Started Free
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <div class="hero-c__stats">
+              <div>
+                <div class="hero-c__stat-num">24/7</div>
+                <div class="hero-c__stat-label">Stock Monitoring</div>
+              </div>
+              <div>
+                <div class="hero-c__stat-num">5 min</div>
+                <div class="hero-c__stat-label">Setup Time</div>
+              </div>
+              <div>
+                <div class="hero-c__stat-num">0</div>
+                <div class="hero-c__stat-label">Missed Sales</div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-c__accent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

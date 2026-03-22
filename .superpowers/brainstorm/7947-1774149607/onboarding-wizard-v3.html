@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockPilot Onboarding</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #FAFAFA;
+    color: #1A1A1A;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Page wrapper ── */
+  .page {
+    display: none;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    animation: fadeSlideIn 0.4s ease-out;
+  }
+  .page.active { display: flex; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Top bar ── */
+  .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #1A1A1A;
+  }
+  .logo span { color: #8C9196; font-weight: 400; }
+  .step-count {
+    font-size: 13px;
+    color: #8C9196;
+    font-weight: 500;
+  }
+
+  /* ── Progress ── */
+  .progress-track {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #EDEEEF;
+    z-index: 20;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #1A1A1A;
+    border-radius: 0 4px 4px 0;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Content container ── */
+  .content {
+    max-width: 460px;
+    width: 100%;
+  }
+
+  /* ── Illustration area ── */
+  .illo {
+    margin-bottom: 32px;
+  }
+  .illo-blob {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .illo-blob.warm {
+    background: linear-gradient(135deg, #FFF5EB 0%, #FFECD2 100%);
+  }
+  .illo-blob.cool {
+    background: linear-gradient(135deg, #EBF4FF 0%, #D2E8FF 100%);
+  }
+  .illo-blob.mint {
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: #6D7175;
+    line-height: 1.5;
+    margin-bottom: 36px;
+  }
+
+  /* ── Form elements ── */
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A1A1A;
+    display: block;
+    margin-bottom: 8px;
+  }
+  label .hint { color: #8C9196; font-weight: 400; }
+
+  .input-wrap {
+    margin-bottom: 24px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #1A1A1A;
+    background: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="text"]:hover { border-color: #C9CCCF; }
+  input[type="text"]:focus {
+    border-color: #1A1A1A;
+    box-shadow: 0 0 0 3px rgba(26,26,26,0.06);
+  }
+  input[type="text"]::placeholder { color: #C0C4C8; }
+
+  /* Composite URL input */
+  .url-group {
+    display: flex;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #FFFFFF;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .url-group:hover { border-color: #C9CCCF; }
+  .url-group:focus-within {
+    border-color: #1A1A1A;
+    box-shadow: 0 0 0 3px rgba(26,26,26,0.06);
+  }
+  .url-group input {
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    padding: 14px 18px;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    background: transparent;
+  }
+  .url-group input::placeholder { color: #C0C4C8; }
+  .url-group .domain {
+    padding: 14px 16px;
+    font-size: 14px;
+    color: #8C9196;
+    background: #F9F9FA;
+    border-left: 1px solid #E1E3E5;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── Selection cards ── */
+  .select-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .select-card {
+    padding: 20px;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #FFFFFF;
+    position: relative;
+  }
+  .select-card:hover {
+    border-color: #C9CCCF;
+    background: #FDFDFD;
+  }
+  .select-card.selected {
+    border-color: #1A1A1A;
+    background: #FAFAFA;
+  }
+  .select-card.selected::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    background: #1A1A1A;
+    border-radius: 50%;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 6L5 9L10 3' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  .select-card .card-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+  .select-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .select-card p {
+    font-size: 12px;
+    color: #8C9196;
+    line-height: 1.4;
+  }
+
+  /* Single column selection (alert channels) */
+  .select-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .select-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #FFFFFF;
+  }
+  .select-row:hover { border-color: #C9CCCF; }
+  .select-row.selected { border-color: #1A1A1A; }
+  .select-row .row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .select-row .row-text h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .select-row .row-text p {
+    font-size: 12px;
+    color: #8C9196;
+  }
+  .select-row .row-check {
+    margin-left: auto;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .select-row.selected .row-check {
+    background: #1A1A1A;
+    border-color: #1A1A1A;
+  }
+  .badge-soon {
+    font-size: 10px;
+    font-weight: 600;
+    color: #8C9196;
+    background: #F3F3F5;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-left: 8px;
+  }
+
+  /* ── Threshold ── */
+  .threshold-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .threshold-btn {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 10px;
+    background: #FFF;
+    font-size: 18px;
+    color: #6D7175;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+    font-family: inherit;
+  }
+  .threshold-btn:hover { background: #F6F6F7; }
+  .threshold-btn:active { background: #EDEEEF; }
+  .threshold-value {
+    width: 72px;
+    height: 40px;
+    border: 1.5px solid #E1E3E5;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #1A1A1A;
+    outline: none;
+  }
+  .threshold-value:focus {
+    border-color: #1A1A1A;
+    box-shadow: 0 0 0 3px rgba(26,26,26,0.06);
+  }
+  .threshold-label {
+    font-size: 14px;
+    color: #6D7175;
+    margin-left: 8px;
+  }
+  .threshold-hint {
+    font-size: 12px;
+    color: #8C9196;
+    margin-bottom: 32px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    width: 100%;
+    padding: 15px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-dark {
+    background: #1A1A1A;
+    color: #FFFFFF;
+  }
+  .btn-dark:hover { background: #2D2D2D; }
+  .btn-dark:active { background: #111; transform: scale(0.99); }
+
+  .btn-ghost {
+    background: transparent;
+    color: #8C9196;
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px;
+  }
+  .btn-ghost:hover { color: #6D7175; }
+
+  /* ── Trust / scope badge ── */
+  .trust-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #F6F8FA;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #6D7175;
+  }
+  .trust-bar svg { flex-shrink: 0; }
+
+  /* ── Success page ── */
+  .success-icon {
+    width: 72px;
+    height: 72px;
+    background: #ECFDF5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .sync-status {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 24px 0 32px;
+    width: 100%;
+  }
+  .sync-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #FFFFFF;
+    border: 1px solid #E8E8EC;
+    border-radius: 12px;
+  }
+  .sync-item .dot-pulse {
+    width: 8px;
+    height: 8px;
+    background: #10B981;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .sync-item span { font-size: 14px; color: #1A1A1A; }
+  .sync-item .sync-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: #8C9196;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    h1 { font-size: 26px; }
+    .select-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-track">
+  <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+</div>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="logo">stockpilot <span>/ setup</span></div>
+  <div class="step-count" id="stepCount"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 1: Store name                         -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page active" id="page1">
+  <div class="content">
+    <div class="illo">
+      <div class="illo-blob warm">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E07C3E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+    </div>
+    <h1>First, what's your<br>store called?</h1>
+    <p class="subtitle">We'll use this to set up your workspace.</p>
+
+    <div class="input-wrap">
+      <label>Store name</label>
+      <input type="text" placeholder="Bean's Boutique">
+    </div>
+
+    <div class="input-wrap">
+      <label>What do you sell? <span class="hint">(optional — helps our AI)</span></label>
+      <div class="select-grid">
+        <div class="select-card" onclick="toggleCard(this)">
+          <div class="card-icon">👕</div>
+          <h3>Apparel</h3>
+          <p>Clothing & accessories</p>
+        </div>
+        <div class="select-card" onclick="toggleCard(this)">
+          <div class="card-icon">🏠</div>
+          <h3>Home</h3>
+          <p>Furniture & decor</p>
+        </div>
+        <div class="select-card" onclick="toggleCard(this)">
+          <div class="card-icon">💻</div>
+          <h3>Electronics</h3>
+          <p>Gadgets & devices</p>
+        </div>
+        <div class="select-card" onclick="toggleCard(this)">
+          <div class="card-icon">🎨</div>
+          <h3>Other</h3>
+          <p>Something different</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-dark" onclick="goTo(2)">Continue</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 2: Connect Shopify                    -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page2">
+  <div class="content">
+    <div class="illo">
+      <div class="illo-blob cool">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      </div>
+    </div>
+    <h1>Now let's connect<br>your Shopify store</h1>
+    <p class="subtitle">We'll pull in your products, stock levels, and order history. Nothing is modified — read-only access.</p>
+
+    <div class="input-wrap">
+      <label>Shopify store URL</label>
+      <div class="url-group">
+        <input type="text" placeholder="your-store">
+        <div class="domain">.myshopify.com</div>
+      </div>
+    </div>
+
+    <button class="btn btn-dark" onclick="goTo(3)">Connect to Shopify</button>
+    <button class="btn btn-ghost" onclick="goTo(3)">I'll do this later</button>
+
+    <div class="trust-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <span>Read-only access &middot; products, inventory, orders, customers &middot; revoke anytime</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 3: Alert preferences                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page3">
+  <div class="content">
+    <div class="illo">
+      <div class="illo-blob mint">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      </div>
+    </div>
+    <h1>When should we<br>give you a heads up?</h1>
+    <p class="subtitle">We'll watch your stock and notify you before things run out. Customize per-product later.</p>
+
+    <div class="input-wrap">
+      <label>Low-stock threshold</label>
+      <div class="threshold-control">
+        <button class="threshold-btn" onclick="adjustThreshold(-5)">−</button>
+        <input type="text" class="threshold-value" id="thresholdVal" value="10">
+        <button class="threshold-btn" onclick="adjustThreshold(5)">+</button>
+        <span class="threshold-label">units remaining</span>
+      </div>
+      <p class="threshold-hint">Most stores use 10–25 depending on how fast items sell</p>
+    </div>
+
+    <div class="input-wrap">
+      <label>How should we reach you?</label>
+      <div class="select-list">
+        <div class="select-row selected" onclick="toggleRow(this)">
+          <div class="row-icon" style="background: #EBF4FF;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </div>
+          <div class="row-text">
+            <h3>In-app notifications</h3>
+            <p>See alerts on your dashboard</p>
+          </div>
+          <div class="row-check">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="select-row" onclick="toggleRow(this)">
+          <div class="row-icon" style="background: #FFF5EB;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E07C3E" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="row-text">
+            <h3>Email digests</h3>
+            <p>Daily summary of low-stock items</p>
+          </div>
+          <div class="row-check">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="select-row" style="opacity: 0.55; cursor: default;" onclick="">
+          <div class="row-icon" style="background: #F3F3F5;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C9196" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          </div>
+          <div class="row-text">
+            <h3>Slack <span class="badge-soon">Coming soon</span></h3>
+            <p>Get pinged in your team channel</p>
+          </div>
+          <div class="row-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-dark" onclick="goTo(4)">Start using StockPilot</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 4: Success / syncing                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page4">
+  <div class="content" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+    <div class="success-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1>You're all set.</h1>
+    <p class="subtitle">We're syncing your store now. This usually takes under a minute.</p>
+
+    <div class="sync-status">
+      <div class="sync-item">
+        <div class="dot-pulse"></div>
+        <span>Products</span>
+        <span class="sync-count">142 found</span>
+      </div>
+      <div class="sync-item">
+        <div class="dot-pulse" style="animation-delay: 0.3s;"></div>
+        <span>Inventory levels</span>
+        <span class="sync-count">syncing...</span>
+      </div>
+      <div class="sync-item">
+        <div class="dot-pulse" style="animation-delay: 0.6s;"></div>
+        <span>Recent orders</span>
+        <span class="sync-count">syncing...</span>
+      </div>
+    </div>
+
+    <button class="btn btn-dark">Go to Dashboard</button>
+    <p style="margin-top: 16px; font-size: 13px; color: #8C9196;">We'll finish syncing in the background</p>
+  </div>
+</div>
+
+<script>
+  let currentPage = 1;
+  const totalPages = 4;
+
+  function updateUI() {
+    const stepLabels = ['', 'Store details', 'Connect Shopify', 'Alerts', 'Ready'];
+    document.getElementById('stepCount').textContent =
+      currentPage <= 3 ? `${currentPage} of 3 · ${stepLabels[currentPage]}` : '';
+    document.getElementById('progressFill').style.width =
+      currentPage <= 3 ? `${(currentPage / 3) * 100}%` : '100%';
+  }
+
+  function goTo(n) {
+    document.getElementById('page' + currentPage).classList.remove('active');
+    currentPage = n;
+    document.getElementById('page' + currentPage).classList.add('active');
+    updateUI();
+  }
+
+  function toggleCard(el) {
+    el.classList.toggle('selected');
+  }
+
+  function toggleRow(el) {
+    if (el.style.opacity) return;
+    el.classList.toggle('selected');
+  }
+
+  function adjustThreshold(delta) {
+    const input = document.getElementById('thresholdVal');
+    let val = parseInt(input.value) || 10;
+    val = Math.max(1, Math.min(999, val + delta));
+    input.value = val;
+  }
+
+  updateUI();
+</script>
+</body>
+</html>

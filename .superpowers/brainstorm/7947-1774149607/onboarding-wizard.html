@@ -1,0 +1,91 @@
+<h2>Onboarding Wizard — 3 Steps</h2>
+<p class="subtitle">What the user sees after signing up with Clerk</p>
+
+<div class="section">
+  <h3>Step 1: Store Details</h3>
+  <div class="mockup">
+    <div class="mockup-header">GET /onboarding/step/1</div>
+    <div class="mockup-body" style="padding: 32px; max-width: 480px; margin: 0 auto;">
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <div style="flex:1; height: 4px; background: #1A1A1A; border-radius: 2px;"></div>
+        <div style="flex:1; height: 4px; background: #E1E3E5; border-radius: 2px;"></div>
+        <div style="flex:1; height: 4px; background: #E1E3E5; border-radius: 2px;"></div>
+      </div>
+      <h3 style="margin: 0 0 4px;">What's your store called?</h3>
+      <p style="color: #6D7175; margin: 0 0 20px; font-size: 14px;">We'll use this to personalize your dashboard</p>
+      <label style="font-size: 13px; font-weight: 600; color: #1A1A1A; display: block; margin-bottom: 6px;">Store name</label>
+      <input class="mock-input" placeholder="e.g. Bean's Boutique" style="width: 100%; margin-bottom: 16px;">
+      <label style="font-size: 13px; font-weight: 600; color: #1A1A1A; display: block; margin-bottom: 6px;">What do you sell? <span style="color: #6D7175; font-weight: 400;">(optional)</span></label>
+      <input class="mock-input" placeholder="e.g. Clothing, Electronics, Home goods" style="width: 100%; margin-bottom: 24px;">
+      <button class="mock-button" style="width: 100%; padding: 10px; border: 1px solid #C9CCCF; background: #fff; color: #6D7175; font-weight: 600; cursor: pointer;">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Step 2: Connect Shopify</h3>
+  <div class="mockup">
+    <div class="mockup-header">GET /onboarding/step/2</div>
+    <div class="mockup-body" style="padding: 32px; max-width: 480px; margin: 0 auto;">
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <div style="flex:1; height: 4px; background: #1A1A1A; border-radius: 2px;"></div>
+        <div style="flex:1; height: 4px; background: #1A1A1A; border-radius: 2px;"></div>
+        <div style="flex:1; height: 4px; background: #E1E3E5; border-radius: 2px;"></div>
+      </div>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 56px; height: 56px; background: #F6F6F7; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; border: 1px solid #E1E3E5;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6D7175" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+      </div>
+      <h3 style="margin: 0 0 4px; text-align: center;">Connect your Shopify store</h3>
+      <p style="color: #6D7175; margin: 0 0 24px; font-size: 14px; text-align: center;">We'll sync your products, inventory levels, and orders</p>
+      <label style="font-size: 13px; font-weight: 600; color: #1A1A1A; display: block; margin-bottom: 6px;">Your Shopify store URL</label>
+      <div style="display: flex; gap: 0; margin-bottom: 8px;">
+        <input class="mock-input" placeholder="your-store" style="flex: 1; border-radius: 6px 0 0 6px; border-right: none;">
+        <div style="padding: 8px 12px; border: 1px solid #C9CCCF; background: #F6F6F7; color: #6D7175; font-size: 13px; border-radius: 0 6px 6px 0; display: flex; align-items: center;">.myshopify.com</div>
+      </div>
+      <p style="color: #8C9196; font-size: 12px; margin: 0 0 24px;">Read-only access: products, inventory, orders, customers</p>
+      <button class="mock-button" style="width: 100%; padding: 10px; border: 1px solid #C9CCCF; background: #fff; color: #6D7175; font-weight: 600; cursor: pointer;">Connect to Shopify</button>
+      <p style="text-align: center; margin: 12px 0 0; font-size: 13px;"><a style="color: #2C6ECB; text-decoration: none;">Skip for now</a></p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Step 3: Configure Alerts</h3>
+  <div class="mockup">
+    <div class="mockup-header">GET /onboarding/step/3</div>
+    <div class="mockup-body" style="padding: 32px; max-width: 480px; margin: 0 auto;">
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <div style="flex:1; height: 4px; background: #1A1A1A; border-radius: 2px;"></div>
+        <div style="flex:1; height: 4px; background: #1A1A1A; border-radius: 2px;"></div>
+        <div style="flex:1; height: 4px; background: #1A1A1A; border-radius: 2px;"></div>
+      </div>
+      <h3 style="margin: 0 0 4px;">When should we alert you?</h3>
+      <p style="color: #6D7175; margin: 0 0 20px; font-size: 14px;">Set your default low-stock threshold. You can customize per-product later.</p>
+      <label style="font-size: 13px; font-weight: 600; color: #1A1A1A; display: block; margin-bottom: 6px;">Alert me when stock drops below</label>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+        <input class="mock-input" value="10" style="width: 80px; text-align: center;">
+        <span style="color: #6D7175; font-size: 14px;">units</span>
+      </div>
+      <label style="font-size: 13px; font-weight: 600; color: #1A1A1A; display: block; margin-bottom: 6px;">Send alerts via</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <div style="flex: 1; padding: 10px; border: 2px solid #1A1A1A; border-radius: 6px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer;">In-app</div>
+        <div style="flex: 1; padding: 10px; border: 1px solid #C9CCCF; border-radius: 6px; text-align: center; font-size: 13px; color: #6D7175; cursor: pointer;">Email</div>
+        <div style="flex: 1; padding: 10px; border: 1px solid #C9CCCF; border-radius: 6px; text-align: center; font-size: 13px; color: #8C9196; cursor: pointer;">Slack <span style="font-size: 10px;">(soon)</span></div>
+      </div>
+      <button class="mock-button" style="width: 100%; padding: 10px; border: 1px solid #C9CCCF; background: #fff; color: #6D7175; font-weight: 600; cursor: pointer;">Go to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Returning User (Already Connected)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Login → Dashboard (no wizard)</div>
+    <div class="mockup-body" style="padding: 24px; text-align: center; color: #6D7175;">
+      <p style="font-size: 14px;">Users who completed onboarding go straight to <code style="background:#F6F6F7; padding:2px 6px; border-radius:4px;">/dashboard</code></p>
+      <p style="font-size: 14px;">Users who skipped Shopify connection see a banner: "Connect your store to unlock all features"</p>
+    </div>
+  </div>
+</div>

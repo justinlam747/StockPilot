@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockPilot — Full Landing Concept</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0B1210;
+  --bg-card: #111E19;
+  --bg-card-hover: #15261F;
+  --border: rgba(149,191,71,0.12);
+  --border-light: rgba(255,255,255,0.06);
+  --green: #95BF47;
+  --green-dark: #008060;
+  --green-glow: rgba(0,128,96,0.4);
+  --text: #F1F3F0;
+  --text-secondary: #8B9A8F;
+  --text-muted: #566058;
+  --font: 'DM Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ━━━ NAV ━━━ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  backdrop-filter: blur(20px);
+  background: rgba(11,18,16,0.8);
+  border-bottom: 1px solid var(--border-light);
+}
+.nav__inner {
+  max-width: 1240px; margin: 0 auto; padding: 0 48px;
+  height: 64px; display: flex; align-items: center; justify-content: space-between;
+}
+.nav__brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 17px; font-weight: 700; color: #fff; text-decoration: none; letter-spacing: -0.02em;
+}
+.nav__links { display: flex; align-items: center; gap: 36px; }
+.nav__link {
+  color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500;
+  transition: color 0.2s;
+}
+.nav__link:hover { color: #fff; }
+.nav__cta-outline {
+  color: var(--green); text-decoration: none; font-size: 13px; font-weight: 600;
+  border: 1px solid rgba(149,191,71,0.4); padding: 8px 22px; border-radius: 8px;
+  transition: all 0.2s; letter-spacing: 0.02em;
+}
+.nav__cta-outline:hover { background: rgba(149,191,71,0.1); border-color: var(--green); }
+
+/* ━━━ HERO ━━━ */
+.hero {
+  position: relative; min-height: 100vh; display: flex; align-items: center;
+  padding: 100px 48px 80px; max-width: 1240px; margin: 0 auto;
+  overflow: visible;
+}
+.hero__glow-1 {
+  position: fixed; top: -300px; right: -100px; width: 800px; height: 800px;
+  background: radial-gradient(ellipse, rgba(0,128,96,0.2) 0%, transparent 65%);
+  pointer-events: none; z-index: 0;
+}
+.hero__glow-2 {
+  position: fixed; top: 100px; right: 200px; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(149,191,71,0.1) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+.hero__glow-corner {
+  position: fixed; top: 0; right: 0; width: 600px; height: 400px;
+  background: linear-gradient(225deg, rgba(0,128,96,0.15) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+.hero__left {
+  flex: 0 0 480px; position: relative; z-index: 5;
+}
+.hero__badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 20px;
+  background: rgba(149,191,71,0.08); border: 1px solid rgba(149,191,71,0.2);
+  margin-bottom: 32px;
+}
+.hero__badge-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+.hero__badge-text {
+  font-size: 11px; font-weight: 600; color: var(--green);
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+.hero__headline {
+  font-size: 58px; font-weight: 700; line-height: 1.06;
+  letter-spacing: -2px; color: #fff; margin-bottom: 24px;
+}
+.hero__headline .accent {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero__subtitle {
+  font-size: 17px; line-height: 1.7; color: var(--text-secondary);
+  max-width: 400px; margin-bottom: 40px;
+}
+.hero__buttons { display: flex; gap: 14px; align-items: center; }
+.hero__btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 600;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  color: #fff; text-decoration: none; border: none; cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0,128,96,0.3); transition: all 0.3s;
+}
+.hero__btn-primary:hover {
+  box-shadow: 0 8px 40px rgba(0,128,96,0.45); transform: translateY(-1px);
+}
+.hero__btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 500;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.1); text-decoration: none;
+  transition: all 0.2s;
+}
+.hero__btn-secondary:hover { border-color: rgba(255,255,255,0.2); color: #fff; }
+
+.hero__social-proof {
+  margin-top: 48px; display: flex; align-items: center; gap: 16px;
+}
+.hero__avatars { display: flex; }
+.hero__avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--bg); margin-left: -8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff;
+}
+.hero__avatar:first-child { margin-left: 0; }
+.hero__social-text { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+.hero__social-text strong { color: var(--text-secondary); }
+
+/* ━━━ 3D SCENE ━━━ */
+.hero__right {
+  flex: 1; position: relative; z-index: 3;
+  perspective: 1200px; min-height: 600px;
+  margin-left: 40px;
+}
+.scene {
+  position: relative; width: 100%; height: 600px;
+  transform-style: preserve-3d;
+}
+
+.float-card {
+  position: absolute; border-radius: 14px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03);
+  padding: 18px; transition: transform 0.4s ease, box-shadow 0.4s ease;
+  backdrop-filter: blur(10px);
+}
+.float-card:hover {
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 30px rgba(0,128,96,0.1);
+}
+
+/* Card 1: Alert card - large, back-left */
+.float-card--alerts {
+  top: 20px; left: 0; width: 300px;
+  transform: rotateY(12deg) rotateX(-3deg) translateZ(0px);
+  z-index: 2;
+}
+.float-card--alerts:hover { transform: rotateY(8deg) rotateX(-1deg) translateZ(20px); }
+
+/* Card 2: Chart - large, center-right */
+.float-card--chart {
+  top: 60px; right: 0; width: 280px;
+  transform: rotateY(-8deg) rotateX(2deg) translateZ(30px);
+  z-index: 3;
+}
+.float-card--chart:hover { transform: rotateY(-4deg) rotateX(1deg) translateZ(50px); }
+
+/* Card 3: Shopify bag + stats - floating front */
+.float-card--shopify {
+  bottom: 120px; left: 60px; width: 240px;
+  transform: rotateY(6deg) rotateX(-5deg) translateZ(60px);
+  z-index: 5;
+  background: linear-gradient(145deg, rgba(17,30,25,0.95), rgba(0,128,96,0.08));
+  border-color: rgba(149,191,71,0.2);
+}
+.float-card--shopify:hover { transform: rotateY(3deg) rotateX(-2deg) translateZ(80px); }
+
+/* Card 4: Small PO card */
+.float-card--po {
+  bottom: 50px; right: 30px; width: 220px;
+  transform: rotateY(-12deg) rotateX(4deg) translateZ(20px);
+  z-index: 4;
+}
+.float-card--po:hover { transform: rotateY(-8deg) rotateX(2deg) translateZ(40px); }
+
+/* Card 5: AI Agent badge - small, floating top */
+.float-card--agent {
+  top: 0; right: 80px; width: 180px;
+  transform: rotateY(-5deg) rotateX(-8deg) translateZ(40px);
+  z-index: 4;
+  padding: 14px;
+}
+.float-card--agent:hover { transform: rotateY(-2deg) rotateX(-4deg) translateZ(60px); }
+
+/* Float card inner styles */
+.fc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.fc-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.fc-badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; background: rgba(149,191,71,0.12); color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.fc-alert-row {
+  display: flex; align-items: center; gap: 8px; padding: 7px 0;
+  border-bottom: 1px solid var(--border-light); font-size: 12px;
+}
+.fc-alert-row:last-child { border-bottom: none; }
+.fc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.fc-dot--red { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+.fc-dot--yellow { background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.3); }
+.fc-dot--green { background: var(--green); box-shadow: 0 0 6px rgba(149,191,71,0.3); }
+.fc-alert-text { color: #D1D5DB; flex: 1; }
+.fc-alert-time { color: var(--text-muted); font-size: 10px; }
+
+/* Mini chart */
+.fc-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin-top: 8px; }
+.fc-bar {
+  flex: 1; border-radius: 2px 2px 0 0;
+  background: linear-gradient(to top, var(--green-dark), var(--green));
+  opacity: 0.7;
+}
+.fc-bar:nth-child(odd) { opacity: 0.45; background: var(--green-dark); }
+
+.fc-big-num { font-size: 28px; font-weight: 700; color: #fff; margin: 4px 0; }
+.fc-big-label { font-size: 11px; color: var(--text-muted); }
+.fc-change { font-size: 11px; color: var(--green); font-weight: 600; }
+
+/* Shopify card */
+.fc-shopify-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.fc-shopify-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(149,191,71,0.25);
+}
+.fc-shopify-info {}
+.fc-shopify-name { font-size: 14px; font-weight: 700; color: #fff; }
+.fc-shopify-status { font-size: 11px; color: var(--green); margin-top: 2px; }
+.fc-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fc-stat-box {
+  background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px;
+  border: 1px solid var(--border-light);
+}
+.fc-stat-num { font-size: 18px; font-weight: 700; color: #fff; }
+.fc-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+/* PO card */
+.fc-po-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.fc-po-num { font-size: 14px; font-weight: 700; color: #fff; }
+.fc-po-status { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(149,191,71,0.12); color: var(--green); font-weight: 600; }
+.fc-po-row { display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; }
+.fc-po-label { color: var(--text-muted); }
+.fc-po-val { color: var(--text-secondary); font-weight: 500; }
+
+/* Agent card */
+.fc-agent-row { display: flex; align-items: center; gap: 10px; }
+.fc-agent-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(149,191,71,0.2), rgba(0,128,96,0.2));
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(149,191,71,0.2);
+}
+.fc-agent-name { font-size: 13px; font-weight: 600; color: #fff; }
+.fc-agent-status { font-size: 10px; color: var(--green); display: flex; align-items: center; gap: 4px; }
+.fc-pulse { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--green); } 50% { opacity: 0.4; box-shadow: 0 0 8px var(--green); } }
+
+/* Floating orbs */
+.orb {
+  position: absolute; border-radius: 50%; pointer-events: none; z-index: 1;
+}
+.orb--1 {
+  width: 200px; height: 200px; top: 80px; right: -40px;
+  background: radial-gradient(circle, rgba(0,128,96,0.15) 0%, transparent 70%);
+}
+.orb--2 {
+  width: 140px; height: 140px; bottom: 100px; left: 20px;
+  background: radial-gradient(circle, rgba(149,191,71,0.1) 0%, transparent 70%);
+}
+.orb--3 {
+  width: 80px; height: 80px; top: 40px; left: 120px;
+  background: radial-gradient(circle, rgba(149,191,71,0.15) 0%, transparent 70%);
+}
+
+/* ━━━ SECTION SHARED ━━━ */
+.section {
+  position: relative; z-index: 5;
+  max-width: 1240px; margin: 0 auto; padding: 120px 48px;
+}
+.section__label {
+  font-size: 11px; font-weight: 700; color: var(--green);
+  text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 16px;
+}
+.section__title {
+  font-size: 42px; font-weight: 700; line-height: 1.1;
+  letter-spacing: -1px; color: #fff; margin-bottom: 20px;
+}
+.section__subtitle {
+  font-size: 16px; color: var(--text-secondary); line-height: 1.6;
+  max-width: 500px;
+}
+.section__divider {
+  height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+  max-width: 1240px; margin: 0 auto;
+}
+
+/* ━━━ HOW IT WORKS (5 steps) ━━━ */
+.steps {
+  display: flex; flex-direction: column; gap: 0; margin-top: 64px;
+  position: relative;
+}
+.steps__line {
+  position: absolute; left: 23px; top: 24px; bottom: 24px; width: 2px;
+  background: linear-gradient(to bottom, var(--green), var(--green-dark), rgba(0,128,96,0.1));
+}
+.step {
+  display: flex; gap: 32px; padding: 28px 0;
+  position: relative;
+}
+.step__num {
+  width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+  background: var(--bg-card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: var(--green);
+  position: relative; z-index: 2;
+}
+.step__content { flex: 1; }
+.step__title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.step__desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; max-width: 460px; }
+
+/* ━━━ FEATURES GRID ━━━ */
+.features {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 64px;
+}
+.feature-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px; transition: all 0.3s;
+}
+.feature-card:hover {
+  border-color: rgba(149,191,71,0.25);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.feature-card__icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, rgba(149,191,71,0.15), rgba(0,128,96,0.08));
+  border: 1px solid rgba(149,191,71,0.15);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+.feature-card__title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.feature-card__desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ━━━ BOTTOM CTA ━━━ */
+.cta-section {
+  position: relative; z-index: 5; text-align: center;
+  padding: 120px 48px 80px;
+}
+.cta-section__glow {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(0,128,96,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cta-section__inner { position: relative; z-index: 2; }
+.cta-section__title {
+  font-size: 48px; font-weight: 700; letter-spacing: -1.5px; color: #fff; margin-bottom: 16px;
+}
+.cta-section__title .accent {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.cta-section__subtitle {
+  font-size: 17px; color: var(--text-secondary); margin-bottom: 40px; line-height: 1.6;
+}
+.cta-section__btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 40px; border-radius: 12px; font-size: 16px; font-weight: 600;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  color: #fff; text-decoration: none; border: none;
+  box-shadow: 0 4px 30px rgba(0,128,96,0.35); transition: all 0.3s;
+}
+.cta-section__btn:hover { box-shadow: 0 8px 50px rgba(0,128,96,0.5); transform: translateY(-2px); }
+.cta-section__btn svg { flex-shrink: 0; }
+
+/* ━━━ FOOTER ━━━ */
+.footer {
+  border-top: 1px solid var(--border-light);
+  max-width: 1240px; margin: 0 auto; padding: 40px 48px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer__left { font-size: 13px; color: var(--text-muted); }
+.footer__right { display: flex; gap: 24px; }
+.footer__link { font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer__link:hover { color: var(--text-secondary); }
+
+/* ━━━ ANIMATIONS ━━━ */
+@keyframes float-1 { 0%, 100% { transform: rotateY(12deg) rotateX(-3deg) translateZ(0px) translateY(0px); } 50% { transform: rotateY(12deg) rotateX(-3deg) translateZ(0px) translateY(-12px); } }
+@keyframes float-2 { 0%, 100% { transform: rotateY(-8deg) rotateX(2deg) translateZ(30px) translateY(0px); } 50% { transform: rotateY(-8deg) rotateX(2deg) translateZ(30px) translateY(-8px); } }
+@keyframes float-3 { 0%, 100% { transform: rotateY(6deg) rotateX(-5deg) translateZ(60px) translateY(0px); } 50% { transform: rotateY(6deg) rotateX(-5deg) translateZ(60px) translateY(-15px); } }
+@keyframes float-4 { 0%, 100% { transform: rotateY(-12deg) rotateX(4deg) translateZ(20px) translateY(0px); } 50% { transform: rotateY(-12deg) rotateX(4deg) translateZ(20px) translateY(-10px); } }
+@keyframes float-5 { 0%, 100% { transform: rotateY(-5deg) rotateX(-8deg) translateZ(40px) translateY(0px); } 50% { transform: rotateY(-5deg) rotateX(-8deg) translateZ(40px) translateY(-8px); } }
+
+.float-card--alerts { animation: float-1 6s ease-in-out infinite; }
+.float-card--chart { animation: float-2 7s ease-in-out infinite 0.5s; }
+.float-card--shopify { animation: float-3 5s ease-in-out infinite 1s; }
+.float-card--po { animation: float-4 8s ease-in-out infinite 1.5s; }
+.float-card--agent { animation: float-5 6s ease-in-out infinite 0.8s; }
+</style>
+</head>
+<body>
+
+<!-- ━━━ AMBIENT GLOWS ━━━ -->
+<div class="hero__glow-1"></div>
+<div class="hero__glow-2"></div>
+<div class="hero__glow-corner"></div>
+
+<!-- ━━━ NAV ━━━ -->
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="#" class="nav__brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="6" fill="#008060"/>
+        <path d="M7 17V7l5 3v7l5-3V7" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      StockPilot
+    </a>
+    <div class="nav__links">
+      <a href="#" class="nav__link">Features</a>
+      <a href="#" class="nav__link">Vision</a>
+      <a href="#" class="nav__link" style="color: #C8CEC9;">Sign In</a>
+      <a href="#" class="nav__cta-outline">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ━━━ HERO ━━━ -->
+<section class="hero">
+  <div class="hero__left">
+    <div class="hero__badge">
+      <span class="hero__badge-dot"></span>
+      <span class="hero__badge-text">Built for Shopify</span>
+    </div>
+    <h1 class="hero__headline">
+      Inventory<br>intelligence<br>for <span class="accent">modern<br>merchants</span>
+    </h1>
+    <p class="hero__subtitle">
+      AI agents that watch your stock, predict demand, and auto-generate purchase orders — so you never lose a sale to an empty shelf.
+    </p>
+    <div class="hero__buttons">
+      <a href="/install" class="hero__btn-primary">
+        <svg width="18" height="20" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="white"/></svg>
+        Install on Shopify
+      </a>
+      <a href="#how" class="hero__btn-secondary">How it works</a>
+    </div>
+    <div class="hero__social-proof">
+      <div class="hero__avatars">
+        <div class="hero__avatar" style="background: #008060;">JM</div>
+        <div class="hero__avatar" style="background: #5E8E3E;">SK</div>
+        <div class="hero__avatar" style="background: #95BF47;">RL</div>
+        <div class="hero__avatar" style="background: #3D7B4F;">AT</div>
+      </div>
+      <div class="hero__social-text"><strong>500+</strong> merchants trust StockPilot</div>
+    </div>
+  </div>
+
+  <!-- 3D Floating Scene -->
+  <div class="hero__right">
+    <div class="scene">
+      <!-- Ambient orbs -->
+      <div class="orb orb--1"></div>
+      <div class="orb orb--2"></div>
+      <div class="orb orb--3"></div>
+
+      <!-- Card 1: Alerts -->
+      <div class="float-card float-card--alerts">
+        <div class="fc-header">
+          <span class="fc-title">Live Alerts</span>
+          <span class="fc-badge">3 Active</span>
+        </div>
+        <div class="fc-alert-row">
+          <span class="fc-dot fc-dot--red"></span>
+          <span class="fc-alert-text">Linen Pants — out of stock</span>
+          <span class="fc-alert-time">12m</span>
+        </div>
+        <div class="fc-alert-row">
+          <span class="fc-dot fc-dot--yellow"></span>
+          <span class="fc-alert-text">Recycled Hoodie — 7 left</span>
+          <span class="fc-alert-time">1h</span>
+        </div>
+        <div class="fc-alert-row">
+          <span class="fc-dot fc-dot--green"></span>
+          <span class="fc-alert-text">Cotton Tee — restocked</span>
+          <span class="fc-alert-time">3h</span>
+        </div>
+        <div class="fc-alert-row">
+          <span class="fc-dot fc-dot--yellow"></span>
+          <span class="fc-alert-text">Canvas Cap — threshold hit</span>
+          <span class="fc-alert-time">5h</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Chart -->
+      <div class="float-card float-card--chart">
+        <div class="fc-header">
+          <span class="fc-title">Stock Value</span>
+          <span class="fc-change">↑ 12.4%</span>
+        </div>
+        <div class="fc-big-num">$48,389</div>
+        <div class="fc-big-label">Total inventory value</div>
+        <div class="fc-chart">
+          <div class="fc-bar" style="height: 40%"></div>
+          <div class="fc-bar" style="height: 55%"></div>
+          <div class="fc-bar" style="height: 45%"></div>
+          <div class="fc-bar" style="height: 65%"></div>
+          <div class="fc-bar" style="height: 50%"></div>
+          <div class="fc-bar" style="height: 70%"></div>
+          <div class="fc-bar" style="height: 60%"></div>
+          <div class="fc-bar" style="height: 75%"></div>
+          <div class="fc-bar" style="height: 80%"></div>
+          <div class="fc-bar" style="height: 90%"></div>
+          <div class="fc-bar" style="height: 85%"></div>
+          <div class="fc-bar" style="height: 95%"></div>
+        </div>
+      </div>
+
+      <!-- Card 3: Shopify integration -->
+      <div class="float-card float-card--shopify">
+        <div class="fc-shopify-row">
+          <div class="fc-shopify-icon">
+            <svg width="24" height="26" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="white"/></svg>
+          </div>
+          <div>
+            <div class="fc-shopify-name">Shopify</div>
+            <div class="fc-shopify-status">Connected</div>
+          </div>
+        </div>
+        <div class="fc-stat-grid">
+          <div class="fc-stat-box">
+            <div class="fc-stat-num">248</div>
+            <div class="fc-stat-label">Products</div>
+          </div>
+          <div class="fc-stat-box">
+            <div class="fc-stat-num">1.2k</div>
+            <div class="fc-stat-label">Variants</div>
+          </div>
+          <div class="fc-stat-box">
+            <div class="fc-stat-num">12</div>
+            <div class="fc-stat-label">Suppliers</div>
+          </div>
+          <div class="fc-stat-box">
+            <div class="fc-stat-num">99%</div>
+            <div class="fc-stat-label">Uptime</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Purchase Order -->
+      <div class="float-card float-card--po">
+        <div class="fc-po-header">
+          <span class="fc-po-num">PO #1042</span>
+          <span class="fc-po-status">AI Generated</span>
+        </div>
+        <div class="fc-po-row"><span class="fc-po-label">Supplier</span><span class="fc-po-val">TextileCo</span></div>
+        <div class="fc-po-row"><span class="fc-po-label">Items</span><span class="fc-po-val">6 products</span></div>
+        <div class="fc-po-row"><span class="fc-po-label">Value</span><span class="fc-po-val">$2,340.00</span></div>
+        <div class="fc-po-row"><span class="fc-po-label">ETA</span><span class="fc-po-val">14 days</span></div>
+      </div>
+
+      <!-- Card 5: AI Agent -->
+      <div class="float-card float-card--agent">
+        <div class="fc-agent-row">
+          <div class="fc-agent-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <div class="fc-agent-name">AI Agent</div>
+            <div class="fc-agent-status"><span class="fc-pulse"></span> Monitoring</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ DIVIDER ━━━ -->
+<div class="section__divider"></div>
+
+<!-- ━━━ HOW IT WORKS ━━━ -->
+<section class="section" id="how">
+  <div class="section__label">How It Works</div>
+  <div class="section__title">Up and running in<br>five minutes</div>
+  <div class="section__subtitle">From install to your first AI-generated purchase order — no configuration headaches.</div>
+
+  <div class="steps">
+    <div class="steps__line"></div>
+    <div class="step">
+      <div class="step__num">1</div>
+      <div class="step__content">
+        <div class="step__title">Install from Shopify</div>
+        <div class="step__desc">One click from the Shopify App Store. Authorize read-only access to your products, inventory, and orders — nothing else.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step__num">2</div>
+      <div class="step__content">
+        <div class="step__title">Your products sync instantly</div>
+        <div class="step__desc">StockPilot pulls every product, variant, and stock level from your store. The initial sync takes seconds, not hours.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step__num">3</div>
+      <div class="step__content">
+        <div class="step__title">Add your suppliers</div>
+        <div class="step__desc">Link suppliers to your products with lead times and contact info. StockPilot uses this to calculate optimal reorder timing.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step__num">4</div>
+      <div class="step__content">
+        <div class="step__title">Set your alert thresholds</div>
+        <div class="step__desc">Choose when you want to be notified — per product or globally. Set critical and warning levels that match your sell-through velocity.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step__num">5</div>
+      <div class="step__content">
+        <div class="step__title">AI takes over</div>
+        <div class="step__desc">The inventory agent monitors 24/7, fires alerts when stock drops, and auto-drafts purchase orders for your review. You approve, it sends.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ DIVIDER ━━━ -->
+<div class="section__divider"></div>
+
+<!-- ━━━ FEATURES ━━━ -->
+<section class="section">
+  <div class="section__label">Features</div>
+  <div class="section__title">Everything you need to<br>never stock out again</div>
+  <div class="section__subtitle">Built specifically for Shopify merchants who are tired of spreadsheets and guesswork.</div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div class="feature-card__title">Real-Time Alerts</div>
+      <div class="feature-card__desc">Configurable thresholds per variant. Get notified the moment stock drops below your comfort zone — not after it's already gone.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="feature-card__title">AI Purchase Orders</div>
+      <div class="feature-card__desc">Claude AI analyzes your stock levels, sell-through rates, and supplier lead times to draft purchase orders automatically.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="feature-card__title">Weekly Reports</div>
+      <div class="feature-card__desc">Automated inventory reports with trend analysis, top sellers, and stockout events. Delivered on your schedule, in your timezone.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="feature-card__title">Supplier Hub</div>
+      <div class="feature-card__desc">Track lead times, contacts, and order history for every supplier. Link products to suppliers for smarter reorder recommendations.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      </div>
+      <div class="feature-card__title">Inventory Trends</div>
+      <div class="feature-card__desc">14-day stock history for every variant. Spot patterns, predict shortages, and make data-driven purchasing decisions.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="feature-card__title">GDPR Compliant</div>
+      <div class="feature-card__desc">Full data export, redaction, and deletion. We handle Shopify's mandatory webhooks so you stay compliant without lifting a finger.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ BOTTOM CTA ━━━ -->
+<section class="cta-section">
+  <div class="cta-section__glow"></div>
+  <div class="cta-section__inner">
+    <h2 class="cta-section__title">Inventory on <span class="accent">autopilot</span></h2>
+    <p class="cta-section__subtitle">Join 500+ merchants who stopped losing sales to empty shelves.</p>
+    <a href="/install" class="cta-section__btn">
+      <svg width="18" height="20" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="white"/></svg>
+      Install on Shopify
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ━━━ FOOTER ━━━ -->
+<footer class="footer">
+  <div class="footer__left">&copy; 2026 StockPilot</div>
+  <nav class="footer__right">
+    <a href="#" class="footer__link">Vision</a>
+    <a href="#" class="footer__link">Privacy Policy</a>
+    <a href="#" class="footer__link">Terms of Service</a>
+  </nav>
+</footer>
+
+</body>
+</html>

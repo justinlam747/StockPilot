@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockPilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #95BF47;
+  --accent-bright: #BAFF29;
+  --dark: #0F1A14;
+  --dark-card: #162019;
+  --dark-muted: #1E2D24;
+  --white: #FFFFFF;
+  --off-white: #F7F8F5;
+  --gray-100: #F0F1ED;
+  --gray-200: #E2E4DE;
+  --gray-400: #9EA396;
+  --gray-600: #5C6358;
+  --gray-800: #2D332B;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--dark);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ━━━ NAV ━━━ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 0 48px;
+  background: rgba(15,26,20,0.6);
+  backdrop-filter: blur(20px);
+}
+.nav__inner {
+  max-width: 1100px; margin: 0 auto;
+  height: 72px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 0.5px solid rgba(255,255,255,0.06);
+}
+.nav__brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 800; color: var(--white);
+  text-decoration: none; letter-spacing: -0.04em;
+}
+.nav__brand-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+}
+.nav__links { display: flex; align-items: center; gap: 8px; }
+.nav__link {
+  color: var(--gray-400); text-decoration: none; font-size: 14px; font-weight: 500;
+  padding: 8px 16px; border-radius: 6px; transition: all 0.25s;
+}
+.nav__link:hover { color: var(--white); }
+.nav__cta {
+  color: var(--dark); text-decoration: none; font-size: 13px; font-weight: 700;
+  padding: 10px 24px; border-radius: 100px;
+  background: var(--accent-bright); transition: all 0.25s; letter-spacing: -0.01em;
+}
+.nav__cta:hover { background: var(--accent); }
+
+/* ━━━ HERO ━━━ */
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 100px 48px 60px; text-align: center;
+  position: relative; overflow: hidden;
+}
+
+/* Animated gradient orbs */
+.hero__orb {
+  position: absolute; border-radius: 50%; filter: blur(80px);
+  pointer-events: none; will-change: transform;
+}
+.hero__orb--1 {
+  width: 600px; height: 600px; top: -200px; left: -150px;
+  background: radial-gradient(circle, rgba(149,191,71,0.15) 0%, transparent 70%);
+  animation: orb-drift-1 12s ease-in-out infinite;
+}
+.hero__orb--2 {
+  width: 500px; height: 500px; top: -100px; right: -100px;
+  background: radial-gradient(circle, rgba(186,255,41,0.1) 0%, transparent 70%);
+  animation: orb-drift-2 15s ease-in-out infinite 2s;
+}
+.hero__orb--3 {
+  width: 400px; height: 400px; bottom: 0; left: 30%;
+  background: radial-gradient(circle, rgba(0,128,96,0.12) 0%, transparent 70%);
+  animation: orb-drift-3 10s ease-in-out infinite 4s;
+}
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, 30px) scale(1.1); }
+  66% { transform: translate(-30px, 50px) scale(0.95); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-50px, 40px) scale(1.05); }
+  66% { transform: translate(30px, -20px) scale(0.9); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.15); }
+}
+
+/* Grid lines */
+.hero__grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 40%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 40%, black 20%, transparent 70%);
+}
+
+/* Accent line at top */
+.hero__accent-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 10%, var(--accent-bright) 50%, transparent 90%);
+  opacity: 0.6;
+}
+
+/* Floating particles */
+.particle {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: var(--accent-bright);
+}
+.particle--1 { width: 3px; height: 3px; top: 25%; left: 15%; opacity: 0.4; animation: float-p 8s ease-in-out infinite; }
+.particle--2 { width: 2px; height: 2px; top: 35%; right: 20%; opacity: 0.3; animation: float-p 6s ease-in-out infinite 1s; }
+.particle--3 { width: 4px; height: 4px; top: 60%; left: 10%; opacity: 0.2; animation: float-p 10s ease-in-out infinite 3s; }
+.particle--4 { width: 2px; height: 2px; top: 20%; right: 12%; opacity: 0.5; animation: float-p 7s ease-in-out infinite 2s; }
+.particle--5 { width: 3px; height: 3px; top: 70%; right: 18%; opacity: 0.3; animation: float-p 9s ease-in-out infinite 4s; }
+.particle--6 { width: 2px; height: 2px; top: 45%; left: 22%; opacity: 0.4; animation: float-p 11s ease-in-out infinite 1.5s; }
+.particle--7 { width: 3px; height: 3px; top: 55%; right: 30%; opacity: 0.25; animation: float-p 8s ease-in-out infinite 3.5s; }
+.particle--8 { width: 2px; height: 2px; top: 80%; left: 35%; opacity: 0.35; animation: float-p 7s ease-in-out infinite 5s; }
+@keyframes float-p {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.15; }
+  25% { transform: translateY(-20px) translateX(5px); opacity: 0.5; }
+  50% { transform: translateY(-10px) translateX(-8px); opacity: 0.3; }
+  75% { transform: translateY(-25px) translateX(3px); opacity: 0.45; }
+}
+
+/* Decorative rings */
+.hero__ring {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  border: 1px solid rgba(149,191,71,0.08);
+}
+.hero__ring--1 {
+  width: 500px; height: 500px; top: 10%; left: -180px;
+  animation: ring-rotate 30s linear infinite;
+}
+.hero__ring--2 {
+  width: 350px; height: 350px; bottom: 5%; right: -120px;
+  border-style: dashed;
+  border-color: rgba(186,255,41,0.06);
+  animation: ring-rotate 25s linear infinite reverse;
+}
+@keyframes ring-rotate {
+  from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+}
+
+/* Hero content - stagger animations */
+.hero__content {
+  position: relative; z-index: 5;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.hero__pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 20px; border-radius: 100px;
+  border: 1px solid rgba(149,191,71,0.25);
+  background: rgba(149,191,71,0.06);
+  margin-bottom: 36px;
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.2s;
+}
+.hero__pill-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent-bright);
+  box-shadow: 0 0 10px var(--accent-bright);
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.hero__pill-text {
+  font-size: 12px; font-weight: 600; color: var(--accent-bright);
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+.hero__headline {
+  font-size: clamp(52px, 8vw, 96px); font-weight: 900;
+  line-height: 0.92; letter-spacing: -0.05em;
+  color: var(--white); margin-bottom: 10px;
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.4s;
+}
+.hero__headline-row {
+  display: block;
+}
+.hero__headline .green {
+  color: var(--accent-bright);
+  text-shadow: 0 0 80px rgba(186,255,41,0.3);
+}
+
+.hero__sub-headline {
+  font-size: clamp(28px, 3vw, 38px); font-weight: 300;
+  letter-spacing: -0.03em; color: var(--gray-400);
+  margin-bottom: 28px; line-height: 1.3;
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.6s;
+}
+
+.hero__desc {
+  font-size: 16px; font-weight: 400; line-height: 1.7;
+  color: var(--gray-600); max-width: 460px; margin-bottom: 44px;
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.8s;
+}
+
+.hero__actions {
+  display: flex; gap: 14px; align-items: center; margin-bottom: 80px;
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 1s;
+}
+.hero__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 16px 36px; border-radius: 100px; font-size: 15px; font-weight: 700;
+  text-decoration: none; transition: all 0.3s cubic-bezier(.44,0,.56,1);
+  letter-spacing: -0.01em;
+}
+.hero__btn--primary {
+  background: var(--accent-bright); color: var(--dark); border: none;
+  box-shadow: 0 0 40px rgba(186,255,41,0.15);
+}
+.hero__btn--primary:hover {
+  background: var(--accent); transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(186,255,41,0.25);
+}
+.hero__btn--secondary {
+  background: transparent; color: var(--gray-400);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.hero__btn--secondary:hover { border-color: rgba(255,255,255,0.25); color: var(--white); }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ━━━ HERO BOTTOM CARDS — floating row ━━━ */
+.hero__cards {
+  display: flex; gap: 16px; position: relative; z-index: 5;
+  animation: fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 1.2s;
+}
+.hero-card {
+  background: rgba(22,32,25,0.8); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.06); border-radius: 14px;
+  padding: 20px 24px; min-width: 200px;
+  transition: all 0.4s cubic-bezier(.44,0,.56,1);
+}
+.hero-card:hover {
+  border-color: rgba(149,191,71,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.hero-card__top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.hero-card__label {
+  font-size: 11px; font-weight: 600; color: var(--gray-400);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.hero-card__badge {
+  font-size: 9px; padding: 3px 8px; border-radius: 100px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.hero-card__badge--live {
+  background: rgba(186,255,41,0.12); color: var(--accent-bright);
+}
+.hero-card__badge--ai {
+  background: rgba(139,92,246,0.12); color: #A78BFA;
+}
+.hero-card__num {
+  font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--white);
+  margin-bottom: 4px;
+}
+.hero-card__change {
+  font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px;
+}
+.hero-card__change--up { color: var(--accent-bright); }
+.hero-card__change--down { color: #F87171; }
+
+/* Mini sparkline */
+.hero-card__spark {
+  display: flex; align-items: flex-end; gap: 2px; height: 32px; margin-top: 12px;
+}
+.spark-bar {
+  flex: 1; border-radius: 2px; min-width: 4px;
+  background: var(--accent);
+  opacity: 0.3; transition: opacity 0.2s;
+}
+.hero-card:hover .spark-bar { opacity: 0.5; }
+.spark-bar:nth-child(odd) { opacity: 0.15; background: var(--accent-bright); }
+.hero-card:hover .spark-bar:nth-child(odd) { opacity: 0.35; }
+
+/* Alert mini-list */
+.hero-card__alerts { display: flex; flex-direction: column; gap: 8px; }
+.hc-alert {
+  display: flex; align-items: center; gap: 8px; font-size: 12px;
+}
+.hc-alert__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.hc-alert__dot--red { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+.hc-alert__dot--yellow { background: #FBBF24; box-shadow: 0 0 6px rgba(251,191,36,0.3); }
+.hc-alert__dot--green { background: #4ADE80; box-shadow: 0 0 6px rgba(74,222,128,0.3); }
+.hc-alert__text { color: var(--gray-400); }
+.hc-alert__time { color: var(--gray-600); font-size: 10px; margin-left: auto; }
+
+/* Agent status */
+.hero-card__agent {
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-card__agent-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(149,191,71,0.2), rgba(0,128,96,0.15));
+  border: 1px solid rgba(149,191,71,0.15);
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-card__agent-text { font-size: 13px; font-weight: 600; color: var(--white); }
+.hero-card__agent-status {
+  font-size: 11px; color: var(--accent-bright);
+  display: flex; align-items: center; gap: 5px;
+}
+.pulse-ring {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-bright); position: relative;
+}
+.pulse-ring::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
+  border: 1px solid var(--accent-bright); animation: ping 2s cubic-bezier(0,0,0.2,1) infinite;
+}
+@keyframes ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Scroll indicator */
+.hero__scroll {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 5;
+}
+.hero__scroll-line {
+  width: 1px; height: 36px;
+  background: linear-gradient(to bottom, var(--accent-bright), transparent);
+  animation: scroll-breathe 2.5s ease-in-out infinite;
+}
+@keyframes scroll-breathe {
+  0%, 100% { opacity: 0.2; transform: scaleY(1); }
+  50% { opacity: 0.7; transform: scaleY(1.2); }
+}
+.hero__scroll-text {
+  font-size: 9px; font-weight: 600; color: var(--gray-600);
+  text-transform: uppercase; letter-spacing: 0.15em;
+}
+
+/* ━━━ TRUST BAR ━━━ */
+.trust {
+  border-top: 0.5px solid rgba(255,255,255,0.06);
+  border-bottom: 0.5px solid rgba(255,255,255,0.06);
+  padding: 24px 0; overflow: hidden;
+}
+.trust__inner {
+  display: flex; align-items: center; justify-content: center; gap: 56px;
+  max-width: 1100px; margin: 0 auto; padding: 0 48px;
+}
+.trust__item {
+  font-size: 13px; font-weight: 600; color: var(--gray-600);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  white-space: nowrap; display: flex; align-items: center; gap: 8px;
+}
+.trust__dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+/* ━━━ GREEN SPLIT ━━━ */
+.split {
+  background: var(--accent-bright); color: var(--dark); overflow: hidden;
+}
+.split__inner {
+  max-width: 1100px; margin: 0 auto; padding: 100px 48px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+.split__label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.15em; opacity: 0.5; margin-bottom: 16px;
+}
+.split__title {
+  font-size: 44px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.03em; margin-bottom: 20px;
+}
+.split__desc {
+  font-size: 16px; line-height: 1.65; opacity: 0.7; margin-bottom: 32px;
+}
+.split__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px; border-radius: 100px; font-size: 14px; font-weight: 700;
+  background: var(--dark); color: var(--accent-bright);
+  text-decoration: none; transition: all 0.25s;
+}
+.split__btn:hover { background: #1E2D24; }
+.split__visual {
+  background: rgba(15,26,20,0.06); border-radius: var(--radius);
+  aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.split__visual-inner {
+  width: 85%; height: 80%; background: rgba(15,26,20,0.04);
+  border-radius: var(--radius-sm); border: 1px solid rgba(15,26,20,0.06);
+  display: flex; flex-direction: column; padding: 24px; gap: 12px;
+}
+.split__mock-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid rgba(15,26,20,0.06);
+}
+.split__mock-dot { width: 8px; height: 8px; border-radius: 50%; }
+.split__mock-line { height: 8px; border-radius: 4px; background: var(--dark); opacity: 0.08; }
+.split__mock-line--w1 { width: 40%; }
+.split__mock-line--w2 { width: 25%; }
+.split__mock-line--w3 { width: 55%; }
+.split__mock-line--w4 { width: 30%; }
+
+/* ━━━ FEATURES ━━━ */
+.services { background: var(--dark); padding: 120px 48px; }
+.services__inner { max-width: 1100px; margin: 0 auto; }
+.services__header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 64px; gap: 40px;
+}
+.services__label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.15em; color: var(--accent-bright); margin-bottom: 16px;
+}
+.services__title {
+  font-size: 44px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.03em; max-width: 500px;
+}
+.services__desc {
+  font-size: 15px; line-height: 1.6; color: var(--gray-400);
+  max-width: 340px; text-align: right;
+}
+.services__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.service-card {
+  background: var(--dark-card); border: 1px solid rgba(255,255,255,0.04);
+  border-radius: var(--radius); padding: 36px 28px;
+  transition: all 0.35s cubic-bezier(.44,0,.56,1); position: relative; overflow: hidden;
+}
+.service-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent-bright); opacity: 0; transition: opacity 0.35s;
+}
+.service-card:hover {
+  border-color: rgba(149,191,71,0.15); transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.service-card:hover::before { opacity: 1; }
+.service-card__num {
+  font-size: 48px; font-weight: 900; letter-spacing: -0.04em;
+  color: var(--accent-bright); opacity: 0.12; margin-bottom: 24px; line-height: 1;
+}
+.service-card__title {
+  font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+.service-card__desc { font-size: 13px; line-height: 1.65; color: var(--gray-400); }
+
+/* ━━━ HOW IT WORKS ━━━ */
+.howto { background: var(--off-white); color: var(--dark); padding: 120px 48px; }
+.howto__inner { max-width: 1100px; margin: 0 auto; }
+.howto__label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.15em; color: var(--accent); margin-bottom: 16px;
+}
+.howto__title {
+  font-size: 44px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.03em; margin-bottom: 64px; max-width: 500px;
+}
+.howto__steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; }
+.howto-step {
+  padding: 32px 24px; background: var(--white);
+  border: 1px solid var(--gray-200); border-radius: var(--radius);
+  transition: all 0.3s; position: relative;
+}
+.howto-step:hover {
+  border-color: var(--accent); transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.05);
+}
+.howto-step__num {
+  font-size: 36px; font-weight: 900; letter-spacing: -0.04em;
+  color: var(--accent); opacity: 0.3; margin-bottom: 20px; line-height: 1;
+}
+.howto-step__title {
+  font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 8px;
+}
+.howto-step__desc { font-size: 12px; line-height: 1.6; color: var(--gray-600); }
+.howto-step::after {
+  content: '→'; position: absolute; right: -18px; top: 50%;
+  transform: translateY(-50%); font-size: 16px; color: var(--gray-200); font-weight: 300;
+}
+.howto-step:last-child::after { display: none; }
+
+/* ━━━ TESTIMONIAL ━━━ */
+.proof { background: var(--dark); padding: 120px 48px; text-align: center; }
+.proof__inner { max-width: 700px; margin: 0 auto; }
+.proof__quote {
+  font-size: 28px; font-weight: 500; line-height: 1.5;
+  letter-spacing: -0.02em; color: var(--white); margin-bottom: 32px;
+  font-style: italic;
+}
+.proof__quote .green { color: var(--accent-bright); font-style: normal; }
+.proof__attr { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.proof__avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--dark-muted); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: var(--accent);
+}
+.proof__name { font-size: 14px; font-weight: 700; color: var(--white); }
+.proof__role { font-size: 12px; color: var(--gray-400); }
+
+/* ━━━ CTA ━━━ */
+.cta {
+  background: var(--accent-bright); padding: 120px 48px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.cta__circle-1 {
+  position: absolute; top: -100px; right: -100px; width: 400px; height: 400px;
+  border-radius: 50%; border: 1px solid rgba(15,26,20,0.06);
+}
+.cta__circle-2 {
+  position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px;
+  border-radius: 50%; border: 1px solid rgba(15,26,20,0.06);
+}
+.cta__inner { position: relative; z-index: 2; }
+.cta__title {
+  font-size: 56px; font-weight: 900; letter-spacing: -0.04em;
+  color: var(--dark); margin-bottom: 20px; line-height: 1;
+}
+.cta__desc { font-size: 17px; color: var(--dark); opacity: 0.6; margin-bottom: 40px; line-height: 1.5; }
+.cta__btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 18px 44px; border-radius: 100px; font-size: 16px; font-weight: 700;
+  background: var(--dark); color: var(--accent-bright);
+  text-decoration: none; transition: all 0.3s;
+}
+.cta__btn:hover { background: #1E2D24; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+
+/* ━━━ FOOTER ━━━ */
+.footer {
+  background: var(--dark); border-top: 0.5px solid rgba(255,255,255,0.06);
+  padding: 48px;
+}
+.footer__inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer__brand {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 16px; font-weight: 800; color: var(--white); letter-spacing: -0.04em;
+}
+.footer__links { display: flex; gap: 32px; }
+.footer__link { font-size: 13px; color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
+.footer__link:hover { color: var(--gray-400); }
+.footer__copy { font-size: 12px; color: var(--gray-600); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="/" class="nav__brand">
+      <span class="nav__brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M7 17V7l5 3v7l5-3V7" stroke="#0F1A14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      StockPilot
+    </a>
+    <div class="nav__links">
+      <a href="#features" class="nav__link">Features</a>
+      <a href="#how" class="nav__link">How It Works</a>
+      <a href="/vision" class="nav__link">Vision</a>
+      <a href="/install" class="nav__cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero__accent-bar"></div>
+  <div class="hero__orb hero__orb--1"></div>
+  <div class="hero__orb hero__orb--2"></div>
+  <div class="hero__orb hero__orb--3"></div>
+  <div class="hero__grid"></div>
+  <div class="hero__ring hero__ring--1"></div>
+  <div class="hero__ring hero__ring--2"></div>
+  <div class="particle particle--1"></div>
+  <div class="particle particle--2"></div>
+  <div class="particle particle--3"></div>
+  <div class="particle particle--4"></div>
+  <div class="particle particle--5"></div>
+  <div class="particle particle--6"></div>
+  <div class="particle particle--7"></div>
+  <div class="particle particle--8"></div>
+
+  <div class="hero__content">
+    <div class="hero__pill">
+      <span class="hero__pill-dot"></span>
+      <span class="hero__pill-text">Built for Shopify</span>
+    </div>
+
+    <h1 class="hero__headline">
+      <span class="hero__headline-row">Inventory</span>
+      <span class="hero__headline-row green">intelligence</span>
+    </h1>
+
+    <p class="hero__sub-headline">for modern merchants</p>
+
+    <p class="hero__desc">
+      AI agents that watch your stock, predict demand, and auto-generate purchase orders — so you never lose a sale to an empty shelf.
+    </p>
+
+    <div class="hero__actions">
+      <a href="/install" class="hero__btn hero__btn--primary">
+        <svg width="16" height="18" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="#0F1A14"/></svg>
+        Install on Shopify
+      </a>
+      <a href="#how" class="hero__btn hero__btn--secondary">How it works</a>
+    </div>
+
+    <!-- Floating stat cards -->
+    <div class="hero__cards">
+      <div class="hero-card">
+        <div class="hero-card__top">
+          <span class="hero-card__label">Stock Value</span>
+          <span class="hero-card__badge hero-card__badge--live">Live</span>
+        </div>
+        <div class="hero-card__num">$48,389</div>
+        <div class="hero-card__change hero-card__change--up">↑ 12.4% this month</div>
+        <div class="hero-card__spark">
+          <div class="spark-bar" style="height: 40%"></div>
+          <div class="spark-bar" style="height: 55%"></div>
+          <div class="spark-bar" style="height: 45%"></div>
+          <div class="spark-bar" style="height: 65%"></div>
+          <div class="spark-bar" style="height: 50%"></div>
+          <div class="spark-bar" style="height: 70%"></div>
+          <div class="spark-bar" style="height: 60%"></div>
+          <div class="spark-bar" style="height: 80%"></div>
+          <div class="spark-bar" style="height: 75%"></div>
+          <div class="spark-bar" style="height: 90%"></div>
+          <div class="spark-bar" style="height: 85%"></div>
+          <div class="spark-bar" style="height: 95%"></div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-card__top">
+          <span class="hero-card__label">Alerts</span>
+          <span class="hero-card__badge hero-card__badge--live">3 Active</span>
+        </div>
+        <div class="hero-card__alerts">
+          <div class="hc-alert">
+            <span class="hc-alert__dot hc-alert__dot--red"></span>
+            <span class="hc-alert__text">Linen Pants — out of stock</span>
+            <span class="hc-alert__time">12m</span>
+          </div>
+          <div class="hc-alert">
+            <span class="hc-alert__dot hc-alert__dot--yellow"></span>
+            <span class="hc-alert__text">Recycled Hoodie — 7 left</span>
+            <span class="hc-alert__time">1h</span>
+          </div>
+          <div class="hc-alert">
+            <span class="hc-alert__dot hc-alert__dot--green"></span>
+            <span class="hc-alert__text">Cotton Tee — restocked</span>
+            <span class="hc-alert__time">3h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-card__top">
+          <span class="hero-card__label">AI Agent</span>
+          <span class="hero-card__badge hero-card__badge--ai">Active</span>
+        </div>
+        <div class="hero-card__agent">
+          <div class="hero-card__agent-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#95BF47" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <div class="hero-card__agent-text">Inventory Monitor</div>
+            <div class="hero-card__agent-status">
+              <span class="pulse-ring"></span>
+              Scanning 1,247 SKUs
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero__scroll">
+    <div class="hero__scroll-line"></div>
+    <span class="hero__scroll-text">Scroll</span>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust">
+  <div class="trust__inner">
+    <span class="trust__item"><span class="trust__dot"></span> 500+ Merchants</span>
+    <span class="trust__item"><span class="trust__dot"></span> 24/7 Monitoring</span>
+    <span class="trust__item"><span class="trust__dot"></span> Shopify Partner</span>
+    <span class="trust__item"><span class="trust__dot"></span> SOC 2 Compliant</span>
+    <span class="trust__item"><span class="trust__dot"></span> GDPR Ready</span>
+  </div>
+</div>
+
+<!-- GREEN SPLIT -->
+<section class="split">
+  <div class="split__inner">
+    <div>
+      <div class="split__label">What We Do</div>
+      <h2 class="split__title">Your stock, watched by AI agents</h2>
+      <p class="split__desc">StockPilot connects to your Shopify store and deploys AI agents that monitor every SKU around the clock. When stock drops, you get alerts. When it's time to reorder, you get a draft purchase order.</p>
+      <a href="/install" class="split__btn">
+        Start Free
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <div class="split__visual">
+      <div class="split__visual-inner">
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; opacity: 0.6;">Live Inventory</div>
+        <div class="split__mock-row"><span class="split__mock-dot" style="background: #22C55E;"></span><span class="split__mock-line split__mock-line--w3"></span><span class="split__mock-line split__mock-line--w2" style="margin-left: auto;"></span></div>
+        <div class="split__mock-row"><span class="split__mock-dot" style="background: #F59E0B;"></span><span class="split__mock-line split__mock-line--w1"></span><span class="split__mock-line split__mock-line--w4" style="margin-left: auto;"></span></div>
+        <div class="split__mock-row"><span class="split__mock-dot" style="background: #EF4444;"></span><span class="split__mock-line split__mock-line--w3"></span><span class="split__mock-line split__mock-line--w2" style="margin-left: auto;"></span></div>
+        <div class="split__mock-row"><span class="split__mock-dot" style="background: #22C55E;"></span><span class="split__mock-line split__mock-line--w1"></span><span class="split__mock-line split__mock-line--w4" style="margin-left: auto;"></span></div>
+        <div class="split__mock-row"><span class="split__mock-dot" style="background: #22C55E;"></span><span class="split__mock-line split__mock-line--w3"></span><span class="split__mock-line split__mock-line--w2" style="margin-left: auto;"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="services" id="features">
+  <div class="services__inner">
+    <div class="services__header">
+      <div>
+        <div class="services__label">Features</div>
+        <h2 class="services__title">Everything you need to never stock out</h2>
+      </div>
+      <p class="services__desc">Built specifically for Shopify merchants who are tired of spreadsheets and guesswork.</p>
+    </div>
+    <div class="services__grid">
+      <div class="service-card"><div class="service-card__num">01</div><div class="service-card__title">Real-Time Alerts</div><div class="service-card__desc">Configurable thresholds per variant. Get notified the moment stock drops below your comfort zone.</div></div>
+      <div class="service-card"><div class="service-card__num">02</div><div class="service-card__title">AI Purchase Orders</div><div class="service-card__desc">Claude AI analyzes stock levels, sell-through rates, and lead times to draft purchase orders automatically.</div></div>
+      <div class="service-card"><div class="service-card__num">03</div><div class="service-card__title">Weekly Reports</div><div class="service-card__desc">Automated inventory reports with trend analysis, top sellers, and stockout events on your schedule.</div></div>
+      <div class="service-card"><div class="service-card__num">04</div><div class="service-card__title">Supplier Hub</div><div class="service-card__desc">Track lead times, contacts, and order history. Link products for smarter reorder recommendations.</div></div>
+      <div class="service-card"><div class="service-card__num">05</div><div class="service-card__title">Inventory Trends</div><div class="service-card__desc">14-day stock history for every variant. Spot patterns and make data-driven purchasing decisions.</div></div>
+      <div class="service-card"><div class="service-card__num">06</div><div class="service-card__title">GDPR Compliant</div><div class="service-card__desc">Full data export, redaction, and deletion. Shopify's mandatory privacy webhooks handled automatically.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="howto" id="how">
+  <div class="howto__inner">
+    <div class="howto__label">How It Works</div>
+    <h2 class="howto__title">Five minutes from install to autopilot</h2>
+    <div class="howto__steps">
+      <div class="howto-step"><div class="howto-step__num">01</div><div class="howto-step__title">Install the app</div><div class="howto-step__desc">One click from Shopify. Read-only access to products, inventory, and orders.</div></div>
+      <div class="howto-step"><div class="howto-step__num">02</div><div class="howto-step__title">Products sync</div><div class="howto-step__desc">Every product, variant, and stock level pulled in seconds.</div></div>
+      <div class="howto-step"><div class="howto-step__num">03</div><div class="howto-step__title">Add suppliers</div><div class="howto-step__desc">Link suppliers with lead times for optimal reorder timing.</div></div>
+      <div class="howto-step"><div class="howto-step__num">04</div><div class="howto-step__title">Set thresholds</div><div class="howto-step__desc">Configure critical and warning levels per product or globally.</div></div>
+      <div class="howto-step"><div class="howto-step__num">05</div><div class="howto-step__title">AI takes over</div><div class="howto-step__desc">24/7 monitoring, alerts, and auto-drafted purchase orders.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section class="proof">
+  <div class="proof__inner">
+    <p class="proof__quote">"StockPilot cut our stockout events by <span class="green">87%</span> in the first month. The AI purchase orders alone save us hours every week."</p>
+    <div class="proof__attr">
+      <div class="proof__avatar">JM</div>
+      <div class="proof__info">
+        <div class="proof__name">Jessica M.</div>
+        <div class="proof__role">Operations Lead, ThreadCo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="cta__circle-1"></div>
+  <div class="cta__circle-2"></div>
+  <div class="cta__inner">
+    <h2 class="cta__title">Ready to stop<br>losing sales?</h2>
+    <p class="cta__desc">Join 500+ merchants running inventory on autopilot.</p>
+    <a href="/install" class="cta__btn">
+      <svg width="16" height="18" viewBox="0 0 256 292"><path d="M223.8 57.5c-1.4-4.2-5.5-6.3-8.5-6.8l-21.7-3.5-14.4-14.8c-3-3.1-9-2.2-10.6-1.8l-8 2.3C157.7 19 147.7 7 147.7 7l-10.2-3c-3.2 5.5-7 17.8-7 17.8-4.2-2-8.5-3-12.7-3.3-2.2 12-9.5 21.3-9.5 21.3 4.5 1.5 8.3 4.3 8.3 4.3-7 23.7-21 37.3-21 37.3l5.5 82.8 72.8 22.5 5-1.5c38-18 46-42 49.8-56.5 8.7-32.3 2.3-59-5.8-71.2z" fill="#BAFF29"/></svg>
+      Install on Shopify
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#95BF47"/><path d="M7 17V7l5 3v7l5-3V7" stroke="#0F1A14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      StockPilot
+    </div>
+    <div class="footer__links">
+      <a href="/vision" class="footer__link">Vision</a>
+      <a href="#" class="footer__link">Privacy</a>
+      <a href="#" class="footer__link">Terms</a>
+    </div>
+    <span class="footer__copy">&copy; 2026 StockPilot</span>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<h2>What do you mean by "mimic Apple wallpapers"?</h2>
+<p class="subtitle">Apple wallpapers have evolved through many distinct styles. Which aesthetic resonates with what you're imagining for these bento boxes?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;">
+      <!-- macOS Sonoma style: flowing abstract color blobs -->
+      <div style="width:100%;height:100%;position:relative;background:#0a0a0a;">
+        <div style="position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#5b4cdb 0%,#7c3aed 40%,transparent 70%);top:-20px;left:20px;filter:blur(30px);opacity:0.9;"></div>
+        <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,#f97316 0%,#ef4444 40%,transparent 70%);bottom:-10px;right:30px;filter:blur(30px);opacity:0.85;"></div>
+        <div style="position:absolute;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,#3b82f6 0%,#06b6d4 40%,transparent 70%);top:40px;right:60px;filter:blur(25px);opacity:0.8;"></div>
+        <div style="position:absolute;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#ec4899 0%,#a855f7 40%,transparent 70%);bottom:20px;left:60px;filter:blur(28px);opacity:0.7;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Flowing Color Blobs</h3>
+      <p>macOS Sonoma / Sequoia style — soft, blurred gradient orbs floating on dark backgrounds. Ambient, dreamy, organic movement.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;">
+      <!-- iOS dynamic style: layered abstract shapes -->
+      <div style="width:100%;height:100%;position:relative;background:linear-gradient(135deg,#1e1b4b,#312e81);">
+        <div style="position:absolute;width:200px;height:200px;border-radius:40%;background:linear-gradient(180deg,rgba(99,102,241,0.6),rgba(139,92,246,0.3));top:-40px;right:-20px;transform:rotate(30deg);"></div>
+        <div style="position:absolute;width:150px;height:150px;border-radius:30%;background:linear-gradient(180deg,rgba(236,72,153,0.5),rgba(244,114,182,0.2));bottom:-30px;left:10px;transform:rotate(-15deg);"></div>
+        <div style="position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.08);top:50%;left:50%;transform:translate(-50%,-50%);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Layered Abstract Shapes</h3>
+      <p>iOS dynamic wallpaper style — overlapping translucent geometric forms with depth. Parallax-like layered movement on scroll.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;">
+      <!-- Light mesh gradient style -->
+      <div style="width:100%;height:100%;position:relative;background:#f8f9fa;">
+        <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);top:-40px;left:-20px;"></div>
+        <div style="position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.12) 0%,transparent 70%);bottom:-30px;right:-10px;"></div>
+        <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,0.1) 0%,transparent 70%);top:30px;right:40px;"></div>
+        <!-- Subtle grid overlay -->
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(0,0,0,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.03) 1px,transparent 1px);background-size:40px 40px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Light Mesh / Soft Tints</h3>
+      <p>Clean and minimal — subtle pastel gradients on white/light grey backgrounds. Fits your White & Grey design system. Gentle floating motion.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;">
+      <!-- Dark with bright accent lines -->
+      <div style="width:100%;height:100%;position:relative;background:#111;">
+        <svg viewBox="0 0 300 220" style="position:absolute;inset:0;width:100%;height:100%;">
+          <path d="M0,110 C75,40 150,180 300,90" stroke="url(#grad1)" stroke-width="2" fill="none" opacity="0.7"/>
+          <path d="M0,140 C100,60 200,200 300,120" stroke="url(#grad2)" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <path d="M0,80 C60,150 240,30 300,100" stroke="url(#grad3)" stroke-width="1" fill="none" opacity="0.4"/>
+          <defs>
+            <linearGradient id="grad1"><stop offset="0%" stop-color="#818cf8"/><stop offset="100%" stop-color="#c084fc"/></linearGradient>
+            <linearGradient id="grad2"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fb923c"/></linearGradient>
+            <linearGradient id="grad3"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient>
+          </defs>
+        </svg>
+        <div style="position:absolute;width:6px;height:6px;border-radius:50%;background:#818cf8;top:110px;left:0;box-shadow:0 0 12px #818cf8;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D. Dark Canvas + Glowing Lines</h3>
+      <p>Dark backgrounds with thin, luminous animated curves — like Apple's event graphics. Sophisticated and dramatic. Lines trace paths on scroll.</p>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#6b7280;font-size:14px;">Click the style that's closest to what you're imagining. We can mix elements too.</p>
