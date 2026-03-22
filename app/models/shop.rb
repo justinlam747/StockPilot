@@ -4,6 +4,8 @@
 class Shop < ApplicationRecord
   encrypts :access_token
 
+  belongs_to :user, optional: true
+
   has_many :products, dependent: :destroy
   has_many :variants, dependent: :destroy
   has_many :inventory_snapshots, dependent: :destroy
