@@ -31,10 +31,11 @@ RSpec.describe 'Connections', type: :request do
     end
 
     it 'prevents disconnecting another user shop' do
-      other_shop = create(:shop, shop_domain: 'other.myshopify.com')
-      expect {
-        delete "/connections/shopify/#{other_shop.id}"
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      other_user = create(:user, :onboarded)
+      other_shop = create(:shop, shop_domain: 'other.myshopify.com', user: other_user)
+      delete "/connections/shopify/#{other_shop.id}"
+      # Should not disconnect — either 404 or redirect without disconnecting
+      expect(other_shop.reload.uninstalled_at).to be_nil
     end
   end
 end
