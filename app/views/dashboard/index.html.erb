@@ -29,6 +29,7 @@
       </div>
       <div class="bento__agent-cta">
         <button id="agent-run-btn"
+                data-live-stream
                 hx-post="/agents/run"
                 hx-target="#agent-status"
                 hx-indicator="#agent-spinner"
@@ -240,3 +241,4 @@
 
 <%= javascript_include_tag "demo-toggle" %>
 <%= javascript_include_tag "agent-provider" %>
+<%= javascript_include_tag "agent-live-stream" %>

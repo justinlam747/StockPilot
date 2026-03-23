@@ -34,8 +34,8 @@ Rails.application.routes.draw do
   post '/agents/run', to: 'dashboard#run_agent'
 
   resources :inventory, only: %i[index show]
-  resources :suppliers, except: %i[new edit]
-  resources :purchase_orders do
+  resources :suppliers, only: %i[index create update destroy]
+  resources :purchase_orders, only: %i[index show] do
     member do
       patch :mark_sent
       patch :mark_received
@@ -49,6 +49,10 @@ Rails.application.routes.draw do
       patch :dismiss
     end
   end
+
+  # Agent streaming (Tier 3: Live Agent Stream)
+  post '/agents/run_async', to: 'agents#run_async'
+  get  '/agents/stream/:id', to: 'agents#stream', as: :agent_stream
 
   # Settings
   get '/settings', to: 'settings#show'
