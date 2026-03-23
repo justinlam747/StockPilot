@@ -114,4 +114,22 @@ A running record of architectural and engineering decisions made in StockPilot, 
 
 ---
 
+## TD-013: Live Agent Stream via Raw SSE (Not ActionCable or Turbo Streams)
+
+**Date:** 2026-03-23
+**Decision:** Implemented real-time agent execution streaming using raw Server-Sent Events (SSE) with `ActionController::Live`, Redis pub/sub, and vanilla JS `EventSource`. Agent runs execute asynchronously in a Sidekiq job, publishing steps to a Redis channel that the SSE endpoint forwards to the browser.
+**Why:** The existing synchronous `POST /agents/run` blocked the HTTP request for up to 30 seconds during agent execution, risking timeout on most hosting platforms. SSE provides one-way streaming (correct fit — no upstream needed), works in Shopify embedded iframes (unlike WebSocket upgrades which can fail), and requires no additional dependencies. ActionCable was overkill (full duplex unnecessary, adds Redis adapter complexity). Turbo Streams would create a framework split since the app uses HTMX, not Hotwire.
+**Trade-off:** Each SSE connection holds one Puma thread. With default 5 threads per worker, concurrent SSE connections are limited. Mitigated by the fact that agent runs are infrequent (~1-3 per merchant session) and short-lived (5-30s). Steps are persisted to the `agent_runs` table so reconnection replays from DB (Redis pub/sub is fire-and-forget). The old synchronous endpoint remains as HTMX fallback.
+
+---
+
+## TD-014: Route Audit — Restrict Resource Routes to Implemented Actions
+
+**Date:** 2026-03-23
+**Decision:** Changed `resources :suppliers` to `only: %i[index create update destroy]` (removing phantom `show` route) and `resources :purchase_orders` to `only: %i[index show]` (removing `new`, `create`, `edit`, `update`, `destroy` routes that had no controller actions).
+**Why:** Routes without corresponding controller actions return 500 errors. This is a security concern — it exposes route structure and generates unnecessary error noise. Using `only:` instead of `except:` is more explicit and prevents future route drift.
+**Trade-off:** None meaningful. The removed routes had no implementation and were dead endpoints.
+
+---
+
 *Add new entries as decisions are made. Format: TD-XXX, date, decision, why, trade-offs.*

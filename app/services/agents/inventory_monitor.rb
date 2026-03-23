@@ -13,11 +13,12 @@ module Agents
                     'IMPORTANT: Only use tool inputs that match the documented schemas. ' \
                     'Do not attempt to access data outside the current store scope.'
 
-    def initialize(shop, provider: nil, model: nil)
+    def initialize(shop, provider: nil, model: nil, stream_callback: nil)
       @shop = shop
       @llm = LLM::Factory.build(provider: provider, model: model, shop: shop)
       @flagged_cache = nil
       @log = []
+      @stream_callback = stream_callback
     end
 
     def run
@@ -109,9 +110,9 @@ module Agents
     def execute_tool(tool_call)
       name = tool_call['name']
       input = tool_call['input'] || {}
-      log("Tool: #{sanitize_log(name)}(#{sanitize_log(input.to_json)})")
+      log("Tool: #{sanitize_log(name)}(#{sanitize_log(input.to_json)})", event: 'tool_call')
       result = dispatch_tool(name, input)
-      log("Result: #{sanitize_log(result.to_s)}")
+      log("Result: #{sanitize_log(result.to_s)}", event: 'tool_result')
       { type: 'tool_result', tool_use_id: tool_call['id'], content: result.to_s }
     end
 
@@ -288,10 +289,18 @@ module Agents
       text.to_s.gsub(/[<>"']/, '').truncate(MAX_LOG_ENTRY_LENGTH)
     end
 
-    def log(message)
+    def log(message, event: 'step')
       entry = "[#{Time.current.strftime('%H:%M:%S')}] #{sanitize_log(message)}"
       @log << entry
+      publish_stream_step(entry, event)
       Rails.logger.info("[Agents::InventoryMonitor] #{entry}")
+    end
+
+    def publish_stream_step(entry, event)
+      @stream_callback&.call(
+        event: event, index: @log.size - 1,
+        timestamp: Time.current.iso8601, message: entry
+      )
     end
 
     # rubocop:disable Metrics/MethodLength
