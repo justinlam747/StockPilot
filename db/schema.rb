@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
   enable_extension "plpgsql"
 
   create_table "alerts", force: :cascade do |t|
@@ -46,6 +47,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
     t.index ["shop_id"], name: "index_audit_logs_on_shop_id"
   end
 
+  create_table "imports", force: :cascade do |t|
+    t.bigint "shop_id", null: false
+    t.string "source", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "total_rows", default: 0
+    t.integer "imported_rows", default: 0
+    t.integer "skipped_rows", default: 0
+    t.jsonb "column_mapping", default: {}
+    t.jsonb "errors_log", default: []
+    t.text "raw_data"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shop_id", "created_at"], name: "index_imports_on_shop_id_and_created_at"
+    t.index ["shop_id"], name: "index_imports_on_shop_id"
+  end
+
   create_table "inventory_snapshots", force: :cascade do |t|
     t.bigint "shop_id", null: false
     t.bigint "variant_id", null: false
@@ -63,7 +81,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
 
   create_table "products", force: :cascade do |t|
     t.bigint "shop_id", null: false
-    t.bigint "shopify_product_id", null: false
+    t.bigint "shopify_product_id"
     t.string "title"
     t.string "product_type"
     t.string "vendor"
@@ -73,9 +91,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "image_url"
+    t.string "source", default: "shopify"
     t.index ["shop_id", "shopify_product_id"], name: "index_products_on_shop_id_and_shopify_product_id", unique: true
     t.index ["shop_id", "status"], name: "index_products_on_shop_id_and_status"
     t.index ["shop_id"], name: "index_products_on_shop_id"
+    t.index ["title"], name: "index_products_on_title_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "purchase_order_line_items", force: :cascade do |t|
@@ -119,8 +139,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
     t.jsonb "settings", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.datetime "last_agent_run_at"
-    t.jsonb "last_agent_results", default: {}
     t.bigint "user_id", null: false
     t.index ["shop_domain"], name: "index_shops_on_shop_domain", unique: true
     t.index ["user_id", "shop_domain"], name: "index_shops_on_user_id_and_shop_domain", unique: true
@@ -164,7 +182,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
     t.bigint "shop_id", null: false
     t.bigint "product_id", null: false
     t.bigint "supplier_id"
-    t.bigint "shopify_variant_id", null: false
+    t.bigint "shopify_variant_id"
     t.bigint "shopify_inventory_item_id"
     t.string "sku"
     t.string "title"
@@ -172,16 +190,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_22_054417) do
     t.integer "low_stock_threshold"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source", default: "shopify"
     t.index ["product_id"], name: "index_variants_on_product_id"
     t.index ["shop_id", "shopify_variant_id"], name: "index_variants_on_shop_id_and_shopify_variant_id", unique: true
     t.index ["shop_id", "sku"], name: "index_variants_on_shop_id_and_sku"
     t.index ["shop_id"], name: "index_variants_on_shop_id"
+    t.index ["sku"], name: "index_variants_on_sku_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["supplier_id"], name: "index_variants_on_supplier_id"
   end
 
   add_foreign_key "alerts", "shops", on_delete: :cascade
   add_foreign_key "alerts", "variants", on_delete: :cascade
   add_foreign_key "audit_logs", "shops"
+  add_foreign_key "imports", "shops", on_delete: :cascade
   add_foreign_key "inventory_snapshots", "shops", on_delete: :cascade
   add_foreign_key "inventory_snapshots", "variants", on_delete: :cascade
   add_foreign_key "products", "shops", on_delete: :cascade
