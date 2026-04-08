@@ -50,7 +50,7 @@ class WebhooksController < ActionController::Base
     return unless shop
 
     ActsAsTenant.with_tenant(shop) do
-      Inventory::Persister.new(shop).upsert_single_product(JSON.parse(webhook_body))
+      Inventory::Persister.new(shop).upsert_single_product(JSON.parse(webhook_body), source: :webhook)
     end
   end
 

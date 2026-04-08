@@ -166,7 +166,7 @@ RSpec.describe Inventory::Persister do
       }
 
       ActsAsTenant.with_tenant(shop) do
-        expect { persister.upsert_single_product(webhook_data) }.to change { Product.count }.by(1)
+        expect { persister.upsert_single_product(webhook_data, source: :webhook) }.to change { Product.count }.by(1)
       end
     end
 
@@ -185,7 +185,7 @@ RSpec.describe Inventory::Persister do
           ]
         }
 
-        expect { persister.upsert_single_product(webhook_data) }.not_to(change { Product.count })
+        expect { persister.upsert_single_product(webhook_data, source: :webhook) }.not_to(change { Product.count })
         expect(Product.find_by(shopify_product_id: '555').title).to eq('Updated Webhook Title')
       end
     end

@@ -199,11 +199,11 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
           ]
         }
 
-        persister.upsert_single_product(shopify_data)
+        persister.upsert_single_product(shopify_data, source: :webhook)
         expect(Product.where(shopify_product_id: '7001').count).to eq(1)
         expect(Variant.where(shopify_variant_id: '8001').count).to eq(1)
 
-        persister.upsert_single_product(shopify_data)
+        persister.upsert_single_product(shopify_data, source: :webhook)
         expect(Product.where(shopify_product_id: '7001').count).to eq(1)
         expect(Variant.where(shopify_variant_id: '8001').count).to eq(1)
       end
