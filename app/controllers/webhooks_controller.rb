@@ -28,6 +28,16 @@ class WebhooksController < ActionController::Base
     @webhook_body ||= request.body.read
   end
 
+  # HMAC VERIFICATION — how Shopify webhooks prove they're authentic:
+  #
+  # 1. Shopify creates a hash of the webhook body using our shared secret
+  # 2. Shopify sends that hash in the X-Shopify-Hmac-SHA256 header
+  # 3. We create our own hash of the body using the same secret
+  # 4. If the hashes match, the webhook is genuine (not forged)
+  #
+  # This prevents attackers from sending fake webhooks to our endpoint.
+  # secure_compare prevents timing attacks (comparing strings in constant time).
+  #
   def verify_shopify_hmac
     hmac = request.headers['HTTP_X_SHOPIFY_HMAC_SHA256']
     return head :unauthorized unless hmac.present?

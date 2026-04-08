@@ -30,9 +30,4 @@ class PurchaseOrdersController < ApplicationController
     redirect_to purchase_order_path(@po), notice: 'Marked as received'
   end
 
-  private
-
-  def detect_low_stock
-    Inventory::LowStockDetector.new(current_shop).detect
-  end
 end
