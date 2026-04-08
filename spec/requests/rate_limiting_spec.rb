@@ -22,11 +22,10 @@ RSpec.describe 'Rate limiting', type: :request do
     expect(throttle).to be_present
   end
 
-  it 'throttles agent runs' do
-    allow_any_instance_of(Inventory::LowStockDetector).to receive(:detect).and_return([])
+  it 'throttles excessive dashboard requests' do
     responses = []
-    7.times do
-      post '/agents/run'
+    65.times do
+      get '/dashboard'
       responses << response.status
     end
     expect(responses).to include(429), "Expected 429 in responses: #{responses}"

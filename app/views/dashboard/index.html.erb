@@ -6,63 +6,26 @@
 <% else %>
 <div class="bento" role="list" aria-label="Dashboard overview">
 
-  <!-- R1-2 C1-2: AI Agent -->
-  <div class="bento__tile bento__tile--feature" role="listitem" style="grid-column: 1 / span 2; grid-row: 1 / span 2;">
+  <!-- R1 C1-2: Quick Import -->
+  <a href="/imports/new" class="bento__tile bento__tile--feature" role="listitem" style="grid-column: 1 / span 2; grid-row: 1 / span 2;">
     <div class="bento__feature-bg" aria-hidden="true">
       <div class="bento__ring bento__ring--1"></div>
       <div class="bento__ring bento__ring--2"></div>
       <div class="bento__ring bento__ring--3"></div>
     </div>
     <div class="bento__content" style="margin-top: var(--space-4); flex: 1; justify-content: center;">
-      <span class="bento__title" style="font-size: 1.25rem;">Inventory Agent</span>
-      <span class="bento__desc" style="margin-top: 6px;">Scans every SKU for low-stock risks, flags reorder candidates, and drafts purchase orders — powered by your choice of AI provider.</span>
-      <div class="bento__agent-features">
-        <div class="bento__agent-feat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Low-stock detection</span></div>
-        <div class="bento__agent-feat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Reorder recommendations</span></div>
-        <div class="bento__agent-feat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Auto-draft purchase orders</span></div>
+      <span class="bento__title" style="font-size: 1.25rem;">Import Data</span>
+      <span class="bento__desc" style="margin-top: 6px;">Bring your inventory in from anywhere — paste an unformatted list, upload a CSV, or sync directly from Shopify. We'll figure out the columns.</span>
+      <div class="bento__feature-list">
+        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Paste from anywhere</span></div>
+        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>CSV upload</span></div>
+        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Shopify auto-sync</span></div>
       </div>
-      <div class="agent-provider-select">
-        <select id="agent-provider" class="agent-select" aria-label="Select AI provider">
-          <option value="">Claude (default)</option>
-          <option value="anthropic|claude-sonnet-4-20250514">Claude Sonnet 4</option>
-          <option value="anthropic|claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
-          <option value="openai|gpt-4o">GPT-4o</option>
-          <option value="openai|gpt-4o-mini">GPT-4o Mini</option>
-          <option value="openai|o3-mini">o3-mini</option>
-          <option value="google|gemini-2.0-flash">Gemini 2.0 Flash</option>
-          <option value="google|gemini-2.5-pro-preview-06-05">Gemini 2.5 Pro</option>
-        </select>
+      <div class="bento__feature-cta" style="margin-top: var(--space-4);">
+        <span class="bento__btn">Import Inventory</span>
       </div>
-      <div class="bento__agent-cta">
-        <button id="agent-run-btn"
-                hx-post="/agents/run"
-                hx-target="#agent-status"
-                hx-indicator="#agent-spinner"
-                hx-include="#agent-provider-input,#agent-model-input"
-                class="bento__btn"
-                aria-label="Run inventory analysis agent">
-          Run Analysis
-        </button>
-        <input type="hidden" id="agent-provider-input" name="provider" value="">
-        <input type="hidden" id="agent-model-input" name="model" value="">
-        <span id="agent-spinner" class="htmx-indicator"><span class="sp-spinner" aria-hidden="true"></span></span>
-      </div>
-      <div id="agent-status">
-        <%= render "agent_results", results: @last_run %>
-      </div>
-      <% if @ai_insights.present? %>
-        <div class="agent-insights">
-          <span class="agent-insights__label">AI Insights</span>
-          <div class="agent-insights__text"><%= simple_format(h(@ai_insights), {}, wrapper_tag: 'span') %></div>
-        </div>
-      <% elsif ENV['ANTHROPIC_API_KEY'].blank? %>
-        <div class="agent-insights agent-insights--muted">
-          <span class="agent-insights__label">AI Insights</span>
-          <span class="agent-insights__text">Connect your Anthropic API key to unlock AI-powered inventory insights.</span>
-        </div>
-      <% end %>
     </div>
-  </div>
+  </a>
 
   <!-- R1 C3: Total Products -->
   <a href="/inventory" class="bento__tile bento__tile--hero" role="listitem" style="grid-column: 3; grid-row: 1;">
@@ -156,7 +119,7 @@
       <span class="bento__value"><%= @total_suppliers %></span>
       <span class="bento__label">Suppliers</span>
       <% if @total_suppliers.zero? %>
-        <span class="bento__sub">No suppliers added yet. Add your first supplier to start generating AI purchase orders and tracking lead times.</span>
+        <span class="bento__sub">No suppliers added yet. Add your first supplier to start tracking lead times and creating purchase orders.</span>
       <% else %>
         <span class="bento__sub">Track contact info, lead times, and performance ratings. Link suppliers to variants for automated reorder routing.</span>
       <% end %>
@@ -210,7 +173,7 @@
     </div>
     <div class="bento__content">
       <span class="bento__title">Weekly Intelligence Report</span>
-      <span class="bento__sub">Delivered at 8 AM in your timezone. Covers your top-selling products, stockout incidents, supplier performance, and AI-generated reorder suggestions — so you start the week knowing exactly what needs attention.</span>
+      <span class="bento__sub">Delivered at 8 AM in your timezone. Covers your top-selling products, stockout incidents, and supplier performance — so you start the week knowing exactly what needs attention.</span>
     </div>
   </a>
 
@@ -253,5 +216,4 @@
 </form>
 
 <%= javascript_include_tag "demo-toggle" %>
-<%= javascript_include_tag "agent-provider" %>
 <% end %>

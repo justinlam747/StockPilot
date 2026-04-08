@@ -33,6 +33,14 @@ class ApplicationController < ActionController::Base
     @show_connect_banner = true
   end
 
+  # Hard gate: redirects to dashboard if no shop is connected.
+  # Use in controllers that cannot function without a shop.
+  def require_shop!
+    return if current_shop.present?
+
+    redirect_to '/dashboard'
+  end
+
   def current_user
     return @current_user if defined?(@current_user)
 
@@ -83,7 +91,6 @@ class ApplicationController < ActionController::Base
     return unless demo_mode?
     return if request.get? || request.head?
     return if controller_name == 'dashboard' && action_name == 'toggle_demo'
-    return if controller_name == 'dashboard' && action_name == 'run_agent'
 
     redirect_to '/dashboard', alert: 'Demo mode is read-only'
   end

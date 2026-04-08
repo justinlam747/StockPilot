@@ -16,7 +16,11 @@ if clerk_secret_key.start_with?('sk_') && clerk_publishable_key.start_with?('pk_
     # Exclude OmniAuth OAuth routes from Clerk middleware.
     # The Clerk middleware interferes with OmniAuth's session-based state
     # parameter (omniauth.state), causing callback failures.
-    config.excluded_routes = %w[/auth/shopify /auth/shopify/callback /auth/failure /webhooks/clerk]
+    config.excluded_routes = %w[
+      /auth/shopify /auth/shopify/callback /auth/failure
+      /webhooks/clerk
+      /onboarding /onboarding/step/1 /onboarding/step/2 /onboarding/step/3
+    ]
   end
 
   # Register middleware here (not in application.rb) because dotenv

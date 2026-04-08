@@ -38,33 +38,8 @@ class Shop < ApplicationRecord
     settings['alert_email']
   end
 
-  # AI provider settings — keys stored encrypted in settings JSONB
-  def llm_provider
-    settings['llm_provider'] || ENV.fetch('LLM_PROVIDER', 'openai')
-  end
-
-  def llm_model
-    settings['llm_model'] || ENV.fetch('LLM_MODEL', 'gpt-4o')
-  end
-
-  def llm_api_key(provider = nil)
-    provider ||= llm_provider
-    key_field = "#{provider}_api_key"
-    settings[key_field].presence || env_api_key(provider)
-  end
-
   def update_setting(key, value)
     self.settings = settings.merge(key => value)
     save!
-  end
-
-  private
-
-  def env_api_key(provider)
-    case provider
-    when 'openai' then ENV['OPENAI_API_KEY']
-    when 'anthropic' then ENV['ANTHROPIC_API_KEY']
-    when 'google' then ENV['GOOGLE_API_KEY']
-    end
   end
 end

@@ -67,11 +67,6 @@ RSpec.describe Demo::Seeder, order: :defined do
       expect(eco_variants.where(supplier: eco_supplier).count).to eq(eco_variants.count)
     end
 
-    it 'seeds AI insights into Rails cache' do
-      insights = Rails.cache.read("shop:#{@demo_shop.id}:ai_insights")
-      expect(insights).to be_present
-    end
-
     it 'is idempotent — running twice does not duplicate data' do
       first_count = @demo_shop.products.count
       described_class.new.seed!

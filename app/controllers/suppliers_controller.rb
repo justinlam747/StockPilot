@@ -2,6 +2,8 @@
 
 # CRUD operations for supplier management with cache write-through.
 class SuppliersController < ApplicationController
+  before_action :require_shop!
+
   def index
     @suppliers = shop_cache.suppliers
     @supplier = Supplier.new
