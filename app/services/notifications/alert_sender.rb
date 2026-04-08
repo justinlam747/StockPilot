@@ -7,10 +7,10 @@ module Notifications
       @shop = shop
     end
 
-    def send_low_stock_alerts(flagged_variants)
+    def create_alerts_and_notify(flagged_variants)
       return if flagged_variants.empty?
 
-      new_alerts = filter_new_alerts(flagged_variants)
+      new_alerts = remove_already_alerted_today(flagged_variants)
       return if new_alerts.empty?
 
       new_alerts.each { |fv| create_alert(fv) }
@@ -19,7 +19,7 @@ module Notifications
 
     private
 
-    def filter_new_alerts(flagged_variants)
+    def remove_already_alerted_today(flagged_variants)
       today_range = Time.current.beginning_of_day..Time.current.end_of_day
       already_alerted_ids = Alert.where(shop_id: @shop.id, triggered_at: today_range)
                                  .pluck(:variant_id).to_set

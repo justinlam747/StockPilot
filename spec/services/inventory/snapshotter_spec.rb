@@ -47,7 +47,7 @@ RSpec.describe Inventory::Snapshotter do
     }
 
     ActsAsTenant.with_tenant(shop) do
-      count = snapshotter.snapshot(data)
+      count = snapshotter.create_snapshots_from_shopify_data(data)
       expect(count).to eq(1)
 
       snapshot = InventorySnapshot.last
@@ -88,7 +88,7 @@ RSpec.describe Inventory::Snapshotter do
     }
 
     ActsAsTenant.with_tenant(shop) do
-      count = snapshotter.snapshot(data)
+      count = snapshotter.create_snapshots_from_shopify_data(data)
       expect(count).to eq(0)
     end
   end
@@ -151,7 +151,7 @@ RSpec.describe Inventory::Snapshotter do
     }
 
     ActsAsTenant.with_tenant(shop) do
-      count = snapshotter.snapshot(data)
+      count = snapshotter.create_snapshots_from_shopify_data(data)
       expect(count).to eq(2)
 
       snap1 = InventorySnapshot.find_by(variant_id: variant1.id)
@@ -187,7 +187,7 @@ RSpec.describe Inventory::Snapshotter do
     }
 
     ActsAsTenant.with_tenant(shop) do
-      count = snapshotter.snapshot(data)
+      count = snapshotter.create_snapshots_from_shopify_data(data)
       expect(count).to eq(1)
 
       snapshot = InventorySnapshot.find_by(variant_id: variant.id)

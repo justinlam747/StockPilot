@@ -9,7 +9,7 @@ module Reports
       @week_end = @week_start + 7.days
     end
 
-    def generate
+    def compile_weekly_report
       {
         'top_sellers' => top_sellers,
         'stockouts' => stockouts,

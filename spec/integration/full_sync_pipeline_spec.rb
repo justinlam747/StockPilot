@@ -57,20 +57,20 @@ RSpec.describe 'Full inventory sync pipeline', type: :model do
 
   before do
     variant # ensure variant exists
-    allow_any_instance_of(Shopify::InventoryFetcher).to receive(:call).and_return(graphql_response)
+    allow_any_instance_of(Shopify::InventoryFetcher).to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
   end
 
   it 'persists products, snapshots, and detects low stock end-to-end' do
     ActsAsTenant.with_tenant(shop) do
       # Step 1: Fetch and persist inventory data
-      data = Shopify::InventoryFetcher.new(shop).call
+      data = Shopify::InventoryFetcher.new(shop).fetch_all_products_with_inventory
       Inventory::Persister.new(shop).upsert(data)
 
       # Product title should be updated
       expect(product.reload.title).to eq('Test Widget Updated')
 
       # Step 2: Create inventory snapshots
-      count = Inventory::Snapshotter.new(shop).snapshot(data)
+      count = Inventory::Snapshotter.new(shop).create_snapshots_from_shopify_data(data)
       expect(count).to eq(1)
       expect(InventorySnapshot.last.available).to eq(3)
 
@@ -84,13 +84,13 @@ RSpec.describe 'Full inventory sync pipeline', type: :model do
       mailer_double = double('mailer', deliver_later: nil)
       allow(AlertMailer).to receive(:low_stock).and_return(mailer_double)
 
-      Notifications::AlertSender.new(shop).send_low_stock_alerts(flagged)
+      Notifications::AlertSender.new(shop).create_alerts_and_notify(flagged)
       expect(Alert.count).to eq(1)
       expect(Alert.last.alert_type).to eq('low_stock')
       expect(Alert.last.current_quantity).to eq(3)
 
       # Step 5: Verify deduplication — second call should not create new alerts
-      Notifications::AlertSender.new(shop).send_low_stock_alerts(flagged)
+      Notifications::AlertSender.new(shop).create_alerts_and_notify(flagged)
       expect(Alert.count).to eq(1)
 
       # Step 6: Warm cache
@@ -104,7 +104,7 @@ RSpec.describe 'Full inventory sync pipeline', type: :model do
   it 'updates synced_at on the shop after successful sync' do
     expect(shop.synced_at).to be_nil
 
-    allow_any_instance_of(Notifications::AlertSender).to receive(:send_low_stock_alerts)
+    allow_any_instance_of(Notifications::AlertSender).to receive(:create_alerts_and_notify)
 
     ActsAsTenant.with_tenant(shop) do
       InventorySyncJob.new.perform(shop.id)

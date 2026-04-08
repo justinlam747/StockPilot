@@ -55,10 +55,10 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
 
         allow(AlertMailer).to receive_message_chain(:low_stock, :deliver_later)
 
-        sender.send_low_stock_alerts(flagged_variants)
+        sender.create_alerts_and_notify(flagged_variants)
         expect(Alert.where(variant: variant).count).to eq(1)
 
-        sender.send_low_stock_alerts(flagged_variants)
+        sender.create_alerts_and_notify(flagged_variants)
         expect(Alert.where(variant: variant).count).to eq(1)
       end
     end
@@ -69,8 +69,8 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
         allow(AlertMailer).to receive(:low_stock).and_return(mailer_double)
 
         sender = Notifications::AlertSender.new(shop)
-        sender.send_low_stock_alerts(flagged_variants)
-        sender.send_low_stock_alerts(flagged_variants)
+        sender.create_alerts_and_notify(flagged_variants)
+        sender.create_alerts_and_notify(flagged_variants)
 
         expect(AlertMailer).to have_received(:low_stock).once
       end
@@ -328,8 +328,8 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
     before do
       variant
 
-      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:call).and_return(graphql_response)
-      allow_any_instance_of(Notifications::AlertSender).to receive(:send_low_stock_alerts)
+      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
+      allow_any_instance_of(Notifications::AlertSender).to receive(:create_alerts_and_notify)
     end
 
     it 'updates synced_at after the full pipeline completes' do
@@ -344,7 +344,7 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
     end
 
     it 'does not update synced_at if the fetcher raises' do
-      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:call).and_raise(
+      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:fetch_all_products_with_inventory).and_raise(
         Shopify::GraphqlClient::ShopifyApiError.new('API down')
       )
 

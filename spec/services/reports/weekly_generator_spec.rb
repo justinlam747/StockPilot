@@ -12,7 +12,7 @@ RSpec.describe Reports::WeeklyGenerator do
     ActsAsTenant.current_tenant = shop
   end
 
-  describe '#generate' do
+  describe '#compile_weekly_report' do
     context 'with full data' do
       let(:supplier) { create(:supplier, shop: shop, name: 'Acme Supplies', email: 'orders@acme.com') }
       let(:product_a) { create(:product, shop: shop, title: 'Widget A') }
@@ -50,14 +50,14 @@ RSpec.describe Reports::WeeklyGenerator do
       end
 
       it 'returns a hash with all four report sections' do
-        report = generator.generate
+        report = generator.compile_weekly_report
 
         expect(report.keys).to contain_exactly('top_sellers', 'stockouts', 'low_sku_count', 'reorder_suggestions')
       end
 
       describe 'top_sellers' do
         it 'calculates correct units_sold from snapshot deltas' do
-          report = generator.generate
+          report = generator.compile_weekly_report
           top_sellers = report['top_sellers']
 
           # variant_a: 100 - 60 = 40 sold
@@ -72,7 +72,7 @@ RSpec.describe Reports::WeeklyGenerator do
         end
 
         it 'includes sku, title, and units_sold for each entry' do
-          report = generator.generate
+          report = generator.compile_weekly_report
           top_seller = report['top_sellers'].find { |ts| ts['sku'] == 'WA-001' }
 
           expect(top_seller['title']).to eq("Widget A \u2014 Small")
@@ -80,7 +80,7 @@ RSpec.describe Reports::WeeklyGenerator do
         end
 
         it 'sorts by units_sold descending' do
-          report = generator.generate
+          report = generator.compile_weekly_report
           units = report['top_sellers'].map { |ts| ts['units_sold'] }
 
           expect(units).to eq(units.sort.reverse)
@@ -96,7 +96,7 @@ RSpec.describe Reports::WeeklyGenerator do
                                         created_at: week_end - 6.hours)
           end
 
-          report = generator.generate
+          report = generator.compile_weekly_report
 
           expect(report['top_sellers'].size).to eq(10)
         end
@@ -104,7 +104,7 @@ RSpec.describe Reports::WeeklyGenerator do
 
       describe 'stockouts' do
         it 'lists out_of_stock alerts triggered during the week' do
-          report = generator.generate
+          report = generator.compile_weekly_report
           stockouts = report['stockouts']
 
           expect(stockouts.size).to eq(1)
@@ -117,7 +117,7 @@ RSpec.describe Reports::WeeklyGenerator do
           create(:alert, shop: shop, variant: variant_a, alert_type: 'out_of_stock',
                          triggered_at: week_start - 1.day, current_quantity: 0)
 
-          report = generator.generate
+          report = generator.compile_weekly_report
 
           expect(report['stockouts'].size).to eq(1)
         end
@@ -126,7 +126,7 @@ RSpec.describe Reports::WeeklyGenerator do
           create(:alert, shop: shop, variant: variant_a, alert_type: 'low_stock',
                          triggered_at: week_start + 1.day, current_quantity: 5)
 
-          report = generator.generate
+          report = generator.compile_weekly_report
 
           expect(report['stockouts'].size).to eq(1)
         end
@@ -138,7 +138,7 @@ RSpec.describe Reports::WeeklyGenerator do
           # depending on LowStockDetector logic (< threshold means low_stock)
           # variant_a: 60 available, threshold 10 => ok
           # variant_c: 25 available, threshold 10 => ok
-          report = generator.generate
+          report = generator.compile_weekly_report
 
           expect(report['low_sku_count']).to be_a(Integer)
           expect(report['low_sku_count']).to be >= 0
@@ -151,7 +151,7 @@ RSpec.describe Reports::WeeklyGenerator do
           create(:inventory_snapshot, shop: shop, variant: variant_b, available: 3, on_hand: 3,
                                       created_at: Time.current)
 
-          report = generator.generate
+          report = generator.compile_weekly_report
           suggestions = report['reorder_suggestions']
 
           if suggestions.any?
@@ -168,7 +168,7 @@ RSpec.describe Reports::WeeklyGenerator do
           create(:inventory_snapshot, shop: shop, variant: variant_a, available: 3, on_hand: 3,
                                       created_at: Time.current)
 
-          report = generator.generate
+          report = generator.compile_weekly_report
           suggestions = report['reorder_suggestions']
 
           supplier_suggestion = suggestions.find { |s| s['supplier_name'] == 'Acme Supplies' }
@@ -187,7 +187,7 @@ RSpec.describe Reports::WeeklyGenerator do
           create(:inventory_snapshot, shop: shop, variant: variant_c, available: 2, on_hand: 2,
                                       created_at: Time.current)
 
-          report = generator.generate
+          report = generator.compile_weekly_report
           suggestions = report['reorder_suggestions']
 
           all_skus = suggestions.flat_map { |s| s['items'].map { |i| i['sku'] } }
@@ -198,7 +198,7 @@ RSpec.describe Reports::WeeklyGenerator do
 
     context 'with empty data' do
       it 'returns empty arrays and zero count when no data exists' do
-        report = generator.generate
+        report = generator.compile_weekly_report
 
         expect(report['top_sellers']).to eq([])
         expect(report['stockouts']).to eq([])
@@ -218,7 +218,7 @@ RSpec.describe Reports::WeeklyGenerator do
         create(:inventory_snapshot, shop: shop, variant: variant, available: 50, on_hand: 50,
                                     created_at: week_end - 6.hours)
 
-        report = generator.generate
+        report = generator.compile_weekly_report
 
         expect(report['top_sellers']).to be_empty
       end

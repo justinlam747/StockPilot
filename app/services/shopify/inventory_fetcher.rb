@@ -53,7 +53,9 @@ module Shopify
       @client = GraphqlClient.new(shop)
     end
 
-    def call
+    # Fetches all products with their variant inventory levels from Shopify,
+    # paginating through all pages of results via GraphQL cursor-based pagination.
+    def fetch_all_products_with_inventory
       products = @client.paginate(
         PRODUCTS_QUERY,
         connection_path: ['products']

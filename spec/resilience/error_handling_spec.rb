@@ -28,7 +28,7 @@ RSpec.describe 'Error handling and resilience', type: :model do
         Shopify::GraphqlClient::ShopifyThrottledError, 'Rate limited by Shopify'
       )
 
-      expect { fetcher.call }.to raise_error(
+      expect { fetcher.fetch_all_products_with_inventory }.to raise_error(
         Shopify::GraphqlClient::ShopifyThrottledError, /Rate limited/
       )
     end
@@ -40,7 +40,7 @@ RSpec.describe 'Error handling and resilience', type: :model do
         Shopify::GraphqlClient::ShopifyApiError, 'Internal error'
       )
 
-      expect { fetcher.call }.to raise_error(
+      expect { fetcher.fetch_all_products_with_inventory }.to raise_error(
         Shopify::GraphqlClient::ShopifyApiError, /Internal error/
       )
     end
