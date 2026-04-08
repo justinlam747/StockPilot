@@ -2,6 +2,22 @@
 
 module Cache
   # Per-shop caching layer for products, suppliers, and inventory stats.
+  #
+  # CACHING STRATEGIES USED:
+  #
+  # 1. Write-through (products, suppliers):
+  #    When we save a product/supplier, we immediately update the cache too.
+  #    This keeps the cache fresh without waiting for it to expire.
+  #
+  # 2. Cache-aside with short TTL (inventory stats):
+  #    We read from cache first. If it's expired (every 2 minutes),
+  #    we query the database, save the result to cache, and return it.
+  #    Short TTL because inventory changes frequently.
+  #
+  # 3. Lazy load (products/suppliers lists):
+  #    We only query the database when someone actually asks for the data.
+  #    The result is cached for 6-12 hours since these change less often.
+  #
   class ShopCache
     PRODUCT_TTL = 6.hours
     SUPPLIER_TTL = 12.hours
@@ -100,12 +116,14 @@ module Cache
       "shop:#{@shop.id}:#{suffix}"
     end
 
+    # Builds dashboard stats using a fast COUNT query instead of loading
+    # all flagged variants. Much cheaper when we only need numbers.
     def build_inventory_stats
-      flagged = Inventory::LowStockDetector.new(@shop).detect
+      counts = InventorySnapshot.count_by_stock_status(@shop)
       {
         total_products: Product.where(shop_id: @shop.id).active.count,
-        low_stock: flagged.count { |f| f[:status] == :low_stock },
-        out_of_stock: flagged.count { |f| f[:status] == :out_of_stock },
+        low_stock: counts[:low_stock],
+        out_of_stock: counts[:out_of_stock],
         pending_pos: PurchaseOrder.where(shop_id: @shop.id, status: 'draft').count
       }
     end

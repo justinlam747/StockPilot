@@ -60,6 +60,44 @@ class InventorySnapshot < ApplicationRecord
     scope
   end
 
+  # Returns { low_stock: N, out_of_stock: N } using a lightweight COUNT query.
+  #
+  # This is much faster than LowStockDetector.detect which loads full variant
+  # objects. Use this when you only need the numbers (e.g., for dashboard stats).
+  # Use LowStockDetector.detect when you need the actual variant records
+  # (e.g., for creating alert notifications).
+  #
+  # How it works:
+  # 1. Get the latest snapshot per variant (using our shared method)
+  # 2. Wrap that as a subquery and COUNT with FILTER conditions
+  # 3. The database does all the counting — no Ruby iteration needed
+  #
+  def self.count_by_stock_status(shop)
+    threshold = shop.low_stock_threshold
+    latest = latest_per_variant(shop_id: shop.id)
+
+    # sanitize_sql_array safely injects the threshold into the SQL string,
+    # preventing SQL injection. The ? placeholder gets replaced with the
+    # properly escaped threshold value.
+    count_sql = sanitize_sql_array([
+      "SELECT
+         COUNT(*) FILTER (WHERE available > 0 AND available < ?) AS low_stock,
+         COUNT(*) FILTER (WHERE available <= 0) AS out_of_stock
+       FROM (%s) AS latest_snapshots",
+      threshold
+    ])
+    # Replace the %s placeholder with the subquery SQL
+    # (which comes from ActiveRecord, so it's safe — not user input)
+    count_sql = count_sql.sub('%s', latest.to_sql)
+
+    rows = ActiveRecord::Base.connection.select_one(count_sql)
+
+    {
+      low_stock: rows['low_stock'].to_i,
+      out_of_stock: rows['out_of_stock'].to_i
+    }
+  end
+
   # Returns daily stock totals for chart rendering.
   #
   # Produces a hash like: { Date(2026-04-06) => 150, Date(2026-04-07) => 142, ... }

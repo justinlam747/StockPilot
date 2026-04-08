@@ -75,14 +75,20 @@ module Reports
     end
 
     def low_sku_count
-      Inventory::LowStockDetector.new(@shop).detect.size
+      flagged_variants.size
     end
 
     def reorder_suggestions
-      flagged = Inventory::LowStockDetector.new(@shop).detect
-      grouped = group_by_supplier(flagged)
+      grouped = group_by_supplier(flagged_variants)
       suppliers = Supplier.where(id: grouped.keys).index_by(&:id)
       grouped.map { |sid, variants| format_suggestion(suppliers[sid], variants) }
+    end
+
+    # Memoizes the result of LowStockDetector so it only runs once per report.
+    # The ||= operator means: "if @flagged_variants is nil, compute it; otherwise reuse it."
+    # This avoids running the expensive DISTINCT ON query twice.
+    def flagged_variants
+      @flagged_variants ||= Inventory::LowStockDetector.new(@shop).detect
     end
 
     def group_by_supplier(flagged)

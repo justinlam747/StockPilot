@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Renders the merchant dashboard with inventory stats.
+# Renders the merchant dashboard with inventory stats and trend arrows.
 class DashboardController < ApplicationController
   def index
     unless current_shop
@@ -11,23 +11,6 @@ class DashboardController < ApplicationController
     load_dashboard_stats
     load_trends
     @recent_alerts = Alert.includes(variant: :product).order(created_at: :desc).limit(10)
-  end
-
-  def toggle_demo
-    if session[:demo_mode]
-      session.delete(:demo_mode)
-      session.delete(:demo_shop_id)
-      redirect_to '/dashboard', notice: 'Demo mode off'
-    else
-      demo_shop = Shop.find_by(shop_domain: 'demo.myshopify.com')
-      unless demo_shop
-        redirect_to '/dashboard', alert: 'Demo data not seeded. Run: rails demo:seed'
-        return
-      end
-      session[:demo_mode] = true
-      session[:demo_shop_id] = demo_shop.id
-      redirect_to '/dashboard', notice: 'Demo mode on'
-    end
   end
 
   private
@@ -53,12 +36,13 @@ class DashboardController < ApplicationController
     @trends = compute_trends
   end
 
+  # Compares today's counts to yesterday's counts to show up/down/flat arrows.
   def compute_trends
     snapshots = InventorySnapshot.where(shop_id: current_shop.id)
                                  .where('created_at < ?', 24.hours.ago)
     return default_trends unless snapshots.exists?
 
-    prev = previous_counts(snapshots)
+    prev = counts_from_yesterday(snapshots)
     {
       total_products: trend_direction(@total_products, prev[:total]),
       low_stock: trend_direction(@low_stock, prev[:low]),
@@ -67,12 +51,15 @@ class DashboardController < ApplicationController
     }
   end
 
-  def previous_counts(snapshots)
+  # Counts stock levels from yesterday's snapshots for trend comparison.
+  # Uses the shop's configured threshold instead of a hardcoded value.
+  def counts_from_yesterday(snapshots)
+    threshold = current_shop.low_stock_threshold
     prev_total = Product.where(shop_id: current_shop.id)
                         .where('created_at < ?', 24.hours.ago).count
     {
       total: prev_total.zero? ? @total_products : prev_total,
-      low: snapshots.where('available > 0 AND available <= 10').count,
+      low: snapshots.where('available > 0 AND available <= ?', threshold).count,
       out: snapshots.where('available <= 0').count
     }
   end
@@ -86,5 +73,4 @@ class DashboardController < ApplicationController
 
     current > previous ? :up : :down
   end
-
 end
