@@ -2,10 +2,13 @@
 
 # A Shopify merchant store — the tenant root for all scoped data.
 class Shop < ApplicationRecord
+  # Rails 7+ encrypts :access_token stores the value encrypted in the database (as ciphertext),
+  # but auto-decrypts it when you access the attribute in Ruby (shop.access_token returns plaintext).
+  # Encryption happens on save, decryption on read. Requires RAILS_MASTER_KEY environment variable.
+  # If the key is lost, encrypted data becomes unrecoverable.
   encrypts :access_token
 
   belongs_to :user
-
   has_many :products, dependent: :destroy
   has_many :variants, dependent: :destroy
   has_many :inventory_snapshots, dependent: :destroy
@@ -26,6 +29,10 @@ class Shop < ApplicationRecord
     uninstalled_at.present?
   end
 
+  # The methods below are named helpers that provide defaults when accessing the settings hash.
+  # settings is stored as JSON in the database (Rails serializes/deserializes automatically).
+  # Each helper provides a convenient way to read a setting with a fallback default value,
+  # so callers don't have to worry about missing keys: timezone defaults to 'America/Toronto' if not set.
   def timezone
     settings['timezone'] || 'America/Toronto'
   end

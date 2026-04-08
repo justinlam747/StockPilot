@@ -6,6 +6,9 @@ class AuditLog < ApplicationRecord
 
   validates :action, presence: true
 
+  # readonly? makes this record immutable after it's saved to the database (when persisted? is true).
+  # If you try to call .update or .delete on a persisted AuditLog, Rails raises an ActiveRecord::ReadOnlyRecord error.
+  # This prevents accidental modification of audit trails, which is critical for compliance and security.
   def readonly?
     persisted?
   end
