@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="StockPilot — AI inventory agents for your store" width="700">
+</p>
+
 # StockPilot
 
 An embedded Shopify app that gives merchants real-time inventory intelligence — low-stock alerts, automated purchase order drafts, supplier management, and weekly inventory reports with AI-powered insights.
