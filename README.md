@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.png" alt="StockPilot — AI inventory agents for your store" width="700">
+  <img src="docs/banner.png" alt="StockPilot — AI inventory agents for your store" width="1700">
 </p>
 
 # StockPilot
