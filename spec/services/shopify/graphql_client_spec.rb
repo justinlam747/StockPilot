@@ -12,12 +12,12 @@ RSpec.describe Shopify::GraphqlClient do
 
   let(:mock_gql_client) { instance_double(ShopifyAPI::Clients::Graphql::Admin) }
 
-  describe '#query' do
+  describe '#run_query' do
     it 'returns data on success' do
       response = double(body: { 'data' => { 'products' => [] } })
       allow(mock_gql_client).to receive(:query).and_return(response)
 
-      result = client.query('{ products { nodes { id } } }')
+      result = client.run_query('{ products { nodes { id } } }')
       expect(result).to eq({ 'products' => [] })
     end
 
@@ -29,7 +29,7 @@ RSpec.describe Shopify::GraphqlClient do
       allow(client).to receive(:sleep)
 
       expect do
-        client.query('{ products { nodes { id } } }')
+        client.run_query('{ products { nodes { id } } }')
       end.to raise_error(Shopify::GraphqlClient::ShopifyThrottledError)
     end
 
@@ -41,7 +41,7 @@ RSpec.describe Shopify::GraphqlClient do
       allow(mock_gql_client).to receive(:query).and_return(error_response)
 
       expect do
-        client.query('{ products { nodes { id } } }')
+        client.run_query('{ products { nodes { id } } }')
       end.to raise_error(Shopify::GraphqlClient::ShopifyApiError, 'Something broke')
     end
 
@@ -53,7 +53,7 @@ RSpec.describe Shopify::GraphqlClient do
       allow(client).to receive(:sleep)
 
       expect do
-        client.query('{ products { nodes { id } } }')
+        client.run_query('{ products { nodes { id } } }')
       end.to raise_error(Shopify::GraphqlClient::ShopifyThrottledError)
 
       # Initial call + MAX_RETRIES retries = 4 total calls
@@ -70,7 +70,7 @@ RSpec.describe Shopify::GraphqlClient do
       allow(mock_gql_client).to receive(:query).and_return(error_response)
 
       expect do
-        client.query('{ products { nodes { id } } }')
+        client.run_query('{ products { nodes { id } } }')
       end.to raise_error(Shopify::GraphqlClient::ShopifyApiError, 'Field not found, Invalid argument')
     end
   end

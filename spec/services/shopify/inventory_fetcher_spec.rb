@@ -12,7 +12,7 @@ RSpec.describe Shopify::InventoryFetcher do
     allow(Shopify::GraphqlClient).to receive(:new).with(shop).and_return(mock_client)
   end
 
-  describe '#call' do
+  describe '#fetch_all_products_with_inventory' do
     let(:fetcher) { described_class.new(shop) }
     let(:products_data) do
       [
@@ -27,7 +27,7 @@ RSpec.describe Shopify::InventoryFetcher do
     it 'calls paginate with the PRODUCTS_QUERY and correct connection_path' do
       allow(mock_client).to receive(:paginate).and_return(products_data)
 
-      fetcher.call
+      fetcher.fetch_all_products_with_inventory
 
       expect(mock_client).to have_received(:paginate).with(
         Shopify::InventoryFetcher::PRODUCTS_QUERY,
@@ -39,7 +39,7 @@ RSpec.describe Shopify::InventoryFetcher do
       allow(mock_client).to receive(:paginate).and_return(products_data)
 
       freeze_time do
-        result = fetcher.call
+        result = fetcher.fetch_all_products_with_inventory
 
         expect(result).to be_a(Hash)
         expect(result[:products]).to eq(products_data)
@@ -50,7 +50,7 @@ RSpec.describe Shopify::InventoryFetcher do
     it 'returns empty products array when no products exist' do
       allow(mock_client).to receive(:paginate).and_return([])
 
-      result = fetcher.call
+      result = fetcher.fetch_all_products_with_inventory
 
       expect(result[:products]).to eq([])
       expect(result[:fetched_at]).to be_present
@@ -80,7 +80,7 @@ RSpec.describe Shopify::InventoryFetcher do
       ]
       allow(mock_client).to receive(:paginate).and_return(multi_products)
 
-      result = fetcher.call
+      result = fetcher.fetch_all_products_with_inventory
 
       expect(result[:products].size).to eq(2)
       expect(result[:products].first['variants']['nodes'].size).to eq(2)
@@ -90,7 +90,7 @@ RSpec.describe Shopify::InventoryFetcher do
       allow(mock_client).to receive(:paginate)
         .and_raise(Shopify::GraphqlClient::ShopifyApiError, 'API failure')
 
-      expect { fetcher.call }.to raise_error(Shopify::GraphqlClient::ShopifyApiError, 'API failure')
+      expect { fetcher.fetch_all_products_with_inventory }.to raise_error(Shopify::GraphqlClient::ShopifyApiError, 'API failure')
     end
   end
 end

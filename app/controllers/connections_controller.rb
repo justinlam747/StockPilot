@@ -5,7 +5,13 @@ class ConnectionsController < ApplicationController
   skip_before_action :require_shop_connection
 
   def shopify_connect
-    shop_domain = "#{params[:shop_domain].strip.downcase}.myshopify.com"
+    domain = params[:shop_domain].to_s.strip.downcase
+    if domain.blank?
+      redirect_to '/settings', alert: 'Please enter your store URL'
+      return
+    end
+
+    shop_domain = "#{domain}.myshopify.com"
     session[:connecting_shop] = shop_domain
     redirect_to "/auth/shopify?shop=#{shop_domain}", allow_other_host: true
   end
@@ -24,6 +30,8 @@ class ConnectionsController < ApplicationController
     else
       redirect_to '/dashboard', notice: 'Shopify store connected!'
     end
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to '/settings', alert: e.message
   end
 
   def failure
@@ -60,5 +68,8 @@ class ConnectionsController < ApplicationController
     shop.uninstalled_at = nil
     shop.save!
     shop
+  rescue ActiveRecord::RecordNotUnique
+    # Race condition: another request connected this shop concurrently
+    Shop.find_by!(shop_domain: auth.uid)
   end
 end

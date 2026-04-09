@@ -5,21 +5,13 @@
       <span class="po-header__count"><%= @purchase_orders.total_count %> order<%= @purchase_orders.total_count == 1 ? '' : 's' %></span>
     </div>
     <div class="po-header__actions">
-      <button hx-post="<%= generate_draft_purchase_orders_path %>"
-              hx-target="#draft-area"
-              hx-indicator="#draft-spinner"
-              class="bento__btn"
-              aria-label="Generate a draft purchase order using AI">
+      <a href="<%= new_purchase_order_path %>" class="bento__btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Generate Draft PO
-      </button>
-      <span id="draft-spinner" class="htmx-indicator">
-        <span class="sp-spinner" aria-hidden="true"></span>
-        Generating with AI...
-      </span>
+        New Purchase Order
+      </a>
     </div>
   </div>
 
@@ -46,7 +38,6 @@
   </div>
 </div>
 
-<div id="draft-area" aria-live="polite"></div>
 
 <div id="po-list">
   <%= render "list", purchase_orders: @purchase_orders %>

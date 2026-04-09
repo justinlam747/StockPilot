@@ -17,7 +17,7 @@ RSpec.describe Notifications::AlertSender do
 
   it 'creates alert and enqueues email for new low-stock variant' do
     expect do
-      sender.send_low_stock_alerts(flagged_variants)
+      sender.create_alerts_and_notify(flagged_variants)
     end.to change { Alert.count }.by(1)
                                  .and have_enqueued_mail(AlertMailer, :low_stock)
   end
@@ -26,13 +26,13 @@ RSpec.describe Notifications::AlertSender do
     create(:alert, shop: shop, variant: variant, triggered_at: Time.current)
 
     expect do
-      sender.send_low_stock_alerts(flagged_variants)
+      sender.create_alerts_and_notify(flagged_variants)
     end.not_to(change { Alert.count })
   end
 
   it 'does nothing for empty flagged variants' do
     expect do
-      sender.send_low_stock_alerts([])
+      sender.create_alerts_and_notify([])
     end.not_to(change { Alert.count })
   end
 
@@ -40,7 +40,7 @@ RSpec.describe Notifications::AlertSender do
     shop.update!(settings: shop.settings.merge('alert_email' => nil))
 
     expect do
-      sender.send_low_stock_alerts(flagged_variants)
+      sender.create_alerts_and_notify(flagged_variants)
     end.to change { Alert.count }.by(1)
 
     expect(ActionMailer::Base.deliveries).to be_empty
@@ -56,7 +56,7 @@ RSpec.describe Notifications::AlertSender do
     ]
 
     expect do
-      sender.send_low_stock_alerts(multi_flagged)
+      sender.create_alerts_and_notify(multi_flagged)
     end.to change { Alert.count }.by(2)
   end
 end

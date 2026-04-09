@@ -14,10 +14,10 @@ module Shopify
       @client = ShopifyAPI::Clients::Graphql::Admin.new(session: build_session)
     end
 
-    def query(graphql_query, variables: {})
+    def run_query(graphql_query, variables: {})
       retries = 0
       begin
-        execute_query(graphql_query, variables)
+        send_graphql_request(graphql_query, variables)
       rescue ShopifyThrottledError => e
         retries += 1
         raise e unless retries <= MAX_RETRIES
@@ -44,7 +44,7 @@ module Shopify
     private
 
     def fetch_connection(graphql_query, connection_path, variables, cursor)
-      data = query(graphql_query, variables: variables.merge(cursor: cursor))
+      data = run_query(graphql_query, variables: variables.merge(cursor: cursor))
       data.dig(*connection_path)
     end
 
@@ -54,7 +54,8 @@ module Shopify
       connection.dig('pageInfo', 'endCursor')
     end
 
-    def execute_query(graphql_query, variables)
+    def send_graphql_request(graphql_query, variables)
+      # @client.query is ShopifyAPI's built-in method, not ours
       response = @client.query(query: graphql_query, variables: variables)
       handle_errors(response)
       response.body['data']

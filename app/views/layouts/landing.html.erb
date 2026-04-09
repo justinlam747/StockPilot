@@ -8,11 +8,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <%= csrf_meta_tags %>
+  <meta name="clerk-key" content="<%= ENV['CLERK_PUBLISHABLE_KEY'] %>">
   <%= stylesheet_link_tag "landing" %>
   <%= stylesheet_link_tag "vision" if controller_name == 'vision' %>
 </head>
-<body class="<%= controller_name == 'landing' ? 'lp-body--hero' : 'lp-body--vision' %>">
+<body class="<%= controller_name == 'landing' ? 'lp-body' : 'lp-body--vision' %>" data-env="<%= Rails.env %>">
   <%= yield %>
   <%= javascript_include_tag "vision-tabs" if controller_name == 'vision' %>
+  <% if controller_name == 'landing' %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+    <%= javascript_include_tag "landing", defer: true %>
+    <%= javascript_include_tag "landing-clerk", defer: true %>
+  <% end %>
 </body>
 </html>

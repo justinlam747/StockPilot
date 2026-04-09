@@ -2,6 +2,9 @@
 
 # Tracks low-stock and out-of-stock notifications per variant.
 class Alert < ApplicationRecord
+  # acts_as_tenant :shop automatically scopes all queries to the current shop.
+  # Without this, a query like Alert.all would return alerts from ALL shops,
+  # causing data leakage. With it, Alert.all is rewritten as Alert.where(shop_id: current_shop.id).
   acts_as_tenant :shop
 
   belongs_to :variant

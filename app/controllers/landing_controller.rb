@@ -2,10 +2,8 @@
 
 # Public landing page for unauthenticated visitors.
 class LandingController < ApplicationController
-  skip_before_action :require_clerk_session
-  skip_before_action :require_onboarding
-  skip_before_action :require_shop_connection
-  skip_before_action :set_tenant
+  skip_before_action :verify_authenticity_token
+  skip_before_action :scope_queries_to_current_shop
   layout 'landing'
 
   def index; end

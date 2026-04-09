@@ -1,59 +1,342 @@
-<main class="lp-split">
-  <div class="lp-split__left">
-    <div class="lp-split__brand">stockpilot</div>
+<%# ═══════════════════════════════════════════════════════════
+     Section 1 — Hero (split screen)
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-hero">
+  <div class="lp-hero__left">
+    <div class="lp-hero__brand" data-animate="hero">stockpilot</div>
 
-    <%# Logo pill: Shopify + Claude + OpenAI + Gemini %>
-    <div class="lp-pill">
+    <div class="lp-hero__pill" data-animate="hero">
       <svg width="18" height="20" viewBox="0 0 109 124" fill="none" aria-label="Shopify">
         <path d="M95.4 23.7c-.1-.6-.6-1-1.1-1-.4 0-9.2-.2-9.2-.2s-7.3-7.1-8.1-7.9c-.7-.7-2.1-.5-2.7-.3 0 0-1.4.4-3.7 1.1-.4-1.2-1-2.8-1.8-4.3-2.6-5-6.5-7.6-11.1-7.6h-.1c-.3-.2-.6-.4-.9-.5-2-2.1-4.6-3.2-7.7-3.1-6 .2-11.9 4.5-16.8 12.2-3.4 5.4-6 12.2-6.7 17.5-6.9 2.1-11.7 3.6-11.8 3.7-3.5 1.1-3.6 1.2-4 4.5C9.1 40.7 0 111 0 111l76.2 13.2 33-8.2S95.5 24.3 95.4 23.7zM66.9 17.1c-1.8.5-3.7 1.2-5.9 1.8 0-3-.4-7.3-1.8-10.8 4.4.8 6.6 5.9 7.7 9zM57 20.2c-4 1.2-8.4 2.6-12.7 3.9 1.2-4.7 3.6-9.4 6.4-12.5 1.1-1.2 2.6-2.4 4.3-3.1C56.8 12 57.1 17 57 20.2zM48.9 4.4c1.4 0 2.6.3 3.6 1-1.6.8-3.2 2-4.6 3.6-3.8 4.1-6.8 10.5-7.9 16.6-3.6 1.1-7.2 2.2-10.4 3.2C31.6 19.2 39.6 4.7 48.9 4.4z" fill="#95BF47"/>
         <path d="M94.3 22.7c-.4 0-9.2-.2-9.2-.2s-7.3-7.1-8.1-7.9c-.3-.3-.6-.4-1-.5l.1 109.5 33-8.2S95 23.7 94.9 23.1c-.1-.5-.5-.4-.6-.4z" fill="#5E8E3E"/>
       </svg>
-
-      <span class="lp-pill__sep"></span>
-
+      <span class="lp-hero__pill-sep"></span>
       <svg width="16" height="16" viewBox="0 0 512 510" fill="#D77655" aria-label="Claude">
         <path d="M142.3 316.6l73.6-41.3 1.2-3.6-1.2-2-3.6 0-12.3-.8-42.1-1.1-36.5-1.5-35.4-1.9-8.9-1.9-8.3-11 .9-5.5 7.5-5 10.7.9 23.7 1.6 35.5 2.5 25.8 1.5 38.2 4h6.1l.9-2.5-2.1-1.5-1.6-1.5-36.8-24.9-39.8-26.3-20.9-15.2-11.3-7.7-5.7-7.2-2.5-15.7 10.2-11.3 13.8.9 3.5 1 13.9 10.7 29.7 23 38.9 28.6 5.7 4.7 2.3-1.6.3-1.1-2.6-4.3-21.1-38.2-22.5-38.8-10-16.1-2.7-9.7c-.9-4-1.6-7.3-1.6-11.4l11.7-15.8 6.4-2.1 15.5 2.1 6.5 5.7 9.7 22.1 15.6 34.8 24.3 47.3 7.1 14 3.8 13 1.4 4 2.4 0v-2.3l2-26.6 3.7-32.7 3.6-42.1 1.2-11.9 5.9-14.2 11.7-7.7 9.1 4.3 7.5 10.7-1 6.9-4.4 28.9-8.7 45.3-5.7 30.3h3.3l3.8-3.8 15.3-20.4 25.8-32.2 11.4-12.8 13.3-14.1 8.5-6.7 16.1 0 11.9 17.6-5.3 18.2-16.6 21-13.8 17.8-19.7 26.5-12.3 21.2 1.1 1.7 2.9-.3 44.5-9.5 24.1-4.3 28.7-4.9 13 6.1 1.4 6.2-5.1 12.6-30.7 7.6-36 7.2-53.6 12.7-.7.5.8.9 24.2 2.3 10.3.6h25.3l47.1 3.5 12.3 8.1 7.4 10-1.2 7.6-19 9.7-25.6-6.1-59.7-14.2-20.5-5.1-2.8 0v1.7l17.1 16.7 31.3 28.2 39.2 36.4 2 9-5 7.1-5.3-.8-34.4-25.9-13.3-11.7-30.1-25.3-2 0v2.7l6.9 10.1 36.6 55 1.9 16.9-2.7 5.5-9.5 3.3-10.4-1.9-21.4-30.1-22.1-33.8-17.8-30.3-2.2 1.2-10.5 113.3-4.9 5.8-11.4 4.3-9.5-7.2-5-11.7 5-23 6.1-30.1 4.9-23.9 4.4-29.7 2.7-9.9-.2-.7-2.2.3-22.4 30.7-34 46-26.9 28.8-6.4 2.6-11.2-5.8 1-10.3 6.2-9.2 37.3-47.4 22.5-29.4 14.5-17-.1-2.5h-.9l-99 64.3-17.6 2.3-7.6-7.1.9-11.7 3.6-3.8 29.7-20.5z"/>
       </svg>
-
-      <span class="lp-pill__sep"></span>
-
+      <span class="lp-hero__pill-sep"></span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="#1A1A1A" aria-label="OpenAI">
         <path d="M22.28 9.37a5.99 5.99 0 00-.52-4.93 6.07 6.07 0 00-6.53-2.91A5.99 5.99 0 0010.7 0a6.07 6.07 0 00-5.78 4.18 5.99 5.99 0 00-4 2.9 6.07 6.07 0 00.75 7.12 5.99 5.99 0 00.52 4.93 6.07 6.07 0 006.53 2.91A5.99 5.99 0 0013.3 24a6.07 6.07 0 005.78-4.18 5.99 5.99 0 004-2.9 6.07 6.07 0 00-.75-7.12l-.05-.43zM13.3 22.44a4.5 4.5 0 01-2.88-1.04l.14-.08 4.78-2.76a.78.78 0 00.39-.68v-6.73l2.02 1.17a.07.07 0 01.04.05v5.58a4.52 4.52 0 01-4.49 4.49zM3.6 18.34a4.47 4.47 0 01-.54-3.02l.14.09 4.78 2.76a.77.77 0 00.78 0l5.83-3.37v2.33a.07.07 0 01-.03.06l-4.83 2.79a4.52 4.52 0 01-6.13-1.64zM2.34 7.89A4.47 4.47 0 014.7 5.92v5.69a.78.78 0 00.39.68l5.83 3.37-2.02 1.17a.07.07 0 01-.07 0L4 14.03a4.52 4.52 0 01-1.66-6.14zM19.14 11.9l-5.83-3.37 2.02-1.16a.07.07 0 01.07 0l4.83 2.79a4.52 4.52 0 01-.7 8.14v-5.72a.78.78 0 00-.39-.68zM21.16 8.68l-.14-.09-4.78-2.76a.77.77 0 00-.78 0l-5.83 3.37V6.87a.07.07 0 01.03-.06l4.83-2.79a4.52 4.52 0 016.67 4.66zM8.26 13.53l-2.02-1.17a.07.07 0 01-.04-.05V6.73a4.52 4.52 0 017.39-3.46l-.14.08-4.78 2.76a.78.78 0 00-.39.68l-.02 6.74zM9.37 11.5L12 9.97l2.63 1.52v3.04L12 16.05l-2.63-1.52V11.5z"/>
       </svg>
-
-      <span class="lp-pill__sep"></span>
-
+      <span class="lp-hero__pill-sep"></span>
       <svg width="16" height="16" viewBox="0 0 65 65" aria-label="Gemini">
         <defs><linearGradient id="gem-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4285F4"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs>
         <path fill="url(#gem-grad)" d="M32.4 0c.7 0 1.3.5 1.4 1.1a39 39 0 002 5.9c2.2 5 5.1 9.4 8.9 13.1 3.7 3.8 8.1 6.7 13.1 8.9a39 39 0 005.9 2c.7.2 1.1.8 1.1 1.4 0 .7-.5 1.3-1.1 1.4a39 39 0 00-5.9 2c-5 2.2-9.4 5.1-13.1 8.9-3.8 3.7-6.7 8.1-8.9 13.1a39 39 0 00-2 5.9c-.2.7-.8 1.1-1.4 1.1-.7 0-1.3-.5-1.4-1.1a39 39 0 00-2-5.9c-2.2-5-5.1-9.4-8.9-13.1-3.7-3.8-8.1-6.7-13.1-8.9a39 39 0 00-5.9-2A1.5 1.5 0 010 32.4c0-.7.5-1.3 1.1-1.4a39 39 0 005.9-2c5-2.2 9.4-5.1 13.1-8.9 3.8-3.7 6.7-8.1 8.9-13.1a39 39 0 002-5.9A1.5 1.5 0 0132.4 0z"/>
       </svg>
     </div>
 
-    <h1 class="lp-hero__title">AI inventory<br>agents for<br>your store</h1>
+    <h1 class="lp-hero__title" data-animate="hero">AI inventory<br>agents for<br>your store</h1>
 
-    <p class="lp-hero__desc">
+    <p class="lp-hero__desc" data-animate="hero">
       Monitors every SKU. Fires alerts when stock runs low. Drafts purchase orders to your suppliers. Generates weekly inventory reports. All automatic.
     </p>
 
-    <div class="lp-hero__buttons">
-      <button onclick="window.Clerk && Clerk.openSignUp()" class="lp-hero__cta">Get Started</button>
-      <a href="/vision" class="lp-hero__vision">Vision</a>
+    <div class="lp-hero__buttons" data-animate="hero">
+      <a href="<%= Rails.env.development? ? '/dev/login' : '#' %>" id="get-started-btn" class="lp-btn--primary">Get Started</a>
+      <a href="/vision" class="lp-btn--secondary">Vision</a>
     </div>
-
-    <script
-      async crossorigin="anonymous"
-      data-clerk-publishable-key="<%= ENV['CLERK_PUBLISHABLE_KEY'] %>"
-      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-    ></script>
-    <script>
-      window.addEventListener('load', async () => {
-        if (window.Clerk) {
-          await Clerk.load();
-          if (Clerk.user) { window.location = '/dashboard'; }
-        }
-      });
-    </script>
   </div>
 
-  <div class="lp-split__right"></div>
-</main>
+  <div class="lp-hero__right">
+    <div class="lp-hero__dashboard" data-animate="hero-dashboard">
+      <div class="lp-dash__chrome">
+        <span class="lp-dash__dot"></span>
+        <span class="lp-dash__dot"></span>
+        <span class="lp-dash__dot"></span>
+        <span class="lp-dash__url">app.stockpilot.io/dashboard</span>
+      </div>
+      <div class="lp-dash__body">
+        <div class="lp-dash__stats">
+          <div class="lp-dash__stat">
+            <span class="lp-dash__stat-label">Low Stock</span>
+            <span class="lp-dash__stat-value lp-dash__stat-value--alert">12</span>
+          </div>
+          <div class="lp-dash__stat">
+            <span class="lp-dash__stat-label">Total SKUs</span>
+            <span class="lp-dash__stat-value">2,847</span>
+          </div>
+          <div class="lp-dash__stat">
+            <span class="lp-dash__stat-label">PO Drafts</span>
+            <span class="lp-dash__stat-value lp-dash__stat-value--green">3</span>
+          </div>
+        </div>
+        <div class="lp-dash__chart"></div>
+        <div class="lp-dash__rows">
+          <div class="lp-dash__row">
+            <span class="lp-dash__row-name"></span>
+            <span class="lp-dash__row-bar" style="width:72%"></span>
+            <span class="lp-dash__row-num"></span>
+          </div>
+          <div class="lp-dash__row">
+            <span class="lp-dash__row-name"></span>
+            <span class="lp-dash__row-bar lp-dash__row-bar--low" style="width:18%"></span>
+            <span class="lp-dash__row-num"></span>
+          </div>
+          <div class="lp-dash__row">
+            <span class="lp-dash__row-name"></span>
+            <span class="lp-dash__row-bar" style="width:55%"></span>
+            <span class="lp-dash__row-num"></span>
+          </div>
+          <div class="lp-dash__row">
+            <span class="lp-dash__row-name"></span>
+            <span class="lp-dash__row-bar" style="width:89%"></span>
+            <span class="lp-dash__row-num"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 2 — Social Proof Strip
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-proof" data-animate="fade">
+  <p class="lp-proof__text">Powering inventory intelligence for Shopify merchants</p>
+  <div class="lp-proof__ticker">
+    <div class="lp-proof__track">
+      <span class="lp-proof__logo">Shopify</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Claude AI</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">OpenAI</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Gemini</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Sidekiq</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">PostgreSQL</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Redis</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Sentry</span>
+      <%# duplicate for seamless loop %>
+      <span class="lp-proof__logo">Shopify</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Claude AI</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">OpenAI</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Gemini</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Sidekiq</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">PostgreSQL</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Redis</span>
+      <span class="lp-proof__sep">&middot;</span>
+      <span class="lp-proof__logo">Sentry</span>
+    </div>
+  </div>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 3 — Big Statement
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-statement">
+  <h2 class="lp-statement__text" data-animate="words">
+    Never lose a sale to an empty shelf.
+  </h2>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 4 — Feature Bento Grid
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-features">
+  <div class="lp-features__header" data-animate="fade">
+    <span class="lp-label">Capabilities</span>
+    <h2 class="lp-section-title">Everything runs on autopilot</h2>
+  </div>
+
+  <div class="lp-bento">
+    <div class="lp-bento__card lp-bento__card--lg" data-animate="card">
+      <span class="lp-bento__label">Monitoring</span>
+      <h3 class="lp-bento__title">Low-Stock Alerts</h3>
+      <p class="lp-bento__desc">Watches every SKU in real time. When stock drops below your thresholds, you get notified instantly — before customers notice.</p>
+      <div class="lp-bento__visual">
+        <div class="lp-bento__bar-group">
+          <div class="lp-bento__bar" style="--bar-w:85%"><span>Cotton Tee — 847</span></div>
+          <div class="lp-bento__bar lp-bento__bar--warn" style="--bar-w:22%"><span>Denim Jacket — 12</span></div>
+          <div class="lp-bento__bar" style="--bar-w:64%"><span>Canvas Bag — 391</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-bento__card" data-animate="card">
+      <span class="lp-bento__label">AI</span>
+      <h3 class="lp-bento__title">Purchase Order Drafts</h3>
+      <p class="lp-bento__desc">Claude analyzes demand patterns and drafts POs to your suppliers. Review, approve, send.</p>
+    </div>
+
+    <div class="lp-bento__card" data-animate="card">
+      <span class="lp-bento__label">Reports</span>
+      <h3 class="lp-bento__title">Weekly Digests</h3>
+      <p class="lp-bento__desc">Trend analysis delivered every Monday. Timezone-aware scheduling, zero configuration.</p>
+    </div>
+
+    <div class="lp-bento__card lp-bento__card--lg" data-animate="card">
+      <span class="lp-bento__label">Operations</span>
+      <h3 class="lp-bento__title">Supplier Management</h3>
+      <p class="lp-bento__desc">Track lead times, contacts, and order history for every supplier in one place. No more spreadsheets.</p>
+      <div class="lp-bento__visual">
+        <div class="lp-bento__supplier-row">
+          <span class="lp-bento__avatar">TC</span>
+          <span class="lp-bento__supplier-name">TextileCo Ltd</span>
+          <span class="lp-bento__lead-time">14d lead</span>
+        </div>
+        <div class="lp-bento__supplier-row">
+          <span class="lp-bento__avatar">PD</span>
+          <span class="lp-bento__supplier-name">PackDirect Inc</span>
+          <span class="lp-bento__lead-time">7d lead</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-bento__card" data-animate="card">
+      <span class="lp-bento__label">Intelligence</span>
+      <h3 class="lp-bento__title">Customer DNA</h3>
+      <p class="lp-bento__desc">Profiles built from order history. Know who buys what, when, and why.</p>
+    </div>
+
+    <div class="lp-bento__card" data-animate="card">
+      <span class="lp-bento__label">Compliance</span>
+      <h3 class="lp-bento__title">GDPR Built In</h3>
+      <p class="lp-bento__desc">Automatic handling of data requests and redaction webhooks. Privacy by design.</p>
+    </div>
+  </div>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 5 — How It Works
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-steps">
+  <div class="lp-steps__header" data-animate="fade">
+    <span class="lp-label">How it works</span>
+    <h2 class="lp-section-title">Three steps to autopilot</h2>
+  </div>
+
+  <div class="lp-steps__row">
+    <div class="lp-step" data-animate="step">
+      <div class="lp-step__number">1</div>
+      <h3 class="lp-step__title">Connect</h3>
+      <p class="lp-step__desc">Install the app and sync your Shopify store in one click. We pull your products, variants, and inventory levels.</p>
+    </div>
+
+    <div class="lp-step__connector" data-animate="connector"></div>
+
+    <div class="lp-step" data-animate="step">
+      <div class="lp-step__number">2</div>
+      <h3 class="lp-step__title">Configure</h3>
+      <p class="lp-step__desc">Set stock thresholds per variant, add your suppliers, and choose your alert channels. Five minutes, tops.</p>
+    </div>
+
+    <div class="lp-step__connector" data-animate="connector"></div>
+
+    <div class="lp-step" data-animate="step">
+      <div class="lp-step__number">3</div>
+      <h3 class="lp-step__title">Autopilot</h3>
+      <p class="lp-step__desc">StockPilot monitors inventory, fires alerts, drafts purchase orders, and generates reports — while you sleep.</p>
+    </div>
+  </div>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 6 — Dashboard Preview (full-width)
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-preview">
+  <div class="lp-preview__frame" data-animate="preview">
+    <div class="lp-dash__chrome">
+      <span class="lp-dash__dot"></span>
+      <span class="lp-dash__dot"></span>
+      <span class="lp-dash__dot"></span>
+      <span class="lp-dash__url">app.stockpilot.io/inventory</span>
+    </div>
+    <div class="lp-preview__body">
+      <aside class="lp-preview__sidebar">
+        <div class="lp-preview__nav-item lp-preview__nav-item--active">Dashboard</div>
+        <div class="lp-preview__nav-item">Inventory</div>
+        <div class="lp-preview__nav-item">Suppliers</div>
+        <div class="lp-preview__nav-item">Reports</div>
+        <div class="lp-preview__nav-item">Settings</div>
+      </aside>
+      <div class="lp-preview__main">
+        <div class="lp-preview__stats">
+          <div class="lp-preview__stat-card">
+            <div class="lp-preview__stat-label">Total Products</div>
+            <div class="lp-preview__stat-num">1,247</div>
+          </div>
+          <div class="lp-preview__stat-card">
+            <div class="lp-preview__stat-label">Low Stock Alerts</div>
+            <div class="lp-preview__stat-num lp-preview__stat-num--alert">23</div>
+          </div>
+          <div class="lp-preview__stat-card">
+            <div class="lp-preview__stat-label">POs This Week</div>
+            <div class="lp-preview__stat-num lp-preview__stat-num--green">5</div>
+          </div>
+          <div class="lp-preview__stat-card">
+            <div class="lp-preview__stat-label">Sync Status</div>
+            <div class="lp-preview__stat-num lp-preview__stat-num--green">Live</div>
+          </div>
+        </div>
+        <div class="lp-preview__table">
+          <div class="lp-preview__table-header">
+            <span>Product</span><span>Stock</span><span>Status</span><span>Supplier</span>
+          </div>
+          <div class="lp-preview__table-row">
+            <span>Organic Cotton Tee</span><span>847</span><span class="lp-badge lp-badge--ok">In Stock</span><span>TextileCo</span>
+          </div>
+          <div class="lp-preview__table-row">
+            <span>Denim Trucker Jacket</span><span>12</span><span class="lp-badge lp-badge--warn">Low</span><span>DenimWorks</span>
+          </div>
+          <div class="lp-preview__table-row">
+            <span>Canvas Tote Bag</span><span>391</span><span class="lp-badge lp-badge--ok">In Stock</span><span>PackDirect</span>
+          </div>
+          <div class="lp-preview__table-row">
+            <span>Wool Beanie</span><span>3</span><span class="lp-badge lp-badge--alert">Critical</span><span>YarnHouse</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 7 — Testimonial
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-testimonial" data-animate="fade">
+  <div class="lp-testimonial__inner">
+    <div class="lp-testimonial__quote">&ldquo;</div>
+    <blockquote class="lp-testimonial__text">
+      We used to spend four hours a week manually checking stock levels. StockPilot cut that to zero. The AI purchase orders alone saved us from three stockouts last month.
+    </blockquote>
+    <div class="lp-testimonial__author">
+      <div class="lp-testimonial__avatar">JM</div>
+      <div>
+        <div class="lp-testimonial__name">Jordan Mitchell</div>
+        <div class="lp-testimonial__role">Operations Lead, Threadbare Goods</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ═══════════════════════════════════════════════════════════
+     Section 8 — CTA Footer
+     ═══════════════════════════════════════════════════════════ %>
+<section class="lp-cta">
+  <div class="lp-cta__inner" data-animate="fade">
+    <h2 class="lp-cta__title">Ready to put your inventory on autopilot?</h2>
+    <p class="lp-cta__sub">Join Shopify merchants who never worry about stock again.</p>
+    <a href="<%= Rails.env.development? ? '/dev/login' : '#' %>" id="cta-get-started-btn" class="lp-cta__btn">Get Started</a>
+  </div>
+</section>
+
+<footer class="lp-footer">
+  <div class="lp-footer__inner">
+    <span class="lp-footer__copy">&copy; 2026 stockpilot</span>
+    <nav class="lp-footer__links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </nav>
+  </div>
+</footer>

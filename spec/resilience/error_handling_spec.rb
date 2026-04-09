@@ -13,8 +13,6 @@ RSpec.describe 'Error handling and resilience', type: :model do
 
   before do
     ActsAsTenant.current_tenant = shop
-    allow(ENV).to receive(:fetch).and_call_original
-    allow(ENV).to receive(:fetch).with('ANTHROPIC_API_KEY').and_return('test-key')
   end
 
   # ---------------------------------------------------------------------------
@@ -30,7 +28,7 @@ RSpec.describe 'Error handling and resilience', type: :model do
         Shopify::GraphqlClient::ShopifyThrottledError, 'Rate limited by Shopify'
       )
 
-      expect { fetcher.call }.to raise_error(
+      expect { fetcher.fetch_all_products_with_inventory }.to raise_error(
         Shopify::GraphqlClient::ShopifyThrottledError, /Rate limited/
       )
     end
@@ -42,189 +40,14 @@ RSpec.describe 'Error handling and resilience', type: :model do
         Shopify::GraphqlClient::ShopifyApiError, 'Internal error'
       )
 
-      expect { fetcher.call }.to raise_error(
+      expect { fetcher.fetch_all_products_with_inventory }.to raise_error(
         Shopify::GraphqlClient::ShopifyApiError, /Internal error/
       )
     end
   end
 
   # ---------------------------------------------------------------------------
-  # 2. Anthropic API failures in InsightsGenerator
-  # ---------------------------------------------------------------------------
-  describe 'AI::InsightsGenerator resilience' do
-    let(:generator) { AI::InsightsGenerator.new(shop) }
-    let(:mock_client) { instance_double(Anthropic::Client) }
-
-    before do
-      allow(Anthropic::Client).to receive(:new).and_return(mock_client)
-      allow(Inventory::LowStockDetector).to receive_message_chain(:new, :detect).and_return([])
-    end
-
-    it 'returns fallback string when Anthropic raises Anthropic::Error' do
-      allow(mock_client).to receive(:messages).and_raise(
-        Anthropic::Error, 'API key invalid'
-      )
-
-      result = generator.generate
-
-      expect(result).to eq('AI insights temporarily unavailable.')
-    end
-
-    it 'handles nil content gracefully when Anthropic returns empty response' do
-      allow(mock_client).to receive(:messages).and_return(
-        { 'content' => [] }
-      )
-
-      result = generator.generate
-
-      # dig into empty array returns nil — should not raise
-      expect(result).to be_nil
-    end
-
-    it 'handles nil content block text gracefully' do
-      allow(mock_client).to receive(:messages).and_return(
-        { 'content' => [{ 'type' => 'text', 'text' => nil }] }
-      )
-
-      result = generator.generate
-
-      expect(result).to be_nil
-    end
-
-    it 'logs the error when Anthropic fails' do
-      allow(mock_client).to receive(:messages).and_raise(
-        Anthropic::Error, 'Service unavailable'
-      )
-
-      expect(Rails.logger).to receive(:warn).with(/Anthropic API error.*Service unavailable/)
-
-      generator.generate
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # 3. Anthropic API failures in PoDraftGenerator
-  # ---------------------------------------------------------------------------
-  describe 'AI::PoDraftGenerator resilience' do
-    let(:generator) { AI::PoDraftGenerator.new }
-    let(:mock_client) { instance_double(Anthropic::Client) }
-    let(:supplier) { create(:supplier, shop: shop, name: 'Acme Supplies', email: 'acme@example.com') }
-    let(:product) { create(:product, shop: shop, title: 'Widget') }
-    let(:variant) { create(:variant, shop: shop, product: product, title: 'Blue', sku: 'WDG-BLU', price: 9.99) }
-    let(:po) { create(:purchase_order, shop: shop, supplier: supplier) }
-    let(:line_item) do
-      create(:purchase_order_line_item,
-             purchase_order: po,
-             variant: variant,
-             sku: variant.sku,
-             qty_ordered: 10,
-             unit_price: 9.99)
-    end
-
-    before do
-      allow(Anthropic::Client).to receive(:new).and_return(mock_client)
-    end
-
-    it 'returns fallback plain text draft when Anthropic raises error' do
-      allow(mock_client).to receive(:messages).and_raise(
-        Anthropic::Error, 'Rate limit exceeded'
-      )
-
-      result = generator.generate(supplier: supplier, line_items: [line_item], shop: shop)
-
-      expect(result).to include('Dear Acme Supplies')
-      expect(result).to include('Please confirm availability')
-      expect(result).to include(shop.shop_domain)
-    end
-
-    it 'logs a warning when falling back' do
-      allow(mock_client).to receive(:messages).and_raise(
-        Anthropic::Error, 'Connection reset'
-      )
-
-      expect(Rails.logger).to receive(:warn).with(/PoDraftGenerator.*Connection reset/)
-
-      generator.generate(supplier: supplier, line_items: [line_item], shop: shop)
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # 4. Anthropic API failures in InventoryMonitor agent
-  # ---------------------------------------------------------------------------
-  describe 'Agents::InventoryMonitor resilience' do
-    let(:monitor) { Agents::InventoryMonitor.new(shop) }
-
-    it 'falls back to direct check when Anthropic::Error is raised' do
-      allow(Anthropic::Client).to receive(:new).and_return(
-        instance_double(Anthropic::Client).tap do |client|
-          allow(client).to receive(:messages).and_raise(
-            Anthropic::Error, 'API temporarily unavailable'
-          )
-        end
-      )
-      allow(Inventory::LowStockDetector).to receive_message_chain(:new, :detect).and_return([])
-
-      result = monitor.run
-
-      expect(result[:fallback]).to eq(true)
-      expect(result[:turns]).to eq(0)
-      expect(result[:log]).to include(a_string_matching(/falling back to direct check/))
-      expect(result[:log]).to include(a_string_matching(/all SKUs healthy/i))
-    end
-
-    it 'falls back and sends alerts when there are flagged variants' do
-      product = create(:product, shop: shop)
-      variant = create(:variant, shop: shop, product: product)
-
-      flagged = [{
-        variant: variant,
-        available: 2,
-        on_hand: 5,
-        status: :low_stock,
-        threshold: 10
-      }]
-
-      allow(Anthropic::Client).to receive(:new).and_return(
-        instance_double(Anthropic::Client).tap do |client|
-          allow(client).to receive(:messages).and_raise(
-            Anthropic::Error, 'timeout'
-          )
-        end
-      )
-      allow(Inventory::LowStockDetector).to receive_message_chain(:new, :detect).and_return(flagged)
-
-      alert_sender = instance_double(Notifications::AlertSender)
-      allow(Notifications::AlertSender).to receive(:new).with(shop).and_return(alert_sender)
-      allow(alert_sender).to receive(:send_low_stock_alerts)
-
-      result = monitor.run
-
-      expect(result[:fallback]).to eq(true)
-      expect(alert_sender).to have_received(:send_low_stock_alerts).with(flagged)
-      expect(result[:log]).to include(a_string_matching(/sent alerts for 1 variant/))
-    end
-
-    it 'logs error and returns error result on StandardError' do
-      client_double = instance_double(Anthropic::Client)
-      allow(client_double).to receive(:messages).and_raise(
-        StandardError, 'unexpected failure'
-      )
-
-      allow(Anthropic::Client).to receive(:new).and_return(client_double)
-
-      expect(Rails.logger).to receive(:error).with(/InventoryMonitor.*unexpected failure/)
-
-      monitor = Agents::InventoryMonitor.new(shop)
-      result = monitor.run
-
-      expect(result[:error]).to eq(true)
-      expect(result[:turns]).to eq(0)
-      expect(result[:log]).to include(a_string_matching(/Agent error.*StandardError/))
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # 5. Health check degradation
+  # 2. Health check degradation
   # ---------------------------------------------------------------------------
   describe 'Health check resilience', type: :request do
     it 'returns degraded when database is down' do
@@ -266,65 +89,4 @@ RSpec.describe 'Error handling and resilience', type: :model do
     end
   end
 
-  # ---------------------------------------------------------------------------
-  # 6. Agents::Runner error isolation
-  # ---------------------------------------------------------------------------
-  describe 'Agents::Runner error isolation' do
-    let!(:shop_a) do
-      create(:shop, settings: { 'low_stock_threshold' => 10, 'timezone' => 'UTC' })
-    end
-    let!(:shop_b) do
-      create(:shop, settings: { 'low_stock_threshold' => 10, 'timezone' => 'UTC' })
-    end
-
-    before do
-      # Mark both shops as active (no uninstalled_at)
-      Shop.update_all(uninstalled_at: nil)
-    end
-
-    it 'continues processing other shops when one shop fails' do
-      monitor_a = instance_double(Agents::InventoryMonitor)
-      monitor_b = instance_double(Agents::InventoryMonitor)
-
-      allow(Agents::InventoryMonitor).to receive(:new).and_return(monitor_a, monitor_b)
-
-      # Shop A's monitor raises an error
-      allow(monitor_a).to receive(:run).and_raise(StandardError, 'shop A blew up')
-      # Shop B's monitor succeeds
-      allow(monitor_b).to receive(:run).and_return({ log: ['done'], turns: 1 })
-
-      results = Agents::Runner.run_all_shops
-
-      # Both shops should have results
-      expect(results.size).to eq(Shop.active.count)
-
-      # Find results for each shop by domain
-      errored = results.find { |r| r[:error].is_a?(String) && r[:error].include?('shop A blew up') }
-      succeeded = results.find { |r| r[:turns] == 1 }
-
-      expect(errored).to be_present
-      expect(errored[:error]).to include('shop A blew up')
-
-      expect(succeeded).to be_present
-      expect(succeeded[:log]).to eq(['done'])
-    end
-
-    it 'logs errors for failing shops' do
-      allow(Agents::InventoryMonitor).to receive(:new).and_raise(
-        StandardError, 'kaboom'
-      )
-
-      expect(Rails.logger).to receive(:error).with(/Agents::Runner.*kaboom/).at_least(:once)
-
-      Agents::Runner.run_all_shops
-    end
-
-    it 'returns empty results when no active shops exist' do
-      Shop.update_all(uninstalled_at: Time.current)
-
-      results = Agents::Runner.run_all_shops
-
-      expect(results).to eq([])
-    end
-  end
 end

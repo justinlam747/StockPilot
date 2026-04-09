@@ -2,6 +2,8 @@
 
 # User account management and logout.
 class AccountController < ApplicationController
+  skip_before_action :require_clerk_session, only: :dev_login
+  skip_before_action :require_onboarding, only: :dev_login
   skip_before_action :require_shop_connection
 
   def show
@@ -18,7 +20,7 @@ class AccountController < ApplicationController
   def dev_login
     return head :not_found unless Rails.env.development?
 
-    user = User.first
+    user = User.active.first
     return redirect_to root_path, alert: 'No users. Run: rails db:seed' unless user
 
     # Store Clerk user ID in session for dev — clerk_session_user_id falls back to this

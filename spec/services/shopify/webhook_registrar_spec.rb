@@ -13,11 +13,11 @@ RSpec.describe Shopify::WebhookRegistrar do
   describe '.call' do
     it "delegates to a new instance's register_all" do
       response = { 'webhookSubscriptionCreate' => { 'webhookSubscription' => { 'id' => '123' } } }
-      allow(mock_client).to receive(:query).and_return(response)
+      allow(mock_client).to receive(:run_query).and_return(response)
 
       described_class.call(shop)
 
-      expect(mock_client).to have_received(:query).exactly(3).times
+      expect(mock_client).to have_received(:run_query).exactly(3).times
     end
   end
 
@@ -31,15 +31,15 @@ RSpec.describe Shopify::WebhookRegistrar do
           'userErrors' => []
         }
       }
-      allow(mock_client).to receive(:query).and_return(webhook_response)
+      allow(mock_client).to receive(:run_query).and_return(webhook_response)
 
       registrar.register_all
 
-      expect(mock_client).to have_received(:query).exactly(3).times
+      expect(mock_client).to have_received(:run_query).exactly(3).times
     end
 
     it 'registers the app/uninstalled topic with correct variables' do
-      allow(mock_client).to receive(:query).and_return({
+      allow(mock_client).to receive(:run_query).and_return({
                                                          'webhookSubscriptionCreate' => {
                                                            'webhookSubscription' => { 'id' => '1' },
                                                            'userErrors' => []
@@ -48,7 +48,7 @@ RSpec.describe Shopify::WebhookRegistrar do
 
       registrar.register_all
 
-      expect(mock_client).to have_received(:query).with(
+      expect(mock_client).to have_received(:run_query).with(
         anything,
         variables: hash_including(
           topic: 'APP_UNINSTALLED',
@@ -58,7 +58,7 @@ RSpec.describe Shopify::WebhookRegistrar do
     end
 
     it 'registers the products/update topic with correct variables' do
-      allow(mock_client).to receive(:query).and_return({
+      allow(mock_client).to receive(:run_query).and_return({
                                                          'webhookSubscriptionCreate' => {
                                                            'webhookSubscription' => { 'id' => '1' },
                                                            'userErrors' => []
@@ -67,14 +67,14 @@ RSpec.describe Shopify::WebhookRegistrar do
 
       registrar.register_all
 
-      expect(mock_client).to have_received(:query).with(
+      expect(mock_client).to have_received(:run_query).with(
         anything,
         variables: hash_including(topic: 'PRODUCTS_UPDATE')
       )
     end
 
     it 'registers the products/delete topic with correct variables' do
-      allow(mock_client).to receive(:query).and_return({
+      allow(mock_client).to receive(:run_query).and_return({
                                                          'webhookSubscriptionCreate' => {
                                                            'webhookSubscription' => { 'id' => '1' },
                                                            'userErrors' => []
@@ -83,7 +83,7 @@ RSpec.describe Shopify::WebhookRegistrar do
 
       registrar.register_all
 
-      expect(mock_client).to have_received(:query).with(
+      expect(mock_client).to have_received(:run_query).with(
         anything,
         variables: hash_including(topic: 'PRODUCTS_DELETE')
       )
@@ -92,7 +92,7 @@ RSpec.describe Shopify::WebhookRegistrar do
     it 'generates correct callback URLs for each topic' do
       host = 'https://myapp.example.com'
       allow(ENV).to receive(:fetch).with('SHOPIFY_APP_URL', anything).and_return(host)
-      allow(mock_client).to receive(:query).and_return({
+      allow(mock_client).to receive(:run_query).and_return({
                                                          'webhookSubscriptionCreate' => {
                                                            'webhookSubscription' => { 'id' => '1' },
                                                            'userErrors' => []
@@ -101,7 +101,7 @@ RSpec.describe Shopify::WebhookRegistrar do
 
       registrar.register_all
 
-      expect(mock_client).to have_received(:query).with(
+      expect(mock_client).to have_received(:run_query).with(
         anything,
         variables: hash_including(
           webhookSubscription: hash_including(
@@ -114,7 +114,7 @@ RSpec.describe Shopify::WebhookRegistrar do
     context 'when a webhook registration fails with ShopifyApiError' do
       it 'logs a warning and continues registering remaining topics' do
         call_count = 0
-        allow(mock_client).to receive(:query) do
+        allow(mock_client).to receive(:run_query) do
           call_count += 1
           raise Shopify::GraphqlClient::ShopifyApiError, 'Registration failed' if call_count == 1
 
@@ -125,11 +125,11 @@ RSpec.describe Shopify::WebhookRegistrar do
 
         registrar.register_all
 
-        expect(mock_client).to have_received(:query).exactly(3).times
+        expect(mock_client).to have_received(:run_query).exactly(3).times
       end
 
       it 'does not raise the error to the caller' do
-        allow(mock_client).to receive(:query)
+        allow(mock_client).to receive(:run_query)
           .and_raise(Shopify::GraphqlClient::ShopifyApiError, 'API down')
 
         expect(Rails.logger).to receive(:warn).exactly(3).times

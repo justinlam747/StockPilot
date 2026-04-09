@@ -34,7 +34,7 @@ module Shopify
     private
 
     def register(topic)
-      @client.query(REGISTER_MUTATION, variables: webhook_variables(topic))
+      @client.run_query(REGISTER_MUTATION, variables: webhook_variables(topic))
     rescue Shopify::GraphqlClient::ShopifyApiError => e
       Rails.logger.warn("[WebhookRegistrar] Failed to register #{topic}: #{e.message}")
     end

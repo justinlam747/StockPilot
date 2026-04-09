@@ -16,7 +16,9 @@ module Rack
     # Helper to extract shop_id from session for per-tenant throttling.
     # Falls back to IP for unauthenticated requests (auth, webhooks).
     SHOP_OR_IP = lambda do |req|
-      req.env.dig('clerk', 'user_id') ||
+      clerk = req.env['clerk']
+      (clerk.respond_to?(:dig) ? clerk.dig('user_id') : clerk&.try(:[], 'user_id')) ||
+        (clerk.respond_to?(:user_id) ? clerk.user_id : nil) ||
         req.env['rack.session']&.dig('shop_id') ||
         req.ip
     end

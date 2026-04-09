@@ -2,6 +2,8 @@
 
 # Manages low-stock and out-of-stock alert display and dismissal.
 class AlertsController < ApplicationController
+  before_action :require_shop!
+
   def index
     scope = Alert.includes(variant: :product).order(created_at: :desc)
     scope = apply_status_filter(scope)

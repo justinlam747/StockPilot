@@ -42,12 +42,4 @@ RSpec.describe 'Purchase Orders', type: :request do
     end
   end
 
-  describe 'POST /purchase_orders/generate_draft' do
-    it 'creates an audit log' do
-      allow(AI::PoDraftGenerator).to receive(:new).and_return(double(call: { draft: 'test' }))
-      expect do
-        post '/purchase_orders/generate_draft'
-      end.to change(AuditLog.where(action: 'po_draft_generated'), :count).by(1)
-    end
-  end
 end

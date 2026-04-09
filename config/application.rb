@@ -13,6 +13,15 @@ require 'rails/test_unit/railtie'
 
 Bundler.require(*Rails.groups)
 
+# Skip the Clerk Railtie's automatic middleware insertion — we register it
+# in the clerk.rb initializer (after dotenv loads .env) so env vars are available.
+ENV['CLERK_SKIP_RAILTIE'] = '1'
+begin
+  require 'clerk/rack_middleware'
+rescue LoadError
+  # Clerk gem not installed — skip middleware (e.g., in test environment)
+end
+
 module ShopifyInventory
   # Main application configuration for the Inventory Intelligence Shopify app.
   class Application < Rails::Application

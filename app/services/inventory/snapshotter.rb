@@ -7,28 +7,30 @@ module Inventory
       @shop = shop
     end
 
-    def snapshot(products_data)
-      rows = build_snapshot_rows(products_data[:products])
+    def create_snapshots_from_shopify_data(data)
+      rows = build_snapshot_rows_for_all_products(data[:products])
+      # insert_all is a bulk insert — it sends one SQL INSERT with all rows instead of
+      # saving each row individually. Much faster when you have many rows to save at once.
       InventorySnapshot.insert_all(rows) if rows.any?
       rows.size
     end
 
     private
 
-    def build_snapshot_rows(products)
+    def build_snapshot_rows_for_all_products(products)
       products.flat_map { |pn| build_product_rows(pn) }
     end
 
     def build_product_rows(product_node)
       variant_nodes = product_node.dig('variants', 'nodes') || []
-      variant_nodes.filter_map { |vnode| build_variant_row(vnode) }
+      variant_nodes.filter_map { |variant_node| build_one_snapshot_row(variant_node) }
     end
 
-    def build_variant_row(vnode)
-      variant = Variant.find_by(shopify_variant_id: vnode['legacyResourceId'].to_s)
+    def build_one_snapshot_row(variant_node)
+      variant = Variant.find_by(shopify_variant_id: variant_node['legacyResourceId'].to_s)
       return unless variant
 
-      quantities = aggregate_quantities(vnode)
+      quantities = aggregate_quantities(variant_node)
       {
         shop_id: @shop.id, variant_id: variant.id,
         available: quantities[:available], on_hand: quantities[:on_hand],

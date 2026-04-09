@@ -2,12 +2,28 @@
 
 require 'clerk'
 
-# Only configure Clerk when a real secret key is present.
-# In development and test, CLERK_SECRET_KEY may be blank — that's fine,
-# as auth is bypassed via clerk_session_user_id fallback in ApplicationController.
+# Only configure and enable Clerk when both keys are present.
+# In development/test without Clerk keys, auth falls back to
+# session[:dev_clerk_user_id] in ApplicationController.
 clerk_secret_key = ENV.fetch('CLERK_SECRET_KEY', '')
-if clerk_secret_key.start_with?('sk_')
+clerk_publishable_key = ENV['CLERK_PUBLISHABLE_KEY'] || ENV['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] || ''
+
+if clerk_secret_key.start_with?('sk_') && clerk_publishable_key.start_with?('pk_')
   Clerk.configure do |config|
     config.secret_key = clerk_secret_key
+    config.publishable_key = clerk_publishable_key
+
+    # Exclude OmniAuth OAuth routes from Clerk middleware.
+    # The Clerk middleware interferes with OmniAuth's session-based state
+    # parameter (omniauth.state), causing callback failures.
+    config.excluded_routes = %w[
+      /auth/shopify /auth/shopify/callback /auth/failure
+      /webhooks/clerk
+      /onboarding /onboarding/step/1 /onboarding/step/2 /onboarding/step/3
+    ]
   end
+
+  # Register middleware here (not in application.rb) because dotenv
+  # hasn't loaded .env yet when application.rb runs.
+  Rails.application.config.middleware.use Clerk::Rack::Middleware
 end

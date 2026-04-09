@@ -20,11 +20,6 @@ Sidekiq.configure_server do |config|
         'class' => 'SnapshotCleanupJob',
         'description' => 'Delete snapshots older than 90 days'
       },
-      'agent_inventory_check' => {
-        'cron' => '0 * * * *',
-        'class' => 'AgentInventoryCheckJob',
-        'description' => 'Run AI inventory monitor agent hourly for all shops'
-      }
     }
     Sidekiq::Cron::Job.load_from_hash(schedule)
   end

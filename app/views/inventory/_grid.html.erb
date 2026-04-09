@@ -1,7 +1,6 @@
 <div class="inv-grid">
   <% products.each do |product| %>
-    <% snapshot = product.variants.first&.inventory_snapshots&.max_by(&:created_at) %>
-    <% qty = snapshot&.available || 0 %>
+    <% qty = product.variants.first&.current_stock || 0 %>
     <% variant_count = product.variants.size %>
     <a href="/inventory/<%= product.id %>" class="inv-card">
       <div class="inv-card__img">

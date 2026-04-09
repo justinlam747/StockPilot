@@ -11,8 +11,7 @@
     <tbody>
       <% products.each do |product| %>
         <% product.variants.each do |variant| %>
-          <% snapshot = variant.inventory_snapshots.order(created_at: :desc).first %>
-          <% qty = snapshot&.available || 0 %>
+          <% qty = variant.current_stock || 0 %>
           <tr>
             <td>
               <a href="/inventory/<%= product.id %>"><%= product.title %></a>

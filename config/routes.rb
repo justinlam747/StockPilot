@@ -31,17 +31,20 @@ Rails.application.routes.draw do
 
   # App
   get '/dashboard', to: 'dashboard#index'
-  post '/agents/run', to: 'dashboard#run_agent'
+  post '/dashboard/toggle_demo', to: 'dashboard#toggle_demo'
 
   resources :inventory, only: %i[index show]
+  resources :imports, only: %i[index new create] do
+    member do
+      get :preview
+      post :confirm
+    end
+  end
   resources :suppliers, except: %i[new edit]
   resources :purchase_orders do
     member do
       patch :mark_sent
       patch :mark_received
-    end
-    collection do
-      post :generate_draft
     end
   end
   resources :alerts, only: [:index] do

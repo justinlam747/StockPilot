@@ -1,0 +1,70 @@
+<div class="imp-header">
+  <div class="imp-header__top">
+    <div>
+      <h1 class="imp-header__title">Import History</h1>
+      <span class="imp-header__count"><%= @imports.total_count %> imports</span>
+    </div>
+    <a href="<%= new_import_path %>" class="sp-btn sp-btn--primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      New Import
+    </a>
+  </div>
+</div>
+
+<div class="sp-card">
+  <% if @imports.any? %>
+    <table aria-label="Import history">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Source</th>
+          <th scope="col">Imported</th>
+          <th scope="col">Skipped</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @imports.each do |import| %>
+          <tr>
+            <td><%= import.created_at.strftime('%b %d, %Y %l:%M %p') %></td>
+            <td>
+              <span class="sp-badge sp-badge--neutral"><%= import.source.upcase %></span>
+            </td>
+            <td><%= import.imported_rows %></td>
+            <td><%= import.skipped_rows %></td>
+            <td>
+              <% case import.status %>
+              <% when 'completed' %>
+                <span class="sp-badge sp-badge--success">Completed</span>
+              <% when 'failed' %>
+                <span class="sp-badge sp-badge--critical">Failed</span>
+              <% when 'previewing' %>
+                <span class="sp-badge sp-badge--info">Previewing</span>
+              <% when 'confirmed' %>
+                <span class="sp-badge sp-badge--warning">Processing</span>
+              <% else %>
+                <span class="sp-badge sp-badge--neutral"><%= import.status.capitalize %></span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render "shared/pagination", collection: @imports %>
+  <% else %>
+    <div class="imp-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="imp-empty__icon">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p class="imp-empty__text">No imports yet</p>
+      <p class="imp-empty__sub">Upload a CSV or paste inventory data to get started.</p>
+      <a href="<%= new_import_path %>" class="sp-btn sp-btn--primary">Import Inventory</a>
+    </div>
+  <% end %>
+</div>
