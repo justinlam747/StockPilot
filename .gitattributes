@@ -1,0 +1,6 @@
+# Tell GitHub's Linguist that ERB files are Ruby (not HTML)
+*.html.erb linguist-language=Ruby
+
+# Mark CSS and JS assets as vendored so they don't skew language stats
+*.css linguist-vendored
+app/assets/javascripts/landing.js linguist-vendored
