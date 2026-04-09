@@ -38,3 +38,6 @@ Thumbs.db
 
 # Coverage
 /coverage
+
+# Superpowers docs (local only)
+docs/superpowers/
