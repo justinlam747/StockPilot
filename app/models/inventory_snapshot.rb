@@ -44,15 +44,13 @@ class InventorySnapshot < ApplicationRecord
   def self.latest_per_variant(shop_id:, variant_ids: nil, columns: %w[variant_id available])
     # Validate columns against the whitelist to prevent SQL injection
     invalid_columns = columns - ALLOWED_COLUMNS
-    if invalid_columns.any?
-      raise ArgumentError, "Invalid columns: #{invalid_columns.join(', ')}. Allowed: #{ALLOWED_COLUMNS.join(', ')}"
-    end
+    raise ArgumentError, "Invalid columns: #{invalid_columns.join(', ')}. Allowed: #{ALLOWED_COLUMNS.join(', ')}" if invalid_columns.any?
 
     # Build the query — DISTINCT ON requires the ORDER BY to start with the
     # same column(s), then we add created_at DESC to pick the newest row.
     scope = select("DISTINCT ON (variant_id) #{columns.join(', ')}")
             .where(shop_id: shop_id)
-            .order('variant_id, created_at DESC')
+            .order(:variant_id, created_at: :desc)
 
     # .present? returns true for non-nil, non-empty arrays — a Rails helper
     # that makes nil-safe checks more readable than "if variant_ids && variant_ids.any?"
@@ -80,12 +78,12 @@ class InventorySnapshot < ApplicationRecord
     # preventing SQL injection. The ? placeholder gets replaced with the
     # properly escaped threshold value.
     count_sql = sanitize_sql_array([
-      "SELECT
+                                     "SELECT
          COUNT(*) FILTER (WHERE available > 0 AND available < ?) AS low_stock,
          COUNT(*) FILTER (WHERE available <= 0) AS out_of_stock
        FROM (%s) AS latest_snapshots",
-      threshold
-    ])
+                                     threshold
+                                   ])
     # Replace the %s placeholder with the subquery SQL
     # (which comes from ActiveRecord, so it's safe — not user input)
     count_sql = count_sql.sub('%s', latest.to_sql)
@@ -116,10 +114,10 @@ class InventorySnapshot < ApplicationRecord
     #   SUM(available) adds up all variant snapshots for each day.
     #   GROUP BY collapses multiple rows into one row per day.
     raw_totals = where(variant_id: variant_ids)
-                 .where('created_at >= ?', days.days.ago)
+                 .where(created_at: days.days.ago..)
                  .select('DATE(created_at) AS snap_date, SUM(available) AS total_available')
                  .group('DATE(created_at)')
-                 .order('snap_date')
+                 .order(:snap_date)
 
     # Step 2: Build a zero-filled hash covering every day in the range.
     #   Ruby ranges with dates iterate one day at a time — (start..end).each

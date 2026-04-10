@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'GDPR compliance pipeline', type: :request do
+RSpec.describe 'GDPR compliance pipeline' do
   let(:shop) { create(:shop) }
   let(:secret) { 'test_webhook_secret' }
 

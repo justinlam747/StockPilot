@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe AlertMailer, type: :mailer do
+RSpec.describe AlertMailer do
   let(:shop) { create(:shop, shop_domain: 'test.myshopify.com') }
   let(:product) { create(:product, shop: shop, title: 'Widget') }
   let(:variant) { create(:variant, shop: shop, product: product, sku: 'WDG-001', title: 'Small') }

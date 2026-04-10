@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Landing page', type: :request do
+RSpec.describe 'Landing page' do
   describe 'GET /' do
     it 'returns success' do
       get '/'

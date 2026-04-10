@@ -31,8 +31,8 @@ RSpec.describe Inventory::Persister do
       }
 
       ActsAsTenant.with_tenant(shop) do
-        expect { persister.upsert(data) }.to change { Product.count }.by(1)
-                                                                     .and change { Variant.count }.by(1)
+        expect { persister.upsert(data) }.to change(Product, :count).by(1)
+                                                                    .and change(Variant, :count).by(1)
 
         product = Product.last
         expect(product.title).to eq('Test Product')
@@ -61,7 +61,7 @@ RSpec.describe Inventory::Persister do
           ]
         }
 
-        expect { persister.upsert(data) }.not_to(change { Product.count })
+        expect { persister.upsert(data) }.not_to(change(Product, :count))
         expect(Product.find_by(shopify_product_id: '111').title).to eq('New Title')
       end
     end
@@ -98,8 +98,8 @@ RSpec.describe Inventory::Persister do
       }
 
       ActsAsTenant.with_tenant(shop) do
-        expect { persister.upsert(data) }.to change { Product.count }.by(2)
-                                                                     .and change { Variant.count }.by(3)
+        expect { persister.upsert(data) }.to change(Product, :count).by(2)
+                                                                    .and change(Variant, :count).by(3)
       end
     end
 
@@ -122,8 +122,8 @@ RSpec.describe Inventory::Persister do
       }
 
       ActsAsTenant.with_tenant(shop) do
-        expect { persister.upsert(data) }.to change { Product.count }.by(1)
-                                                                     .and change { Variant.count }.by(1)
+        expect { persister.upsert(data) }.to change(Product, :count).by(1)
+                                                                    .and change(Variant, :count).by(1)
 
         variant = Variant.find_by(shopify_variant_id: '800')
         expect(variant.sku).to be_nil
@@ -146,8 +146,8 @@ RSpec.describe Inventory::Persister do
       }
 
       ActsAsTenant.with_tenant(shop) do
-        expect { persister.upsert(data) }.to change { Product.count }.by(1)
-                                                                     .and change { Variant.count }.by(0)
+        expect { persister.upsert(data) }.to change(Product, :count).by(1)
+                                                                    .and change(Variant, :count).by(0)
       end
     end
   end
@@ -166,7 +166,7 @@ RSpec.describe Inventory::Persister do
       }
 
       ActsAsTenant.with_tenant(shop) do
-        expect { persister.upsert_single_product(webhook_data, source: :webhook) }.to change { Product.count }.by(1)
+        expect { persister.upsert_single_product(webhook_data, source: :webhook) }.to change(Product, :count).by(1)
       end
     end
 
@@ -185,7 +185,7 @@ RSpec.describe Inventory::Persister do
           ]
         }
 
-        expect { persister.upsert_single_product(webhook_data, source: :webhook) }.not_to(change { Product.count })
+        expect { persister.upsert_single_product(webhook_data, source: :webhook) }.not_to(change(Product, :count))
         expect(Product.find_by(shopify_product_id: '555').title).to eq('Updated Webhook Title')
       end
     end

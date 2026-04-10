@@ -1,37 +1,193 @@
+plugins:
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-minitest
+  - rubocop-rake
+  - rubocop-sequel
+  - rubocop-thread_safety
+  - rubocop-capybara
+  - rubocop-factory_bot
+  - rubocop-rspec_rails
+  - rubocop-i18n
+
 AllCops:
   NewCops: enable
   SuggestExtensions: false
   TargetRubyVersion: 3.3
 
-# Config, route, schema, and seed files naturally have long blocks
+# Migrations have long change methods by nature
+Metrics/MethodLength:
+  Max: 35
+  Exclude:
+    - 'db/migrate/**/*'
+    - 'spec/**/*'
+
+# Complex service logic sometimes needs higher ABC size
+Metrics/AbcSize:
+  Max: 45
+
+# Service and controller classes can exceed 100 lines
+Metrics/ClassLength:
+  Max: 250
+
+Metrics/ModuleLength:
+  Max: 200
+
+# Allow higher cyclomatic complexity for business logic
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
 Metrics/BlockLength:
+  Max: 35
   Exclude:
     - 'config/**/*'
     - 'spec/**/*'
     - 'lib/tasks/**/*'
     - 'db/**/*'
 
-# Migrations have long change methods by nature
-Metrics/MethodLength:
-  Exclude:
-    - 'db/migrate/**/*'
-
-# Spec and DB files don't need documentation
-Style/Documentation:
+# Numbered methods are fine for step-based wizards (process_step_1, etc.)
+Naming/VariableNumber:
   Exclude:
     - 'spec/**/*'
-    - 'db/**/*'
+    - 'app/controllers/onboarding_controller.rb'
 
 # Windows/cross-platform — disable line ending checks
 Layout/EndOfLine:
   Enabled: false
 
-# Spec files use numbered variables for test fixtures
-Naming/VariableNumber:
+# --- RSpec ---
+# Complex specs need more than 5 lines
+RSpec/ExampleLength:
+  Max: 20
+  Exclude:
+    - 'spec/concurrency/**/*'
+    - 'spec/integration/**/*'
+    - 'spec/services/**/*'
+    - 'spec/jobs/**/*'
+
+# allow_any_instance_of is sometimes necessary for controller stubs
+RSpec/AnyInstance:
+  Enabled: false
+
+# Named subject isn't always clearer
+RSpec/NamedSubject:
+  Enabled: false
+
+# message_spy vs expect().to receive — team prefers receive
+RSpec/MessageSpies:
+  Enabled: false
+
+# Stubbed mocks are fine for unit tests
+RSpec/StubbedMock:
+  Enabled: false
+
+# Allow deeper nesting for complex test scenarios
+RSpec/NestedGroups:
+  Max: 4
+
+# Allow more let/let! declarations in spec groups
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+# Verified doubles require class loading which slows tests
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+# Context wording doesn't need rigid "when/with/without" prefixes
+RSpec/ContextWording:
+  Enabled: false
+
+# Shared examples and support files don't describe a class
+RSpec/DescribeClass:
+  Exclude:
+    - 'spec/concurrency/**/*'
+    - 'spec/integration/**/*'
+    - 'spec/security/**/*'
+    - 'spec/requests/**/*'
+
+# Instance variables in specs are sometimes needed
+RSpec/InstanceVariable:
+  Enabled: false
+
+# Message chains are fine for fluent API stubs
+RSpec/MessageChain:
+  Enabled: false
+
+# ChangeByZero — allow expect { }.not_to change
+RSpec/ChangeByZero:
+  Enabled: false
+
+# before(:all) is intentional in demo/integration specs that share expensive fixtures
+RSpec/BeforeAfterAll:
+  Enabled: false
+
+# --- Rails ---
+# update_column/update_columns are intentional performance choices
+Rails/SkipsModelValidations:
+  Enabled: false
+
+# Not all apps need full i18n — bare strings are fine for now
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+# Migrations can't always be combined into bulk change
+Rails/BulkChangeTable:
+  Enabled: false
+
+# Existing migrations may lack timestamps intentionally
+Rails/CreateTableWithTimestamps:
+  Exclude:
+    - 'db/migrate/**/*'
+
+# Column naming is intentional in existing schema
+Rails/DangerousColumnNames:
+  Exclude:
+    - 'db/migrate/**/*'
+
+# --- I18n ---
+# App doesn't use gettext or full i18n yet
+I18n/GetText/DecorateString:
+  Enabled: false
+
+I18n/GetText/DecorateFunctionMessage:
+  Enabled: false
+
+I18n/RailsI18n/DecorateString:
+  Enabled: false
+
+# --- Legacy demo / onboarding files — pending removal, skip deep lint ---
+Style/Documentation:
   Exclude:
     - 'spec/**/*'
+    - 'db/**/*'
+    - 'app/services/demo/**/*'
 
-# Seeds and migrations have long lines for readability
+Performance/CollectionLiteralInLoop:
+  Exclude:
+    - 'app/services/demo/**/*'
+    - 'app/controllers/onboarding_controller.rb'
+
+Style/FormatStringToken:
+  Exclude:
+    - 'app/services/demo/**/*'
+
+Lint/DuplicateBranch:
+  Exclude:
+    - 'app/services/demo/**/*'
+
 Layout/LineLength:
+  Max: 140
   Exclude:
     - 'db/seeds.rb'
+
+RSpec/MultipleExpectations:
+  Max: 5
+  Exclude:
+    - 'spec/concurrency/**/*'
+    - 'spec/integration/**/*'
+    - 'spec/jobs/**/*'
+    - 'spec/requests/demo_mode_spec.rb'

@@ -19,7 +19,7 @@ Sidekiq.configure_server do |config|
         'cron' => '0 3 * * *',
         'class' => 'SnapshotCleanupJob',
         'description' => 'Delete snapshots older than 90 days'
-      },
+      }
     }
     Sidekiq::Cron::Job.load_from_hash(schedule)
   end

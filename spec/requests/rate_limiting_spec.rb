@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Rate limiting', type: :request do
+RSpec.describe 'Rate limiting' do
   let(:shop) { create(:shop) }
 
   before do

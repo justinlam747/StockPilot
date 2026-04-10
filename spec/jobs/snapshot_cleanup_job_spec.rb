@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe SnapshotCleanupJob, type: :job do
+RSpec.describe SnapshotCleanupJob do
   let(:shop) { create(:shop) }
 
   it 'deletes old snapshots and keeps recent ones' do
@@ -28,7 +28,7 @@ RSpec.describe SnapshotCleanupJob, type: :job do
       )
     end
 
-    expect { described_class.perform_now }.to change { InventorySnapshot.count }.by(-1)
+    expect { described_class.perform_now }.to change(InventorySnapshot, :count).by(-1)
     expect(InventorySnapshot.count).to eq(1)
   end
 end

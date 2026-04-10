@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Demo Mode', type: :request do
+RSpec.describe 'Demo Mode' do
   let(:shop) { create(:shop) }
 
   before(:all) do

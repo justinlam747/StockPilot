@@ -17,9 +17,7 @@ module Ingestion
       mapping = ColumnDetector.detect_from_headers(headers)
 
       # Fall back to value-based detection if header matching missed columns
-      if mapping.empty?
-        mapping = ColumnDetector.detect_from_values(rows)
-      end
+      mapping = ColumnDetector.detect_from_values(rows) if mapping.empty?
 
       {
         rows: rows,

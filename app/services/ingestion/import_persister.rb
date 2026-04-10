@@ -77,12 +77,10 @@ module Ingestion
       end
     end
 
-    def find_existing_variant(product, sku)
-      if sku.present?
-        Variant.find_by(shop_id: @shop.id, sku: sku)
-      else
-        nil
-      end
+    def find_existing_variant(_product, sku)
+      return if sku.blank?
+
+      Variant.find_by(shop_id: @shop.id, sku: sku)
     end
 
     def create_variant(product, sku, values)

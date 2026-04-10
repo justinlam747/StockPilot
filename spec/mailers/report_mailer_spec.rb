@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ReportMailer, type: :mailer do
+RSpec.describe ReportMailer do
   let(:shop) do
     create(:shop, settings: {
              'alert_email' => 'owner@example.com',

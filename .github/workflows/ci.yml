@@ -45,7 +45,9 @@ jobs:
         if: matrix.check == 'bundler-audit'
         run: |
           gem install bundler-audit
-          bundle-audit check --update
+          # GHSA-p9fm-f462-ggrg: Active Storage DoS in proxy mode — app does not
+          # use Active Storage, so this advisory is not exploitable here.
+          bundle-audit check --update --ignore GHSA-p9fm-f462-ggrg
 
       - name: Brakeman static analysis
         if: matrix.check == 'brakeman'

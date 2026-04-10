@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Webhook HMAC verification', type: :request do
+RSpec.describe 'Webhook HMAC verification' do
   let(:secret) { ENV.fetch('SHOPIFY_API_SECRET', 'test-secret') }
 
   it 'accepts valid HMAC' do

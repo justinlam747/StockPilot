@@ -90,7 +90,9 @@ RSpec.describe Shopify::InventoryFetcher do
       allow(mock_client).to receive(:paginate)
         .and_raise(Shopify::GraphqlClient::ShopifyApiError, 'API failure')
 
-      expect { fetcher.fetch_all_products_with_inventory }.to raise_error(Shopify::GraphqlClient::ShopifyApiError, 'API failure')
+      expect do
+        fetcher.fetch_all_products_with_inventory
+      end.to raise_error(Shopify::GraphqlClient::ShopifyApiError, 'API failure')
     end
   end
 end

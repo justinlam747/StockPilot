@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe DailySyncAllShopsJob, type: :job do
+RSpec.describe DailySyncAllShopsJob do
   it 'enqueues InventorySyncJob for each active shop' do
     create(:shop)
     create(:shop)

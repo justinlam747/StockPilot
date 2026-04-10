@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Receives and dispatches Shopify webhook events with HMAC verification.
-class WebhooksController < ActionController::Base
+class WebhooksController < ApplicationController
   skip_before_action :verify_authenticity_token
   before_action :verify_shopify_hmac
 
@@ -40,7 +40,7 @@ class WebhooksController < ActionController::Base
   #
   def verify_shopify_hmac
     hmac = request.headers['HTTP_X_SHOPIFY_HMAC_SHA256']
-    return head :unauthorized unless hmac.present?
+    return head :unauthorized if hmac.blank?
 
     digest = OpenSSL::HMAC.digest('sha256', ENV.fetch('SHOPIFY_API_SECRET'), webhook_body)
     expected = Base64.strict_encode64(digest)

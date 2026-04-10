@@ -4,13 +4,12 @@ require 'rails_helper'
 
 RSpec.describe Shopify::GraphqlClient do
   let(:shop) { create(:shop) }
+  let(:mock_gql_client) { instance_double(ShopifyAPI::Clients::Graphql::Admin) }
   let(:client) { described_class.new(shop) }
 
   before do
     allow(ShopifyAPI::Clients::Graphql::Admin).to receive(:new).and_return(mock_gql_client)
   end
-
-  let(:mock_gql_client) { instance_double(ShopifyAPI::Clients::Graphql::Admin) }
 
   describe '#run_query' do
     it 'returns data on success' do

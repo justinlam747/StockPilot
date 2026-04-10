@@ -57,7 +57,8 @@ RSpec.describe 'Full inventory sync pipeline', type: :model do
 
   before do
     variant # ensure variant exists
-    allow_any_instance_of(Shopify::InventoryFetcher).to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
+    allow_any_instance_of(Shopify::InventoryFetcher)
+      .to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
   end
 
   it 'persists products, snapshots, and detects low stock end-to-end' do

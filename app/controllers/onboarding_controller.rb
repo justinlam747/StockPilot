@@ -34,7 +34,7 @@ class OnboardingController < ApplicationController
   end
 
   def valid_step?(step)
-    step >= 1 && step <= 3 && step <= current_user.onboarding_step
+    step.between?(1, 3) && step <= current_user.onboarding_step
   end
 
   def process_step_1
@@ -57,7 +57,7 @@ class OnboardingController < ApplicationController
       session[:onboarding_return] = true
       session[:connecting_shop] = "#{shop_domain}.myshopify.com"
       redirect_to '/auth/shopify', allow_other_host: true,
-                  params: { shop: "#{shop_domain}.myshopify.com" }
+                                   params: { shop: "#{shop_domain}.myshopify.com" }
     end
   end
 

@@ -165,9 +165,7 @@ module Demo
           sold_today = (daily_sell_rate * rand(0.3..1.8)).round
           running_stock = [running_stock - sold_today, 0].max
 
-          if days_ago == 15 && rand < 0.3
-            running_stock += rand(40..100)
-          end
+          running_stock += rand(40..100) if days_ago == 15 && rand < 0.3
 
           rows << {
             shop_id: @demo_shop.id,
@@ -187,8 +185,8 @@ module Demo
 
     def generate_alerts
       low_stock_variants = @variants_with_profiles
-        .select { |_v, p| p[:key] == :low || p[:key] == :out }
-        .map(&:first)
+                           .select { |_v, p| %i[low out].include?(p[:key]) }
+                           .map(&:first)
 
       low_stock_variants.sample([low_stock_variants.size, 15].min).each do |variant|
         rand(1..3).times do |i|
@@ -217,7 +215,11 @@ module Demo
 
       supplier_list.each_with_index do |supplier, idx|
         status = statuses[idx] || 'received'
-        sent_at = status == 'sent' ? rand(14).days.ago : (status == 'received' ? rand(30).days.ago : nil)
+        sent_at = if status == 'sent'
+                    rand(14).days.ago
+                  else
+                    (status == 'received' ? rand(30).days.ago : nil)
+                  end
 
         po = PurchaseOrder.create!(
           shop: @demo_shop,
@@ -259,8 +261,8 @@ module Demo
     end
 
     def generate_sku(vendor, title, variant_name)
-      prefix = vendor.split.map { |w| w[0] }.join.upcase[0..2]
-      product_code = title.split.map { |w| w[0] }.join.upcase[0..1]
+      prefix = vendor.split.pluck(0).join.upcase[0..2]
+      product_code = title.split.pluck(0).join.upcase[0..1]
       variant_code = variant_name.gsub(/[^a-zA-Z0-9]/, '').upcase[0..1]
       "#{prefix}-#{product_code}-#{variant_code}"
     end

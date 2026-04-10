@@ -71,7 +71,7 @@ RSpec.describe Inventory::LowStockDetector do
 
     results = detector.detect
     expect(results.size).to eq(2)
-    statuses = results.map { |r| r[:status] }
+    statuses = results.pluck(:status)
     expect(statuses).to include(:low_stock, :out_of_stock)
   end
 

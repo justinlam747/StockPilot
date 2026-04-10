@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe PurchaseOrderLineItem, type: :model do
+RSpec.describe PurchaseOrderLineItem do
   let(:shop) { create(:shop) }
 
   describe 'associations' do
@@ -16,8 +16,8 @@ RSpec.describe PurchaseOrderLineItem, type: :model do
       end
     end
 
-    it { should belong_to(:purchase_order) }
-    it { should belong_to(:variant) }
+    it { is_expected.to belong_to(:purchase_order) }
+    it { is_expected.to belong_to(:variant) }
   end
 
   describe 'validations' do
@@ -31,10 +31,10 @@ RSpec.describe PurchaseOrderLineItem, type: :model do
       end
     end
 
-    it { should validate_presence_of(:qty_ordered) }
-    it { should validate_numericality_of(:qty_ordered).only_integer.is_greater_than(0) }
-    it { should validate_numericality_of(:qty_received).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_numericality_of(:unit_price).is_greater_than_or_equal_to(0).allow_nil }
+    it { is_expected.to validate_presence_of(:qty_ordered) }
+    it { is_expected.to validate_numericality_of(:qty_ordered).only_integer.is_greater_than(0) }
+    it { is_expected.to validate_numericality_of(:qty_received).only_integer.is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:unit_price).is_greater_than_or_equal_to(0).allow_nil }
   end
 
   describe 'restrict_with_error on variant deletion' do

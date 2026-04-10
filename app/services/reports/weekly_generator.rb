@@ -47,7 +47,7 @@ module Reports
     end
 
     def format_top_sellers(top)
-      variants = Variant.where(id: top.map { |s| s[:variant_id] })
+      variants = Variant.where(id: top.pluck(:variant_id))
                         .includes(:product).index_by(&:id)
       top.filter_map do |s|
         v = variants[s[:variant_id]]

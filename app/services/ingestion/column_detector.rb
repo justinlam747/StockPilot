@@ -17,14 +17,14 @@ module Ingestion
     # Score columns by header name matching.
     # Returns { column_index => field_name } mapping.
     def detect_from_headers(headers)
-      return {} if headers.nil? || headers.empty?
+      return {} if headers.blank?
 
       mapping = {}
       headers.each_with_index do |header, idx|
         next if header.nil?
 
         HEADER_PATTERNS.each do |field, pattern|
-          if header.to_s.match?(pattern) && !mapping.values.include?(field)
+          if header.to_s.match?(pattern) && !mapping.value?(field)
             mapping[idx.to_s] = field
             break
           end
@@ -36,7 +36,7 @@ module Ingestion
     # Score columns by analyzing cell content patterns.
     # Falls back to this when headers are absent.
     def detect_from_values(rows)
-      return {} if rows.nil? || rows.empty?
+      return {} if rows.blank?
 
       col_count = rows.map(&:size).max || 0
       mapping = {}
@@ -46,7 +46,7 @@ module Ingestion
         next if values.empty?
 
         field = score_column(values, rows.size)
-        mapping[col_idx.to_s] = field if field && !mapping.values.include?(field)
+        mapping[col_idx.to_s] = field if field && !mapping.value?(field)
       end
 
       mapping
@@ -71,7 +71,7 @@ module Ingestion
 
     # SKU: short alphanumeric strings with dashes/underscores
     def sku_column?(values)
-      matches = values.count { |v| v.match?(/\A[A-Za-z0-9][\w\-]{1,30}\z/) }
+      matches = values.count { |v| v.match?(/\A[A-Za-z0-9][\w-]{1,30}\z/) }
       matches > values.size * 0.7
     end
 

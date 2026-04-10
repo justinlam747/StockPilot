@@ -2,7 +2,7 @@
 
 module Webhooks
   # Handles Clerk webhook events for user lifecycle (create, update, delete).
-  class ClerkController < ActionController::Base
+  class ClerkController < ApplicationController
     skip_before_action :verify_authenticity_token
     before_action :verify_clerk_webhook
 

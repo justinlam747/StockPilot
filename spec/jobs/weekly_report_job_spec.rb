@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe WeeklyReportJob, type: :job do
+RSpec.describe WeeklyReportJob do
   let(:shop) do
     create(:shop, settings: {
              'low_stock_threshold' => 10,
@@ -25,7 +25,7 @@ RSpec.describe WeeklyReportJob, type: :job do
       mailer_double = double('mailer', deliver_later: nil)
       allow(ReportMailer).to receive(:weekly_summary).and_return(mailer_double)
 
-      WeeklyReportJob.new.perform(shop.id)
+      described_class.new.perform(shop.id)
 
       expect(ReportMailer).to have_received(:weekly_summary).with(shop, kind_of(Hash))
     end
@@ -34,7 +34,7 @@ RSpec.describe WeeklyReportJob, type: :job do
       shop.update!(settings: { 'timezone' => 'America/Toronto' })
       allow(ReportMailer).to receive(:weekly_summary)
 
-      WeeklyReportJob.new.perform(shop.id)
+      described_class.new.perform(shop.id)
 
       expect(ReportMailer).not_to have_received(:weekly_summary)
     end
@@ -43,7 +43,7 @@ RSpec.describe WeeklyReportJob, type: :job do
       mailer_double = double('mailer', deliver_later: nil)
       allow(ReportMailer).to receive(:weekly_summary).and_return(mailer_double)
 
-      WeeklyReportJob.new.perform
+      described_class.new.perform
 
       expect(ReportMailer).to have_received(:weekly_summary).at_least(:once)
     end
@@ -51,7 +51,7 @@ RSpec.describe WeeklyReportJob, type: :job do
     it 'captures errors without crashing the whole job' do
       allow_any_instance_of(Reports::WeeklyGenerator).to receive(:generate).and_raise(StandardError, 'boom')
 
-      expect { WeeklyReportJob.new.perform(shop.id) }.not_to raise_error
+      expect { described_class.new.perform(shop.id) }.not_to raise_error
     end
   end
 end

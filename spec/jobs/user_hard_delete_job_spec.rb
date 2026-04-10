@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UserHardDeleteJob, type: :job do
+RSpec.describe UserHardDeleteJob do
   it 'hard-deletes users soft-deleted more than 30 days ago' do
     old = create(:user, deleted_at: 31.days.ago)
     recent = create(:user, deleted_at: 5.days.ago)

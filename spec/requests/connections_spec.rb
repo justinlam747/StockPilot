@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Connections', type: :request do
+RSpec.describe 'Connections' do
   let(:user) { create(:user, :onboarded) }
 
   before { sign_in_as(user) }

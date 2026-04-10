@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe InventorySyncJob, type: :job do
+RSpec.describe InventorySyncJob do
   let(:shop) { create(:shop) }
 
   it 'calls each service in order' do

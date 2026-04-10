@@ -48,9 +48,7 @@ module Ingestion
       DELIMITERS.each do |delim|
         counts = lines.map { |l| l.count(delim) }
         # A valid delimiter appears consistently (same count per line, > 0)
-        if counts.min&.positive? && counts.uniq.size <= 2
-          return delim
-        end
+        return delim if counts.min&.positive? && counts.uniq.size <= 2
       end
       nil
     end

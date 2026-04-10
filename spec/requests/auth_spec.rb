@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Auth', type: :request do
+RSpec.describe 'Auth' do
   describe 'DELETE /logout' do
     let(:user) { create(:user, :with_shop) }
 

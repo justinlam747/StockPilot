@@ -21,7 +21,7 @@ RSpec.describe Demo::DataCatalog do
     end
 
     it 'has no duplicate product titles' do
-      titles = described_class.products.map { |p| p[:title] }
+      titles = described_class.products.pluck(:title)
       expect(titles).to eq(titles.uniq)
     end
   end

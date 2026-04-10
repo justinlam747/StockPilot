@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe PurchaseOrder, type: :model do
+RSpec.describe PurchaseOrder do
   let(:shop) { create(:shop) }
 
   describe 'associations' do
@@ -13,8 +13,8 @@ RSpec.describe PurchaseOrder, type: :model do
       end
     end
 
-    it { should belong_to(:supplier) }
-    it { should have_many(:line_items).class_name('PurchaseOrderLineItem').dependent(:destroy) }
+    it { is_expected.to belong_to(:supplier) }
+    it { is_expected.to have_many(:line_items).class_name('PurchaseOrderLineItem').dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -25,9 +25,9 @@ RSpec.describe PurchaseOrder, type: :model do
       end
     end
 
-    it { should validate_presence_of(:status) }
-    it { should validate_inclusion_of(:status).in_array(%w[draft sent received cancelled]) }
-    it { should validate_presence_of(:order_date) }
+    it { is_expected.to validate_presence_of(:status) }
+    it { is_expected.to validate_inclusion_of(:status).in_array(%w[draft sent received cancelled]) }
+    it { is_expected.to validate_presence_of(:order_date) }
 
     context 'expected_delivery comparison' do
       it 'is valid when expected_delivery is on or after order_date' do
@@ -94,8 +94,8 @@ RSpec.describe PurchaseOrder, type: :model do
     describe '.draft' do
       it 'returns only draft purchase orders' do
         ActsAsTenant.with_tenant(shop) do
-          expect(PurchaseOrder.draft).to include(draft_po)
-          expect(PurchaseOrder.draft).not_to include(sent_po, received_po)
+          expect(described_class.draft).to include(draft_po)
+          expect(described_class.draft).not_to include(sent_po, received_po)
         end
       end
     end
@@ -103,8 +103,8 @@ RSpec.describe PurchaseOrder, type: :model do
     describe '.sent' do
       it 'returns only sent purchase orders' do
         ActsAsTenant.with_tenant(shop) do
-          expect(PurchaseOrder.sent).to include(sent_po)
-          expect(PurchaseOrder.sent).not_to include(draft_po, received_po)
+          expect(described_class.sent).to include(sent_po)
+          expect(described_class.sent).not_to include(draft_po, received_po)
         end
       end
     end
@@ -112,8 +112,8 @@ RSpec.describe PurchaseOrder, type: :model do
     describe '.received' do
       it 'returns only received purchase orders' do
         ActsAsTenant.with_tenant(shop) do
-          expect(PurchaseOrder.received).to include(received_po)
-          expect(PurchaseOrder.received).not_to include(draft_po, sent_po)
+          expect(described_class.received).to include(received_po)
+          expect(described_class.received).not_to include(draft_po, sent_po)
         end
       end
     end
@@ -123,7 +123,7 @@ RSpec.describe PurchaseOrder, type: :model do
     it 'sets order_date to today when not provided' do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
-        po = PurchaseOrder.create!(shop: shop, supplier: supplier)
+        po = described_class.create!(shop: shop, supplier: supplier)
 
         expect(po.order_date).to eq(Date.current)
       end
@@ -132,7 +132,7 @@ RSpec.describe PurchaseOrder, type: :model do
     it 'sets status to draft when not provided' do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
-        po = PurchaseOrder.create!(shop: shop, supplier: supplier)
+        po = described_class.create!(shop: shop, supplier: supplier)
 
         expect(po.status).to eq('draft')
       end
@@ -142,7 +142,7 @@ RSpec.describe PurchaseOrder, type: :model do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
         custom_date = Date.current - 5.days
-        po = PurchaseOrder.create!(shop: shop, supplier: supplier, order_date: custom_date)
+        po = described_class.create!(shop: shop, supplier: supplier, order_date: custom_date)
 
         expect(po.order_date).to eq(custom_date)
       end
@@ -151,7 +151,7 @@ RSpec.describe PurchaseOrder, type: :model do
     it 'does not override explicitly set status' do
       ActsAsTenant.with_tenant(shop) do
         supplier = create(:supplier, shop: shop)
-        po = PurchaseOrder.create!(shop: shop, supplier: supplier, status: 'sent')
+        po = described_class.create!(shop: shop, supplier: supplier, status: 'sent')
 
         expect(po.status).to eq('sent')
       end
@@ -165,7 +165,7 @@ RSpec.describe PurchaseOrder, type: :model do
         product = create(:product, shop: shop)
         variant = create(:variant, shop: shop, product: product)
 
-        po = PurchaseOrder.create!(
+        po = described_class.create!(
           shop: shop,
           supplier: supplier,
           status: 'draft',
@@ -196,8 +196,8 @@ RSpec.describe PurchaseOrder, type: :model do
       end
 
       ActsAsTenant.with_tenant(shop) do
-        expect(PurchaseOrder.all).to include(po)
-        expect(PurchaseOrder.all).not_to include(other_po)
+        expect(described_class.all).to include(po)
+        expect(described_class.all).not_to include(other_po)
       end
     end
   end

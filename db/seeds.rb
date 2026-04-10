@@ -5,7 +5,7 @@
 
 return if Rails.env.production?
 
-puts 'Seeding development data...'
+Rails.logger.debug 'Seeding development data...'
 
 user = User.find_or_create_by!(clerk_user_id: 'dev_user_001') do |u|
   u.email = 'dev@stockpilot.com'
@@ -155,13 +155,13 @@ ActsAsTenant.with_tenant(shop) do
     end
   end
 
-  puts "  Shop: #{shop.shop_domain}"
-  puts "  Suppliers: #{Supplier.count}"
-  puts "  Products: #{Product.count}"
-  puts "  Variants: #{Variant.count}"
-  puts "  Snapshots: #{InventorySnapshot.count}"
-  puts "  Alerts: #{Alert.count}"
-  puts "  Purchase Orders: #{PurchaseOrder.count}"
+  Rails.logger.debug { "  Shop: #{shop.shop_domain}" }
+  Rails.logger.debug { "  Suppliers: #{Supplier.count}" }
+  Rails.logger.debug { "  Products: #{Product.count}" }
+  Rails.logger.debug { "  Variants: #{Variant.count}" }
+  Rails.logger.debug { "  Snapshots: #{InventorySnapshot.count}" }
+  Rails.logger.debug { "  Alerts: #{Alert.count}" }
+  Rails.logger.debug { "  Purchase Orders: #{PurchaseOrder.count}" }
 end
 
-puts 'Done!'
+Rails.logger.debug 'Done!'

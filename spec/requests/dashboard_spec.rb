@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Dashboard', type: :request do
+RSpec.describe 'Dashboard' do
   let(:shop) { create(:shop) }
 
   before { login_as(shop) }
@@ -19,5 +19,4 @@ RSpec.describe 'Dashboard', type: :request do
       expect(response.body).to include('Low Stock')
     end
   end
-
 end

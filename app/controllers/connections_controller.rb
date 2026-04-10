@@ -37,7 +37,7 @@ class ConnectionsController < ApplicationController
   def failure
     AuditLog.record(action: 'shop_connection_failed', request: request,
                     metadata: { reason: params[:message], user_id: current_user&.id })
-    redirect_back fallback_location: '/settings', alert: "Connection failed: #{params[:message]}"
+    redirect_back_or_to('/settings', alert: "Connection failed: #{params[:message]}")
   end
 
   def shopify_disconnect
@@ -57,7 +57,7 @@ class ConnectionsController < ApplicationController
   def upsert_shop(auth)
     # Check if this shop is already owned by another user
     existing = Shop.find_by(shop_domain: auth.uid)
-    if existing && existing.user_id && existing.user_id != current_user.id
+    if existing&.user_id && existing.user_id != current_user.id
       raise ActiveRecord::RecordInvalid, 'This store is already connected to another account'
     end
 

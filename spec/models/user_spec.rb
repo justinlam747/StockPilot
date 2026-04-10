@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe User, type: :model do
+RSpec.describe User do
   describe 'associations' do
     it { is_expected.to have_many(:shops).dependent(:restrict_with_error) }
     it { is_expected.to belong_to(:active_shop).class_name('Shop').optional }
@@ -15,7 +15,7 @@ RSpec.describe User, type: :model do
     it { is_expected.to validate_uniqueness_of(:clerk_user_id) }
     it { is_expected.to validate_presence_of(:email) }
     it { is_expected.to allow_value('test@example.com').for(:email) }
-    it { is_expected.to_not allow_value('not-an-email').for(:email) }
+    it { is_expected.not_to allow_value('not-an-email').for(:email) }
     it { is_expected.to validate_inclusion_of(:onboarding_step).in_range(1..4) }
   end
 
@@ -23,7 +23,7 @@ RSpec.describe User, type: :model do
     it 'active excludes soft-deleted users' do
       active = create(:user)
       create(:user, deleted_at: Time.current)
-      expect(User.active).to eq([active])
+      expect(described_class.active).to eq([active])
     end
   end
 

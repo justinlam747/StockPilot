@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Purchase Orders', type: :request do
+RSpec.describe 'Purchase Orders' do
   let(:shop) { create(:shop) }
   let!(:supplier) { create(:supplier, shop: shop) }
 
@@ -41,5 +41,4 @@ RSpec.describe 'Purchase Orders', type: :request do
       expect(po.reload.status).to eq('received')
     end
   end
-
 end

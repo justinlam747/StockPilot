@@ -29,5 +29,4 @@ class PurchaseOrdersController < ApplicationController
                     metadata: { purchase_order_id: @po.id })
     redirect_to purchase_order_path(@po), notice: 'Marked as received'
   end
-
 end

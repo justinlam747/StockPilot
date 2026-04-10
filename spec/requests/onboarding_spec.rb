@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Onboarding', type: :request do
+RSpec.describe 'Onboarding' do
   let(:user) { create(:user, onboarding_step: 1) }
 
   before { sign_in_as(user) }

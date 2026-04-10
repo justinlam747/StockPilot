@@ -51,9 +51,9 @@ module Demo
     }.freeze
 
     STOCK_PROFILES = {
-      healthy:       { range: 50..200, pct: 0.60 },
-      low:           { range: 2..9,    pct: 0.25 },
-      out:           { range: 0..0,    pct: 0.10 },
+      healthy: { range: 50..200, pct: 0.60 },
+      low: { range: 2..9,    pct: 0.25 },
+      out: { range: 0..0,    pct: 0.10 },
       trending_down: { range: 15..30,  pct: 0.05 }
     }.freeze
 
@@ -106,7 +106,7 @@ module Demo
       { title: 'Cork Laptop Sleeve', type: 'Accessories', vendor: 'GreenTech Labs', price_range: 42..58,
         variants: %w[13-inch 15-inch 16-inch] },
       { title: 'USB-C Hub (Recycled Aluminum)', type: 'Accessories', vendor: 'GreenTech Labs', price_range: 48..65,
-        variants: ['4-Port', '7-Port'] },
+        variants: %w[4-Port 7-Port] },
       { title: 'Biodegradable Earbuds', type: 'Audio', vendor: 'GreenTech Labs', price_range: 55..75,
         variants: %w[White Black Sage] },
 
@@ -132,7 +132,7 @@ module Demo
       { title: 'Coffee Gift Box', type: 'Coffee', vendor: 'Mountain Roast', price_range: 42..58,
         variants: ['Starter Pack', 'Connoisseur Pack'] },
       { title: 'Reusable Coffee Filter', type: 'Coffee', vendor: 'Mountain Roast', price_range: 12..18,
-        variants: ['V60', 'AeroPress', 'Chemex'] },
+        variants: %w[V60 AeroPress Chemex] },
 
       # Tea — Kyoto Harvest
       { title: 'Organic Matcha Powder', type: 'Tea', vendor: 'Kyoto Harvest', price_range: 28..42,
@@ -150,7 +150,7 @@ module Demo
       { title: 'Solar Power Bank 10000mAh', type: 'Power', vendor: 'SunVolt', price_range: 45..65,
         variants: %w[Black White Green] },
       { title: 'Portable Solar Panel 20W', type: 'Power', vendor: 'SunVolt', price_range: 68..88,
-        variants: ['Foldable', 'Rigid'] },
+        variants: %w[Foldable Rigid] },
       { title: 'Solar Garden Lights (4-pack)', type: 'Power', vendor: 'SunVolt', price_range: 28..38,
         variants: %w[Warm Cool Multicolor] },
       { title: 'Hand-Crank Flashlight', type: 'Power', vendor: 'SunVolt', price_range: 18..28,

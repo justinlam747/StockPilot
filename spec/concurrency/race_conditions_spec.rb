@@ -328,7 +328,8 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
     before do
       variant
 
-      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
+      allow_any_instance_of(Shopify::InventoryFetcher)
+        .to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
       allow_any_instance_of(Notifications::AlertSender).to receive(:create_alerts_and_notify)
     end
 

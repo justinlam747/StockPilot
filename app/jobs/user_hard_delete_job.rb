@@ -13,7 +13,7 @@ class UserHardDeleteJob < ApplicationJob
         .where(deleted_at: ...GRACE_PERIOD.ago)
         .find_each do |user|
       ApplicationRecord.transaction do
-        user.update_columns(active_shop_id: nil) # rubocop:disable Rails/SkipsModelValidations
+        user.update_columns(active_shop_id: nil)
         user.shops.destroy_all
         user.destroy!
       end

@@ -17,7 +17,7 @@ module Rack
     # Falls back to IP for unauthenticated requests (auth, webhooks).
     SHOP_OR_IP = lambda do |req|
       clerk = req.env['clerk']
-      (clerk.respond_to?(:dig) ? clerk.dig('user_id') : clerk&.try(:[], 'user_id')) ||
+      (clerk.respond_to?(:dig) ? clerk['user_id'] : clerk&.try(:[], 'user_id')) ||
         (clerk.respond_to?(:user_id) ? clerk.user_id : nil) ||
         req.env['rack.session']&.dig('shop_id') ||
         req.ip
@@ -42,7 +42,7 @@ module Rack
     end
 
     throttle('auth/ip', limit: 10, period: 5.minutes) do |req|
-      req.ip if req.path.start_with?('/auth') || req.path.start_with?('/connections')
+      req.ip if req.path.start_with?('/auth', '/connections')
     end
 
     throttle('webhooks/ip', limit: 100, period: 1.minute) do |req|

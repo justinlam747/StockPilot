@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Security headers', type: :request do
+RSpec.describe 'Security headers' do
   let(:user) { create(:user, :with_shop) }
 
   before do

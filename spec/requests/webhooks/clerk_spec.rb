@@ -2,12 +2,12 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Webhooks::Clerk', type: :request do
+RSpec.describe 'Webhooks::Clerk' do
   describe 'POST /webhooks/clerk' do
     context 'with invalid signature' do
       it 'returns unauthorized' do
         post '/webhooks/clerk', params: { type: 'user.created', data: {} }.to_json,
-             headers: { 'Content-Type' => 'application/json' }
+                                headers: { 'Content-Type' => 'application/json' }
         expect(response).to have_http_status(:unauthorized)
       end
     end

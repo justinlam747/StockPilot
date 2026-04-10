@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe PurchaseOrderMailer, type: :mailer do
+RSpec.describe PurchaseOrderMailer do
   let(:shop) { create(:shop, shop_domain: 'gadgets.myshopify.com') }
   let(:supplier) { create(:supplier, shop: shop, name: 'ACME Supply Co', email: 'orders@acme.example.com') }
 
