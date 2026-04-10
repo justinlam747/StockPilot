@@ -2,8 +2,6 @@
 
 # Base controller providing Shopify session authentication, tenant scoping, and cache helpers.
 class ApplicationController < ActionController::Base
-  include ShopifyApp::EnsureHasSession
-
   before_action :scope_queries_to_current_shop
 
   private
