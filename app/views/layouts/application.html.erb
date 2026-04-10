@@ -7,11 +7,6 @@
   <%= stylesheet_link_tag "application" %>
   <%= stylesheet_link_tag "overrides" %>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <script
-    async crossorigin="anonymous"
-    data-clerk-publishable-key="<%= ENV['CLERK_PUBLISHABLE_KEY'] %>"
-    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-  ></script>
   <%= csrf_meta_tags %>
 </head>
 <body>
@@ -19,7 +14,6 @@
     <%= render "shared/sidebar" %>
     <main class="app-main" id="main-content">
       <%= render "shared/flash" %>
-      <%= render "layouts/demo_banner" %>
       <%= render "shared/connect_banner" %>
       <%= yield %>
     </main>

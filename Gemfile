@@ -7,7 +7,6 @@ ruby '>= 3.3.0'
 gem 'acts_as_tenant', '~> 1.0'
 gem 'blueprinter', '~> 1.0'
 gem 'bootsnap', require: false
-gem 'clerk-sdk-ruby', '~> 4.0'
 gem 'httparty', '~> 0.22'
 gem 'kaminari', '~> 1.2'
 gem 'omniauth-rails_csrf_protection'
@@ -25,7 +24,6 @@ gem 'sentry-sidekiq', '~> 5.0'
 gem 'shopify_api', '~> 14.0'
 gem 'sidekiq', '~> 7.0'
 gem 'sidekiq-cron', '~> 1.12'
-gem 'svix', '~> 1.0'
 gem 'tzinfo-data', platforms: %i[windows jruby]
 
 group :development, :test do
@@ -44,7 +42,6 @@ group :development, :test do
   gem 'rubocop-rake', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-rspec_rails', require: false
-  gem 'rubocop-sequel', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'webmock', '~> 3.0'
 end

@@ -11,7 +11,7 @@ class SuppliersController < ApplicationController
 
   def create
     @supplier = Supplier.new(supplier_params)
-    if @supplier.save_changes
+    if @supplier.save
       shop_cache.write_supplier(@supplier)
       AuditLog.record(action: 'supplier_created', shop: current_shop,
                       request: request, metadata: { supplier_id: @supplier.id })

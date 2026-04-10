@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_10_060000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -45,23 +45,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
     t.index ["created_at"], name: "index_audit_logs_on_created_at"
     t.index ["shop_id", "created_at"], name: "index_audit_logs_on_shop_id_and_created_at"
     t.index ["shop_id"], name: "index_audit_logs_on_shop_id"
-  end
-
-  create_table "imports", force: :cascade do |t|
-    t.bigint "shop_id", null: false
-    t.string "source", null: false
-    t.string "status", default: "pending", null: false
-    t.integer "total_rows", default: 0
-    t.integer "imported_rows", default: 0
-    t.integer "skipped_rows", default: 0
-    t.jsonb "column_mapping", default: {}
-    t.jsonb "errors_log", default: []
-    t.text "raw_data"
-    t.datetime "completed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["shop_id", "created_at"], name: "index_imports_on_shop_id_and_created_at"
-    t.index ["shop_id"], name: "index_imports_on_shop_id"
   end
 
   create_table "inventory_snapshots", force: :cascade do |t|
@@ -139,10 +122,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
     t.jsonb "settings", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["shop_domain"], name: "index_shops_on_shop_domain", unique: true
-    t.index ["user_id", "shop_domain"], name: "index_shops_on_user_id_and_shop_domain", unique: true
-    t.index ["user_id"], name: "index_shops_on_user_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -159,23 +139,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
     t.string "phone"
     t.index ["shop_id", "name"], name: "index_suppliers_on_shop_id_and_name"
     t.index ["shop_id"], name: "index_suppliers_on_shop_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "clerk_user_id", null: false
-    t.string "email", null: false
-    t.string "name"
-    t.string "store_name"
-    t.string "store_category"
-    t.integer "onboarding_step", default: 1, null: false
-    t.datetime "onboarding_completed_at"
-    t.bigint "active_shop_id"
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["clerk_user_id"], name: "index_users_on_clerk_user_id", unique: true
-    t.index ["deleted_at"], name: "index_users_on_deleted_at"
-    t.index ["email"], name: "index_users_on_email"
   end
 
   create_table "variants", force: :cascade do |t|
@@ -202,7 +165,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
   add_foreign_key "alerts", "shops", on_delete: :cascade
   add_foreign_key "alerts", "variants", on_delete: :cascade
   add_foreign_key "audit_logs", "shops"
-  add_foreign_key "imports", "shops", on_delete: :cascade
   add_foreign_key "inventory_snapshots", "shops", on_delete: :cascade
   add_foreign_key "inventory_snapshots", "variants", on_delete: :cascade
   add_foreign_key "products", "shops", on_delete: :cascade
@@ -210,9 +172,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_31_234402) do
   add_foreign_key "purchase_order_line_items", "variants"
   add_foreign_key "purchase_orders", "shops", on_delete: :cascade
   add_foreign_key "purchase_orders", "suppliers"
-  add_foreign_key "shops", "users"
   add_foreign_key "suppliers", "shops", on_delete: :cascade
-  add_foreign_key "users", "shops", column: "active_shop_id"
   add_foreign_key "variants", "products", on_delete: :cascade
   add_foreign_key "variants", "shops", on_delete: :cascade
   add_foreign_key "variants", "suppliers", on_delete: :nullify

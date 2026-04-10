@@ -63,7 +63,7 @@ jobs:
       REDIS_URL: redis://localhost:6379/0
       SHOPIFY_API_KEY: test_key
       SHOPIFY_API_SECRET: test_secret
-      ANTHROPIC_API_KEY: test_key
+      SHOPIFY_APP_URL: http://localhost:3000
     services:
       postgres:
         image: postgres:16

@@ -8,7 +8,6 @@ class Shop < ApplicationRecord
   # If the key is lost, encrypted data becomes unrecoverable.
   encrypts :access_token
 
-  belongs_to :user
   has_many :products, dependent: :destroy
   has_many :variants, dependent: :destroy
   has_many :inventory_snapshots, dependent: :destroy

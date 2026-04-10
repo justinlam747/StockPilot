@@ -51,19 +51,6 @@
         </a>
       </li>
       <li>
-        <a href="/imports/new"
-           class="sidebar__link <%= 'active' if request.path.start_with?('/imports') %>"
-           aria-current="<%= 'page' if request.path.start_with?('/imports') %>"
-           data-tooltip="Import">
-          <svg class="sidebar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <span class="sidebar__label">Import</span>
-        </a>
-      </li>
-      <li>
         <a href="/suppliers"
            class="sidebar__link <%= 'active' if request.path.start_with?('/suppliers') %>"
            aria-current="<%= 'page' if request.path.start_with?('/suppliers') %>"
@@ -120,11 +107,10 @@
     <div class="sidebar__footer">
       <div class="sidebar__user">
         <div class="sidebar__avatar" aria-hidden="true">
-          <span><%= current_user&.name&.first&.upcase || 'U' %></span>
+          <span><%= current_shop&.shop_domain&.first&.upcase || 'S' %></span>
         </div>
         <div class="sidebar__user-info sidebar__label">
-          <span class="sidebar__user-name"><%= current_user&.name || 'User' %></span>
-          <button onclick="window.Clerk && Clerk.signOut().then(() => window.location = '/')" class="sidebar__logout-link">Log out</button>
+          <span class="sidebar__user-name"><%= current_shop&.shop_domain || 'Not connected' %></span>
         </div>
       </div>
     </div>
@@ -173,16 +159,6 @@
         </a>
       </li>
       <li>
-        <a href="/imports/new" class="sidebar__link <%= 'active' if request.path.start_with?('/imports') %>">
-          <svg class="sidebar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <span>Import</span>
-        </a>
-      </li>
-      <li>
         <a href="/suppliers" class="sidebar__link <%= 'active' if request.path.start_with?('/suppliers') %>">
           <svg class="sidebar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -212,13 +188,9 @@
     </ul>
 
     <div class="sidebar__footer">
-      <button onclick="window.Clerk && Clerk.signOut().then(() => window.location = '/')" class="sidebar__logout">
-        <svg class="sidebar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        <span class="sidebar__label">Log out</span>
-      </button>
+      <div class="sidebar__user">
+        <span class="sidebar__user-name"><%= current_shop&.shop_domain || 'Not connected' %></span>
+      </div>
     </div>
   </div>
 </nav>

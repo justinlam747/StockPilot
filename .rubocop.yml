@@ -4,7 +4,6 @@ plugins:
   - rubocop-rspec
   - rubocop-minitest
   - rubocop-rake
-  - rubocop-sequel
   - rubocop-thread_safety
   - rubocop-capybara
   - rubocop-factory_bot

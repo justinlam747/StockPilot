@@ -3,10 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'Security headers' do
-  let(:user) { create(:user, :with_shop) }
+  let(:shop) { create(:shop) }
 
   before do
-    sign_in_as(user)
+    login_as(shop)
     get '/dashboard'
   end
 
