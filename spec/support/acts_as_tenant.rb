@@ -2,7 +2,7 @@
 
 # Ensure ActsAsTenant is set for all tests
 RSpec.configure do |config|
-  config.before(:each) do
+  config.before do
     ActsAsTenant.current_tenant = nil
   end
 end

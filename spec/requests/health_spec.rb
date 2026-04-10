@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Health Check', type: :request do
+RSpec.describe 'Health Check' do
   describe 'GET /health' do
     context 'when all services are up' do
       it 'returns ok status with db and redis true' do
@@ -10,7 +10,7 @@ RSpec.describe 'Health Check', type: :request do
 
         expect(response).to have_http_status(:ok)
 
-        body = JSON.parse(response.body)
+        body = response.parsed_body
         expect(body['status']).to eq('ok')
         expect(body['db']).to be true
         expect(body['redis']).to be true
@@ -27,7 +27,7 @@ RSpec.describe 'Health Check', type: :request do
 
         expect(response).to have_http_status(:service_unavailable)
 
-        body = JSON.parse(response.body)
+        body = response.parsed_body
         expect(body['status']).to eq('degraded')
         expect(body['error']).to be_present
       end
@@ -44,7 +44,7 @@ RSpec.describe 'Health Check', type: :request do
 
         expect(response).to have_http_status(:service_unavailable)
 
-        body = JSON.parse(response.body)
+        body = response.parsed_body
         expect(body['status']).to eq('degraded')
         expect(body['error']).to be_present
       end

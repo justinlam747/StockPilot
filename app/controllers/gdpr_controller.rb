@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Processes mandatory Shopify GDPR webhooks for customer data and shop redaction.
-class GdprController < ActionController::Base
+class GdprController < ApplicationController
   skip_before_action :verify_authenticity_token
   before_action :verify_shopify_hmac
 
@@ -39,7 +39,7 @@ class GdprController < ActionController::Base
 
   def verify_shopify_hmac
     hmac = request.headers['HTTP_X_SHOPIFY_HMAC_SHA256']
-    return head :unauthorized unless hmac.present?
+    return head :unauthorized if hmac.blank?
 
     body = request.body.read
     request.body.rewind

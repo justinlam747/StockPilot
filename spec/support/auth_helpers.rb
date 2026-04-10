@@ -1,27 +1,17 @@
 # frozen_string_literal: true
 
-# Legacy auth helper — kept for backward compatibility with existing specs.
-# New specs should use ClerkSessionHelper#sign_in_as or #sign_in_with_shop directly.
+# Test helper that simulates a merchant being signed in to a Shop via
+# the Shopify OAuth session. Request specs call `login_as(shop)` in a
+# `before` block and the controllers under test see that shop as the
+# current_shop.
 module AuthHelpers
-  # Signs in a user whose active_shop is the given shop.
-  # If the shop has no user, creates one and assigns it.
   def login_as(shop)
-    user = shop.user || begin
-      new_user = create(:user, :onboarded)
-      shop.update!(user: new_user)
-      new_user
-    end
-    updates = { active_shop_id: shop.id }
-    unless user.onboarding_completed?
-      updates[:onboarding_step] = 4
-      updates[:onboarding_completed_at] = Time.current
-    end
-    user.update!(updates)
-    sign_in_as(user)
+    allow_any_instance_of(ApplicationController).to receive(:current_shop).and_return(shop)
+    ActsAsTenant.current_tenant = shop
   end
 end
 
 RSpec.configure do |config|
-  config.include AuthHelpers, type: :controller
   config.include AuthHelpers, type: :request
+  config.include AuthHelpers, type: :controller
 end

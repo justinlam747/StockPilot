@@ -6,23 +6,23 @@
 <% else %>
 <div class="bento" role="list" aria-label="Dashboard overview">
 
-  <!-- R1 C1-2: Quick Import -->
-  <a href="/imports/new" class="bento__tile bento__tile--feature" role="listitem" style="grid-column: 1 / span 2; grid-row: 1 / span 2;">
+  <!-- R1 C1-2: Inventory health overview -->
+  <a href="/inventory" class="bento__tile bento__tile--feature" role="listitem" style="grid-column: 1 / span 2; grid-row: 1 / span 2;">
     <div class="bento__feature-bg" aria-hidden="true">
       <div class="bento__ring bento__ring--1"></div>
       <div class="bento__ring bento__ring--2"></div>
       <div class="bento__ring bento__ring--3"></div>
     </div>
     <div class="bento__content" style="margin-top: var(--space-4); flex: 1; justify-content: center;">
-      <span class="bento__title" style="font-size: 1.25rem;">Import Data</span>
-      <span class="bento__desc" style="margin-top: 6px;">Bring your inventory in from anywhere — paste an unformatted list, upload a CSV, or sync directly from Shopify. We'll figure out the columns.</span>
+      <span class="bento__title" style="font-size: 1.25rem;">Inventory Health</span>
+      <span class="bento__desc" style="margin-top: 6px;">Your Shopify inventory is synced automatically — we watch stock levels and surface low-stock alerts so nothing slips through.</span>
       <div class="bento__feature-list">
-        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Paste from anywhere</span></div>
-        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>CSV upload</span></div>
-        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Shopify auto-sync</span></div>
+        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Automatic Shopify sync</span></div>
+        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Low-stock alerts</span></div>
+        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Snapshot history</span></div>
       </div>
       <div class="bento__feature-cta" style="margin-top: var(--space-4);">
-        <span class="bento__btn">Import Inventory</span>
+        <span class="bento__btn">View Inventory</span>
       </div>
     </div>
   </a>
@@ -199,21 +199,4 @@
   </div>
 
 </div>
-
-<form action="/dashboard/toggle_demo" method="post" style="display:inline">
-  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-  <button type="submit"
-    class="bento__demo-toggle <%= 'is-active' if demo_mode? %>"
-    id="demo-toggle"
-    title="<%= demo_mode? ? 'Exit demo mode' : 'Enter demo mode' %>"
-    aria-label="<%= demo_mode? ? 'Exit demo mode' : 'Enter demo mode' %>">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <%= demo_mode? ? 'Demo On' : 'Demo' %>
-  </button>
-</form>
-
-<%= javascript_include_tag "demo-toggle" %>
 <% end %>

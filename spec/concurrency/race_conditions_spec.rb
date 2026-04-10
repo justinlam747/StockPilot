@@ -211,46 +211,7 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
   end
 
   # --------------------------------------------------------------------------
-  # 4. WeeklyReportJob idempotency
-  # --------------------------------------------------------------------------
-  describe 'WeeklyReportJob idempotency' do
-    let(:week_start) { Time.current.beginning_of_week(:monday) }
-
-    before do
-      ActsAsTenant.with_tenant(shop) do
-        create(:inventory_snapshot,
-               shop: shop,
-               variant: variant,
-               available: 50,
-               on_hand: 55,
-               snapshotted_at: week_start + 1.hour)
-      end
-    end
-
-    it 'generates reports and sends email on first run' do
-      ActsAsTenant.with_tenant(shop) do
-        mailer_double = double('mailer', deliver_later: nil)
-        allow(ReportMailer).to receive(:weekly_summary).and_return(mailer_double)
-
-        WeeklyReportJob.new.perform(shop.id)
-
-        expect(ReportMailer).to have_received(:weekly_summary).once
-      end
-    end
-
-    it 'can run twice without errors (idempotent)' do
-      ActsAsTenant.with_tenant(shop) do
-        mailer_double = double('mailer', deliver_later: nil)
-        allow(ReportMailer).to receive(:weekly_summary).and_return(mailer_double)
-
-        expect { WeeklyReportJob.new.perform(shop.id) }.not_to raise_error
-        expect { WeeklyReportJob.new.perform(shop.id) }.not_to raise_error
-      end
-    end
-  end
-
-  # --------------------------------------------------------------------------
-  # 5. DailySyncAllShopsJob -- no duplicate enqueues per run
+  # 4. DailySyncAllShopsJob -- no duplicate enqueues per run
   # --------------------------------------------------------------------------
   describe 'DailySyncAllShopsJob' do
     let!(:shop_a) { create(:shop) }
@@ -328,7 +289,8 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
     before do
       variant
 
-      allow_any_instance_of(Shopify::InventoryFetcher).to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
+      allow_any_instance_of(Shopify::InventoryFetcher)
+        .to receive(:fetch_all_products_with_inventory).and_return(graphql_response)
       allow_any_instance_of(Notifications::AlertSender).to receive(:create_alerts_and_notify)
     end
 

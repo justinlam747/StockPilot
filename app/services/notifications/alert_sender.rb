@@ -20,7 +20,7 @@ module Notifications
     private
 
     def remove_already_alerted_today(flagged_variants)
-      today_range = Time.current.beginning_of_day..Time.current.end_of_day
+      today_range = Time.current.all_day
       already_alerted_ids = Alert.where(shop_id: @shop.id, triggered_at: today_range)
                                  .pluck(:variant_id).to_set
       flagged_variants.reject { |fv| already_alerted_ids.include?(fv[:variant].id) }
@@ -38,7 +38,7 @@ module Notifications
     end
 
     def send_email(new_alerts)
-      return unless @shop.alert_email.present?
+      return if @shop.alert_email.blank?
 
       AlertMailer.low_stock(@shop, new_alerts, @shop.alert_email).deliver_later
     end

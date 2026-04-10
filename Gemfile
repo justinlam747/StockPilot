@@ -11,14 +11,12 @@ gem 'httparty', '~> 0.22'
 gem 'kaminari', '~> 1.2'
 gem 'omniauth-rails_csrf_protection'
 gem 'omniauth-shopify-oauth2'
-gem 'clerk-sdk-ruby', '~> 4.0'
-gem 'svix', '~> 1.0'
 gem 'pg', '~> 1.5'
 gem 'propshaft'
 gem 'puma', '>= 6.0'
 gem 'rack-attack', '~> 6.7'
 gem 'rack-cors'
-gem 'rails', '~> 7.2.0'
+gem 'rails', '7.2.3'
 gem 'redis', '>= 5.0'
 gem 'sentry-rails', '~> 5.0'
 gem 'sentry-ruby', '~> 5.0'
@@ -34,7 +32,17 @@ group :development, :test do
   gem 'dotenv-rails', '~> 3.0'
   gem 'factory_bot_rails', '~> 6.0'
   gem 'rspec-rails', '~> 7.0'
+  gem 'rubocop-capybara', require: false
+  gem 'rubocop-factory_bot', require: false
+  gem 'rubocop-i18n', require: false
+  gem 'rubocop-minitest', require: false
+  gem 'rubocop-performance', require: false
+  gem 'rubocop-rails', require: false
   gem 'rubocop-rails-omakase', require: false
+  gem 'rubocop-rake', require: false
+  gem 'rubocop-rspec', require: false
+  gem 'rubocop-rspec_rails', require: false
+  gem 'rubocop-thread_safety', require: false
   gem 'webmock', '~> 3.0'
 end
 

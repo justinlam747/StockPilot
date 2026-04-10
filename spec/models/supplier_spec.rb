@@ -2,30 +2,30 @@
 
 require 'rails_helper'
 
-RSpec.describe Supplier, type: :model do
+RSpec.describe Supplier do
   let(:shop) { create(:shop) }
 
   describe 'associations' do
     subject { ActsAsTenant.with_tenant(shop) { create(:supplier, shop: shop) } }
 
-    it { should have_many(:variants).dependent(:nullify) }
-    it { should have_many(:purchase_orders).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:variants).dependent(:nullify) }
+    it { is_expected.to have_many(:purchase_orders).dependent(:restrict_with_error) }
   end
 
   describe 'validations' do
     subject { ActsAsTenant.with_tenant(shop) { create(:supplier, shop: shop) } }
 
-    it { should validate_presence_of(:name) }
-    it { should validate_length_of(:name).is_at_most(255) }
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_length_of(:name).is_at_most(255) }
 
-    it { should allow_value('supplier@example.com').for(:email) }
-    it { should allow_value('').for(:email) }
-    it { should allow_value(nil).for(:email) }
-    it { should_not allow_value('not-an-email').for(:email) }
-    it { should_not allow_value('missing@').for(:email) }
+    it { is_expected.to allow_value('supplier@example.com').for(:email) }
+    it { is_expected.to allow_value('').for(:email) }
+    it { is_expected.to allow_value(nil).for(:email) }
+    it { is_expected.not_to allow_value('not-an-email').for(:email) }
+    it { is_expected.not_to allow_value('missing@').for(:email) }
 
-    it { should validate_numericality_of(:lead_time_days).only_integer.is_greater_than(0).allow_nil }
-    it { should validate_numericality_of(:star_rating).only_integer.allow_nil }
+    it { is_expected.to validate_numericality_of(:lead_time_days).only_integer.is_greater_than(0).allow_nil }
+    it { is_expected.to validate_numericality_of(:star_rating).only_integer.allow_nil }
 
     context 'star_rating range' do
       subject { ActsAsTenant.with_tenant(shop) { build(:supplier, shop: shop) } }
@@ -55,8 +55,8 @@ RSpec.describe Supplier, type: :model do
       other_supplier = ActsAsTenant.with_tenant(other_shop) { create(:supplier, shop: other_shop) }
 
       ActsAsTenant.with_tenant(shop) do
-        expect(Supplier.all).to include(supplier)
-        expect(Supplier.all).not_to include(other_supplier)
+        expect(described_class.all).to include(supplier)
+        expect(described_class.all).not_to include(other_supplier)
       end
     end
   end
@@ -81,7 +81,7 @@ RSpec.describe Supplier, type: :model do
         supplier = create(:supplier, shop: shop)
         create(:purchase_order, shop: shop, supplier: supplier)
 
-        expect { supplier.destroy }.not_to change(Supplier, :count)
+        expect { supplier.destroy }.not_to change(described_class, :count)
         expect(supplier.errors[:base]).to be_present
       end
     end

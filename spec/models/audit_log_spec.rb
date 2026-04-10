@@ -2,19 +2,19 @@
 
 require 'rails_helper'
 
-RSpec.describe AuditLog, type: :model do
+RSpec.describe AuditLog do
   let(:shop) { create(:shop) }
 
   describe 'associations' do
-    it { should belong_to(:shop).optional }
+    it { is_expected.to belong_to(:shop).optional }
   end
 
   describe 'validations' do
-    it { should validate_presence_of(:action) }
+    it { is_expected.to validate_presence_of(:action) }
   end
 
   it 'records an event' do
-    log = AuditLog.record(action: 'login', shop: shop, metadata: { source: 'oauth' })
+    log = described_class.record(action: 'login', shop: shop, metadata: { source: 'oauth' })
     expect(log).to be_persisted
     expect(log.action).to eq('login')
     expect(log.shop).to eq(shop)
@@ -22,12 +22,12 @@ RSpec.describe AuditLog, type: :model do
   end
 
   it 'is readonly once persisted' do
-    log = AuditLog.record(action: 'test', shop: shop)
+    log = described_class.record(action: 'test', shop: shop)
     expect { log.update!(action: 'changed') }.to raise_error(ActiveRecord::ReadOnlyRecord)
   end
 
   it 'allows nil shop for unauthenticated events' do
-    log = AuditLog.record(action: 'login_failed', metadata: { reason: 'invalid_shop' })
+    log = described_class.record(action: 'login_failed', metadata: { reason: 'invalid_shop' })
     expect(log).to be_persisted
     expect(log.shop).to be_nil
   end

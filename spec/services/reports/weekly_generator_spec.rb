@@ -81,7 +81,7 @@ RSpec.describe Reports::WeeklyGenerator do
 
         it 'sorts by units_sold descending' do
           report = generator.compile_weekly_report
-          units = report['top_sellers'].map { |ts| ts['units_sold'] }
+          units = report['top_sellers'].pluck('units_sold')
 
           expect(units).to eq(units.sort.reverse)
         end

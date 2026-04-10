@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe InventorySnapshot, type: :model do
+RSpec.describe InventorySnapshot do
   let(:shop) { create(:shop) }
 
   describe 'associations' do
@@ -14,7 +14,7 @@ RSpec.describe InventorySnapshot, type: :model do
       end
     end
 
-    it { should belong_to(:variant) }
+    it { is_expected.to belong_to(:variant) }
   end
 
   describe 'validations' do
@@ -26,14 +26,14 @@ RSpec.describe InventorySnapshot, type: :model do
       end
     end
 
-    it { should validate_presence_of(:available) }
-    it { should validate_numericality_of(:available).only_integer }
-    it { should validate_presence_of(:on_hand) }
-    it { should validate_numericality_of(:on_hand).only_integer }
-    it { should validate_presence_of(:committed) }
-    it { should validate_numericality_of(:committed).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:incoming) }
-    it { should validate_numericality_of(:incoming).only_integer.is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_presence_of(:available) }
+    it { is_expected.to validate_numericality_of(:available).only_integer }
+    it { is_expected.to validate_presence_of(:on_hand) }
+    it { is_expected.to validate_numericality_of(:on_hand).only_integer }
+    it { is_expected.to validate_presence_of(:committed) }
+    it { is_expected.to validate_numericality_of(:committed).only_integer.is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_presence_of(:incoming) }
+    it { is_expected.to validate_numericality_of(:incoming).only_integer.is_greater_than_or_equal_to(0) }
   end
 
   # ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ RSpec.describe InventorySnapshot, type: :model do
 
     it 'returns the most recent snapshot for each variant' do
       ActsAsTenant.with_tenant(shop) do
-        results = InventorySnapshot.latest_per_variant(shop_id: shop.id)
+        results = described_class.latest_per_variant(shop_id: shop.id)
         lookup = results.index_by(&:variant_id)
 
         expect(lookup.keys).to contain_exactly(variant_a.id, variant_b.id)
@@ -69,7 +69,7 @@ RSpec.describe InventorySnapshot, type: :model do
 
     it 'filters by variant_ids when provided' do
       ActsAsTenant.with_tenant(shop) do
-        results = InventorySnapshot.latest_per_variant(shop_id: shop.id, variant_ids: [variant_a.id])
+        results = described_class.latest_per_variant(shop_id: shop.id, variant_ids: [variant_a.id])
 
         expect(results.map(&:variant_id)).to eq([variant_a.id])
       end
@@ -77,7 +77,7 @@ RSpec.describe InventorySnapshot, type: :model do
 
     it 'selects only requested columns' do
       ActsAsTenant.with_tenant(shop) do
-        results = InventorySnapshot.latest_per_variant(
+        results = described_class.latest_per_variant(
           shop_id: shop.id,
           columns: %w[variant_id available on_hand]
         )
@@ -92,9 +92,9 @@ RSpec.describe InventorySnapshot, type: :model do
 
     it 'raises ArgumentError for invalid columns' do
       ActsAsTenant.with_tenant(shop) do
-        expect {
-          InventorySnapshot.latest_per_variant(shop_id: shop.id, columns: %w[variant_id hacked])
-        }.to raise_error(ArgumentError, /Invalid columns: hacked/)
+        expect do
+          described_class.latest_per_variant(shop_id: shop.id, columns: %w[variant_id hacked])
+        end.to raise_error(ArgumentError, /Invalid columns: hacked/)
       end
     end
   end
@@ -119,7 +119,7 @@ RSpec.describe InventorySnapshot, type: :model do
           # Day -1: variant_a=20 → total 20
           create(:inventory_snapshot, shop: shop, variant: variant_a, available: 20, created_at: 1.day.ago)
 
-          result = InventorySnapshot.daily_totals(variant_ids: [variant_a.id, variant_b.id], days: 3)
+          result = described_class.daily_totals(variant_ids: [variant_a.id, variant_b.id], days: 3)
 
           # Expect 3 entries (today, yesterday, day before), zero-filled for missing days
           expect(result.keys.length).to eq(3)
@@ -147,8 +147,8 @@ RSpec.describe InventorySnapshot, type: :model do
       end
 
       ActsAsTenant.with_tenant(shop) do
-        expect(InventorySnapshot.all).to include(snapshot)
-        expect(InventorySnapshot.all).not_to include(other_snapshot)
+        expect(described_class.all).to include(snapshot)
+        expect(described_class.all).not_to include(other_snapshot)
       end
     end
   end

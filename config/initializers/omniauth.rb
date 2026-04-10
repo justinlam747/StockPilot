@@ -5,7 +5,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
            ENV.fetch('SHOPIFY_API_KEY'),
            ENV.fetch('SHOPIFY_API_SECRET'),
            scope: 'read_products,read_inventory,read_orders,read_customers',
-           callback_url: "#{ENV.fetch('SHOPIFY_APP_URL')}/auth/shopify/callback",
+           callback_url: "#{ENV.fetch('SHOPIFY_APP_URL', 'https://localhost:3000')}/auth/shopify/callback",
            setup: proc { |env|
              strategy = env['omniauth.strategy']
 
@@ -14,7 +14,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
              # and cause invalid_site errors.
              shop = strategy.request.params['shop']
 
-             if shop && !shop.empty?
+             if shop.present?
                shop = shop.strip.downcase
                shop = "#{shop}.myshopify.com" unless shop.include?('.')
                strategy.options[:client_options][:site] = "https://#{shop}"

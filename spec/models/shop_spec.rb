@@ -2,30 +2,30 @@
 
 require 'rails_helper'
 
-RSpec.describe Shop, type: :model do
+RSpec.describe Shop do
   subject(:shop) { create(:shop) }
 
   describe 'associations' do
-    it { should have_many(:products).dependent(:destroy) }
-    it { should have_many(:variants).dependent(:destroy) }
-    it { should have_many(:inventory_snapshots).dependent(:destroy) }
-    it { should have_many(:suppliers).dependent(:destroy) }
-    it { should have_many(:alerts).dependent(:destroy) }
-    it { should have_many(:purchase_orders).dependent(:destroy) }
-    it { should have_many(:audit_logs).dependent(:destroy) }
+    it { is_expected.to have_many(:products).dependent(:destroy) }
+    it { is_expected.to have_many(:variants).dependent(:destroy) }
+    it { is_expected.to have_many(:inventory_snapshots).dependent(:destroy) }
+    it { is_expected.to have_many(:suppliers).dependent(:destroy) }
+    it { is_expected.to have_many(:alerts).dependent(:destroy) }
+    it { is_expected.to have_many(:purchase_orders).dependent(:destroy) }
+    it { is_expected.to have_many(:audit_logs).dependent(:destroy) }
   end
 
   describe 'validations' do
-    it { should validate_presence_of(:shop_domain) }
-    it { should validate_uniqueness_of(:shop_domain) }
-    it { should validate_presence_of(:access_token) }
+    it { is_expected.to validate_presence_of(:shop_domain) }
+    it { is_expected.to validate_uniqueness_of(:shop_domain) }
+    it { is_expected.to validate_presence_of(:access_token) }
 
-    it { should allow_value('my-store.myshopify.com').for(:shop_domain) }
-    it { should allow_value('STORE-123.myshopify.com').for(:shop_domain) }
-    it { should_not allow_value('invalid-domain.com').for(:shop_domain) }
-    it { should_not allow_value('store.otherdomain.com').for(:shop_domain) }
-    it { should_not allow_value('').for(:shop_domain) }
-    it { should_not allow_value('store with spaces.myshopify.com').for(:shop_domain) }
+    it { is_expected.to allow_value('my-store.myshopify.com').for(:shop_domain) }
+    it { is_expected.to allow_value('STORE-123.myshopify.com').for(:shop_domain) }
+    it { is_expected.not_to allow_value('invalid-domain.com').for(:shop_domain) }
+    it { is_expected.not_to allow_value('store.otherdomain.com').for(:shop_domain) }
+    it { is_expected.not_to allow_value('').for(:shop_domain) }
+    it { is_expected.not_to allow_value('store with spaces.myshopify.com').for(:shop_domain) }
   end
 
   describe 'scopes' do
@@ -34,8 +34,8 @@ RSpec.describe Shop, type: :model do
       let!(:uninstalled_shop) { create(:shop, uninstalled_at: 1.day.ago) }
 
       it 'returns only shops that have not been uninstalled' do
-        expect(Shop.active).to include(active_shop)
-        expect(Shop.active).not_to include(uninstalled_shop)
+        expect(described_class.active).to include(active_shop)
+        expect(described_class.active).not_to include(uninstalled_shop)
       end
     end
   end
@@ -80,7 +80,7 @@ RSpec.describe Shop, type: :model do
     it 'encrypts the access_token attribute' do
       shop = create(:shop, access_token: 'shpat_secret_value')
       # Verify the raw database value is not the plaintext token
-      raw_value = Shop.connection.select_value(
+      raw_value = described_class.connection.select_value(
         "SELECT access_token FROM shops WHERE id = #{shop.id}"
       )
       expect(raw_value).not_to eq('shpat_secret_value')

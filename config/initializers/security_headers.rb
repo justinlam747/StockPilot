@@ -17,6 +17,6 @@ Rails.application.config.action_dispatch.default_headers = {
     "frame-src 'self' https://*.clerk.accounts.dev",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action *"
+    'form-action *'
   ].join('; ')
 }

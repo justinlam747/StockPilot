@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Alerts', type: :request do
+RSpec.describe 'Alerts' do
   let(:shop) { create(:shop) }
   let(:product) { create(:product, shop: shop) }
   let(:variant) { create(:variant, shop: shop, product: product) }

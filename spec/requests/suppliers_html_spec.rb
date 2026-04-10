@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Suppliers', type: :request do
+RSpec.describe 'Suppliers' do
   let(:shop) { create(:shop) }
 
   before { login_as(shop) }

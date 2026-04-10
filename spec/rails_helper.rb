@@ -13,8 +13,9 @@ SimpleCov.start 'rails' do
   add_group 'Jobs', 'app/jobs'
   add_group 'Mailers', 'app/mailers'
 
+  # Total coverage gate — total line coverage across the whole app
+  # must exceed 80%.
   minimum_coverage 80
-  minimum_coverage_by_file 50
 end
 
 require 'spec_helper'
@@ -25,7 +26,7 @@ abort('The Rails environment is running in production mode!') if Rails.env.produ
 
 require 'rspec/rails'
 
-Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
+Rails.root.glob('spec/support/**/*.rb').each { |f| require f }
 
 begin
   ActiveRecord::Migration.maintain_test_schema!

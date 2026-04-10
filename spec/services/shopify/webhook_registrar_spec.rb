@@ -40,11 +40,11 @@ RSpec.describe Shopify::WebhookRegistrar do
 
     it 'registers the app/uninstalled topic with correct variables' do
       allow(mock_client).to receive(:run_query).and_return({
-                                                         'webhookSubscriptionCreate' => {
-                                                           'webhookSubscription' => { 'id' => '1' },
-                                                           'userErrors' => []
-                                                         }
-                                                       })
+                                                             'webhookSubscriptionCreate' => {
+                                                               'webhookSubscription' => { 'id' => '1' },
+                                                               'userErrors' => []
+                                                             }
+                                                           })
 
       registrar.register_all
 
@@ -59,11 +59,11 @@ RSpec.describe Shopify::WebhookRegistrar do
 
     it 'registers the products/update topic with correct variables' do
       allow(mock_client).to receive(:run_query).and_return({
-                                                         'webhookSubscriptionCreate' => {
-                                                           'webhookSubscription' => { 'id' => '1' },
-                                                           'userErrors' => []
-                                                         }
-                                                       })
+                                                             'webhookSubscriptionCreate' => {
+                                                               'webhookSubscription' => { 'id' => '1' },
+                                                               'userErrors' => []
+                                                             }
+                                                           })
 
       registrar.register_all
 
@@ -75,11 +75,11 @@ RSpec.describe Shopify::WebhookRegistrar do
 
     it 'registers the products/delete topic with correct variables' do
       allow(mock_client).to receive(:run_query).and_return({
-                                                         'webhookSubscriptionCreate' => {
-                                                           'webhookSubscription' => { 'id' => '1' },
-                                                           'userErrors' => []
-                                                         }
-                                                       })
+                                                             'webhookSubscriptionCreate' => {
+                                                               'webhookSubscription' => { 'id' => '1' },
+                                                               'userErrors' => []
+                                                             }
+                                                           })
 
       registrar.register_all
 
@@ -93,11 +93,11 @@ RSpec.describe Shopify::WebhookRegistrar do
       host = 'https://myapp.example.com'
       allow(ENV).to receive(:fetch).with('SHOPIFY_APP_URL', anything).and_return(host)
       allow(mock_client).to receive(:run_query).and_return({
-                                                         'webhookSubscriptionCreate' => {
-                                                           'webhookSubscription' => { 'id' => '1' },
-                                                           'userErrors' => []
-                                                         }
-                                                       })
+                                                             'webhookSubscriptionCreate' => {
+                                                               'webhookSubscription' => { 'id' => '1' },
+                                                               'userErrors' => []
+                                                             }
+                                                           })
 
       registrar.register_all
 

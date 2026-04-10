@@ -50,7 +50,7 @@ class InventoryController < ApplicationController
   end
 
   def apply_search(scope)
-    return scope unless params[:q].present?
+    return scope if params[:q].blank?
 
     scope.search_by_title_or_sku(params[:q])
   end

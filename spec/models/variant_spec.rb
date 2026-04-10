@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Variant, type: :model do
+RSpec.describe Variant do
   let(:shop) { create(:shop) }
 
   describe 'associations' do
@@ -12,11 +12,11 @@ RSpec.describe Variant, type: :model do
       end
     end
 
-    it { should belong_to(:product) }
-    it { should belong_to(:supplier).optional }
-    it { should have_many(:inventory_snapshots).dependent(:destroy) }
-    it { should have_many(:alerts).dependent(:destroy) }
-    it { should have_many(:purchase_order_line_items).dependent(:restrict_with_error) }
+    it { is_expected.to belong_to(:product) }
+    it { is_expected.to belong_to(:supplier).optional }
+    it { is_expected.to have_many(:inventory_snapshots).dependent(:destroy) }
+    it { is_expected.to have_many(:alerts).dependent(:destroy) }
+    it { is_expected.to have_many(:purchase_order_line_items).dependent(:restrict_with_error) }
   end
 
   describe 'validations' do
@@ -26,9 +26,9 @@ RSpec.describe Variant, type: :model do
       end
     end
 
-    it { should validate_presence_of(:shopify_variant_id) }
-    it { should validate_numericality_of(:price).is_greater_than_or_equal_to(0).allow_nil }
-    it { should validate_numericality_of(:low_stock_threshold).only_integer.is_greater_than(0).allow_nil }
+    it { is_expected.to validate_presence_of(:shopify_variant_id) }
+    it { is_expected.to validate_numericality_of(:price).is_greater_than_or_equal_to(0).allow_nil }
+    it { is_expected.to validate_numericality_of(:low_stock_threshold).only_integer.is_greater_than(0).allow_nil }
   end
 
   describe 'tenant scoping' do
@@ -43,8 +43,8 @@ RSpec.describe Variant, type: :model do
       end
 
       ActsAsTenant.with_tenant(shop) do
-        expect(Variant.all).to include(variant)
-        expect(Variant.all).not_to include(other_variant)
+        expect(described_class.all).to include(variant)
+        expect(described_class.all).not_to include(other_variant)
       end
     end
   end

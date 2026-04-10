@@ -17,7 +17,7 @@ class SuppliersController < ApplicationController
                       request: request, metadata: { supplier_id: @supplier.id })
       respond_with_supplier_list
     else
-      render :index, status: :unprocessable_entity
+      render :index, status: :unprocessable_content
     end
   end
 
@@ -27,7 +27,7 @@ class SuppliersController < ApplicationController
       shop_cache.write_supplier(@supplier)
       respond_with_supplier_list
     else
-      render :index, status: :unprocessable_entity
+      render :index, status: :unprocessable_content
     end
   end
 

@@ -88,5 +88,4 @@ RSpec.describe 'Error handling and resilience', type: :model do
       expect(body['error']).to include('DB down')
     end
   end
-
 end

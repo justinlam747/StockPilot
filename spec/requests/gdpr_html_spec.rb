@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'GDPR endpoints', type: :request do
+RSpec.describe 'GDPR endpoints' do
   let(:shop) { create(:shop) }
   let(:secret) { ENV.fetch('SHOPIFY_API_SECRET', 'test-secret') }
 

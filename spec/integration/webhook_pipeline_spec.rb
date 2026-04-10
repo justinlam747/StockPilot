@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Webhook pipeline', type: :request do
+RSpec.describe 'Webhook pipeline' do
   let(:shop) { create(:shop) }
   let(:product) { create(:product, shop: shop, shopify_product_id: 7001, title: 'Original Title') }
   let(:secret) { 'test_webhook_secret' }

@@ -11,7 +11,7 @@ class SnapshotCleanupJob < ApplicationJob
     cutoff = RETENTION_DAYS.days.ago
 
     loop do
-      deleted = InventorySnapshot.where('created_at < ?', cutoff).limit(BATCH_SIZE).delete_all
+      deleted = InventorySnapshot.where(created_at: ...cutoff).limit(BATCH_SIZE).delete_all
       break if deleted < BATCH_SIZE
     end
   end

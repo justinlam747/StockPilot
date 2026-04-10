@@ -28,7 +28,7 @@ class DashboardController < ApplicationController
     @health_pct = @total_products.positive? ? ((@healthy_products.to_f / @total_products) * 100).round : 0
     @sent_pos = PurchaseOrder.where(shop_id: current_shop.id, status: 'sent').count
     @alerts_today = Alert.where(shop_id: current_shop.id)
-                        .where('created_at >= ?', Time.current.beginning_of_day).count
+                         .where(created_at: Time.current.beginning_of_day..).count
     @avg_variants_per_product = @total_products.positive? ? (@total_variants.to_f / @total_products).round(1) : 0
   end
 
@@ -39,7 +39,7 @@ class DashboardController < ApplicationController
   # Compares today's counts to yesterday's counts to show up/down/flat arrows.
   def compute_trends
     snapshots = InventorySnapshot.where(shop_id: current_shop.id)
-                                 .where('created_at < ?', 24.hours.ago)
+                                 .where(created_at: ...24.hours.ago)
     return default_trends unless snapshots.exists?
 
     prev = counts_from_yesterday(snapshots)
@@ -56,7 +56,7 @@ class DashboardController < ApplicationController
   def counts_from_yesterday(snapshots)
     threshold = current_shop.low_stock_threshold
     prev_total = Product.where(shop_id: current_shop.id)
-                        .where('created_at < ?', 24.hours.ago).count
+                        .where(created_at: ...24.hours.ago).count
     {
       total: prev_total.zero? ? @total_products : prev_total,
       low: snapshots.where('available > 0 AND available <= ?', threshold).count,

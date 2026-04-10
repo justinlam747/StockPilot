@@ -2,17 +2,16 @@
 
 ## Who We Are
 
-We build **Inventory Intelligence**, an embedded Shopify app that gives merchants real-time visibility into their stock levels, automates reorder workflows, and surfaces AI-powered insights — so they never lose a sale to an out-of-stock shelf.
+We build **Inventory Intelligence**, an embedded Shopify app that gives merchants real-time visibility into their stock levels and automates reorder workflows — so they never lose a sale to an out-of-stock shelf.
 
 ## What We're Building
 
 A production-grade Shopify embedded app with:
 
 - **Real-time low-stock alerts** with configurable thresholds per variant
-- **Automated purchase order drafts** generated via Claude AI and sent to suppliers
-- **Weekly inventory reports** with trend analysis, timezone-aware scheduling
+- **Purchase order drafts** created from low-stock signals and sent to suppliers
 - **Supplier management** — track lead times, contacts, and order history
-- **Customer DNA profiles** built from order history for smarter merchandising
+- **Inventory snapshots and trend history** for visibility into stock movement
 - **GDPR-compliant webhook handling** for data requests and redaction
 
 ### Tech Stack
@@ -23,7 +22,7 @@ A production-grade Shopify embedded app with:
 | Frontend | Server-rendered ERB + Propshaft |
 | Database | PostgreSQL 16 |
 | Cache / Queue | Redis 7 + Sidekiq 7 |
-| AI | Anthropic Claude API |
+| Auth | Shopify OAuth (via `omniauth-shopify-oauth2`) |
 | PR Workflow | Graphite (PR stacking) |
 | Error Tracking | Sentry |
 
@@ -79,7 +78,7 @@ A production-grade Shopify embedded app with:
 - Files that must stay out of version control:
   - `.env` / `.env.local` / `.env.production`
   - `credentials.json`, `service-account.json`
-  - Any file containing `SHOPIFY_API_SECRET`, `ANTHROPIC_API_KEY`, `SENTRY_DSN`, or database passwords
+  - Any file containing `SHOPIFY_API_SECRET`, `SENTRY_DSN`, or database passwords
 - If you accidentally commit a secret, **rotate it immediately** — git history is forever
 
 ### 2. Never Push Directly — Use Graphite PR Stacks
@@ -243,9 +242,7 @@ Every response must include these headers (configure in `config/environments/pro
 #### 6h. API Key & Secret Management
 
 - All secrets via environment variables — never hardcoded
-- **Anthropic API key:** When implementing AI services, never log request/response payloads that contain the API key; implement circuit breakers for API failures; validate and sanitize all AI-generated content before returning to the frontend
-- **Shopify API credentials:** Managed by the `shopify_app` gem via ENV vars
-- **SendGrid API key:** Validate email addresses before sending; rate-limit outbound emails to prevent spam
+- **Shopify API credentials:** `SHOPIFY_API_KEY` / `SHOPIFY_API_SECRET` via ENV vars; never hardcode
 - **Rails master key:** Required for credential decryption; never commit `config/master.key`
 
 #### 6i. Logging Security — What NOT to Log
@@ -391,7 +388,7 @@ bundle exec rubocop
 See `.env.example` for the full list. Key variables:
 
 - `SHOPIFY_API_KEY` / `SHOPIFY_API_SECRET` — Shopify app credentials
-- `ANTHROPIC_API_KEY` — Claude API access
+- `SHOPIFY_APP_URL` — Public URL of the deployed app (used for OAuth callback + CORS)
 - `DATABASE_URL` — PostgreSQL connection string
 - `REDIS_URL` — Redis connection string
 - `SENTRY_DSN` — Error tracking

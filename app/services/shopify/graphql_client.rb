@@ -65,15 +65,13 @@ module Shopify
       errors = response.body['errors']
       return unless errors
 
-      if errors.any? { |e| e.dig('extensions', 'code') == 'THROTTLED' }
-        raise ShopifyThrottledError, 'Rate limited by Shopify'
-      end
+      raise ShopifyThrottledError, 'Rate limited by Shopify' if errors.any? { |e| e.dig('extensions', 'code') == 'THROTTLED' }
 
-      raise ShopifyApiError, errors.map { |e| e['message'] }.join(', ')
+      raise ShopifyApiError, errors.pluck('message').join(', ')
     end
 
     def extract_nodes(connection)
-      connection['nodes'] || connection['edges']&.map { |edge| edge['node'] } || []
+      connection['nodes'] || connection['edges']&.pluck('node') || []
     end
 
     def build_session

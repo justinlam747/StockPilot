@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe AfterAuthenticateJob, type: :job do
+RSpec.describe AfterAuthenticateJob do
   let(:shop) { create(:shop) }
 
   it 'registers webhooks and enqueues InventorySyncJob' do
