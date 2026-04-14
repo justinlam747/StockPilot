@@ -4,7 +4,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
   provider :shopify,
            ENV.fetch('SHOPIFY_API_KEY'),
            ENV.fetch('SHOPIFY_API_SECRET'),
-           scope: 'read_products,read_inventory,read_orders,read_customers',
+           scope: 'read_products',
            callback_url: "#{ENV.fetch('SHOPIFY_APP_URL')}/auth/shopify/callback",
            setup: proc { |env|
              strategy = env['omniauth.strategy']

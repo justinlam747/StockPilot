@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
-# Receives and dispatches Shopify webhook events with HMAC verification.
+# Receives Shopify webhook events with HMAC verification.
+#
+# Webhooks are intentionally thin: authenticate the delivery, record the
+# event, and queue the single catalog sync path instead of writing catalog
+# rows inline. That keeps webhook handling predictable and serializable.
 class WebhooksController < ActionController::Base
   skip_before_action :verify_authenticity_token
   before_action :verify_shopify_hmac
@@ -18,8 +22,7 @@ class WebhooksController < ActionController::Base
   def dispatch_webhook(topic, shop_domain)
     case topic
     when 'app_uninstalled'   then handle_app_uninstalled(shop_domain)
-    when 'products_update'   then handle_products_update(shop_domain)
-    when 'products_delete'   then handle_products_delete(shop_domain)
+    when 'products_update', 'products_delete' then enqueue_catalog_sync(shop_domain)
     else Rails.logger.warn("[Webhook] Unhandled topic: #{topic}")
     end
   end
@@ -55,23 +58,13 @@ class WebhooksController < ActionController::Base
     shop&.update!(uninstalled_at: Time.current, access_token: '')
   end
 
-  def handle_products_update(shop_domain)
+  # Webhook deliveries should not perform the full sync work inline.
+  # Queueing the existing sync job keeps Shopify writes serialized through
+  # one code path and avoids request-time persistence drift.
+  def enqueue_catalog_sync(shop_domain)
     shop = Shop.active.find_by(shop_domain: shop_domain)
     return unless shop
 
-    ActsAsTenant.with_tenant(shop) do
-      Inventory::Persister.new(shop).upsert_single_product(JSON.parse(webhook_body), source: :webhook)
-    end
-  end
-
-  def handle_products_delete(shop_domain)
-    shop = Shop.active.find_by(shop_domain: shop_domain)
-    return unless shop
-
-    data = JSON.parse(webhook_body)
-    ActsAsTenant.with_tenant(shop) do
-      product = Product.find_by(shopify_product_id: data['id'])
-      product&.update!(deleted_at: Time.current)
-    end
+    InventorySyncJob.perform_later(shop.id)
   end
 end

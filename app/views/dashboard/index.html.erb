@@ -1,219 +1,122 @@
-<%= render 'shared/connect_banner' %>
 <% if @show_connect_banner %>
-<div style="padding: 60px 20px; text-align: center; color: var(--color-text-secondary);">
-  <p style="font-size: 16px;">Connect your Shopify store above to see your inventory dashboard.</p>
-</div>
-<% else %>
-<div class="bento" role="list" aria-label="Dashboard overview">
-
-  <!-- R1 C1-2: Quick Import -->
-  <a href="/imports/new" class="bento__tile bento__tile--feature" role="listitem" style="grid-column: 1 / span 2; grid-row: 1 / span 2;">
-    <div class="bento__feature-bg" aria-hidden="true">
-      <div class="bento__ring bento__ring--1"></div>
-      <div class="bento__ring bento__ring--2"></div>
-      <div class="bento__ring bento__ring--3"></div>
-    </div>
-    <div class="bento__content" style="margin-top: var(--space-4); flex: 1; justify-content: center;">
-      <span class="bento__title" style="font-size: 1.25rem;">Import Data</span>
-      <span class="bento__desc" style="margin-top: 6px;">Bring your inventory in from anywhere — paste an unformatted list, upload a CSV, or sync directly from Shopify. We'll figure out the columns.</span>
-      <div class="bento__feature-list">
-        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Paste from anywhere</span></div>
-        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>CSV upload</span></div>
-        <div class="bento__feature-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Shopify auto-sync</span></div>
+  <div class="bento__tile" style="padding: var(--space-12) var(--space-6); text-align: center;">
+    <div class="sp-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green-400)"
+           stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="margin-bottom: var(--space-4);">
+        <path d="M12 2v20"/>
+        <path d="M5 7h14"/>
+        <path d="M7 7l1 13h8l1-13"/>
+      </svg>
+      <p class="sp-empty__title">Connect a Shopify store</p>
+      <p class="sp-empty__desc">Run one sync, then review catalog issues from the dashboard and issues page.</p>
+      <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+        <a href="<%= settings_path %>" class="sp-btn">Connect store</a>
+        <a href="<%= root_path %>" class="sp-btn sp-btn--sm">View product intro</a>
       </div>
-      <div class="bento__feature-cta" style="margin-top: var(--space-4);">
-        <span class="bento__btn">Import Inventory</span>
-      </div>
-    </div>
-  </a>
-
-  <!-- R1 C3: Total Products -->
-  <a href="/inventory" class="bento__tile bento__tile--hero" role="listitem" style="grid-column: 3; grid-row: 1;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-      <span class="bento__tile-label">Inventory</span>
-      <span class="bento__health"><%= @health_pct %>%</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value">
-        <%= @total_products %>
-        <span class="bento__trend bento__trend--<%= @trends[:total_products] %>" aria-label="Trend: <%= @trends[:total_products] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:total_products]] %></span>
-      </span>
-      <span class="bento__label">Active Products</span>
-      <span class="bento__sub"><%= @total_variants %> total SKUs tracked &middot; <%= @healthy_products %> healthy, <%= @low_stock %> low, <%= @out_of_stock %> out</span>
-    </div>
-  </a>
-
-  <!-- R1 C4: Low Stock -->
-  <a href="/alerts" class="bento__tile bento__tile--warn" role="listitem" style="grid-column: 4; grid-row: 1;">
-    <div class="bento__glow bento__glow--amber" style="width:600px;height:600px;bottom:0;left:0;" aria-hidden="true"></div>
-    <div class="bento__glow bento__glow--amber" style="width:550px;height:550px;top:0;right:0;" aria-hidden="true"></div>
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span class="bento__tile-label">Warning</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value">
-        <%= @low_stock %>
-        <span class="bento__trend bento__trend--<%= @trends[:low_stock] %>" aria-label="Trend: <%= @trends[:low_stock] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:low_stock]] %></span>
-      </span>
-      <span class="bento__label">Low Stock Items</span>
-      <span class="bento__sub">These variants have dropped below their reorder threshold and need restocking soon to avoid stockouts.</span>
-    </div>
-  </a>
-
-  <!-- R2 C3: Out of Stock -->
-  <a href="/inventory?filter=out_of_stock" class="bento__tile bento__tile--danger" role="listitem" style="grid-column: 3; grid-row: 2;">
-    <div class="bento__glow bento__glow--red" style="width:600px;height:600px;top:0;left:0;" aria-hidden="true"></div>
-    <div class="bento__glow bento__glow--red" style="width:550px;height:550px;bottom:0;right:0;" aria-hidden="true"></div>
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-      <span class="bento__tile-label">Critical</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value">
-        <%= @out_of_stock %>
-        <span class="bento__trend bento__trend--<%= @trends[:out_of_stock] %>" aria-label="Trend: <%= @trends[:out_of_stock] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:out_of_stock]] %></span>
-      </span>
-      <span class="bento__label">Out of Stock</span>
-      <span class="bento__sub">Zero available inventory. Customers attempting to purchase will see "sold out." Every hour without stock is lost revenue.</span>
-    </div>
-  </a>
-
-  <!-- R2 C4: Pending POs -->
-  <a href="/purchase_orders" class="bento__tile" role="listitem" style="grid-column: 4; grid-row: 2;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span class="bento__tile-label">Orders</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value">
-        <%= @pending_pos %>
-        <span class="bento__trend bento__trend--<%= @trends[:pending_pos] %>" aria-label="Trend: <%= @trends[:pending_pos] %>"><%= { up: "\u2191", down: "\u2193", flat: "\u2192" }[@trends[:pending_pos]] %></span>
-      </span>
-      <span class="bento__label">Draft Purchase Orders</span>
-      <span class="bento__sub"><%= @sent_pos %> already sent to suppliers and awaiting delivery. Draft orders can be reviewed and sent with one click.</span>
-    </div>
-  </a>
-
-  <!-- R3 C1: Variants -->
-  <a href="/inventory" class="bento__tile" role="listitem" style="grid-column: 1; grid-row: 3;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-      <span class="bento__tile-label">Catalog</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value"><%= @total_variants %></span>
-      <span class="bento__label">Total SKUs</span>
-      <span class="bento__sub">Averaging <%= @avg_variants_per_product %> variants per product. Each SKU is individually tracked with its own stock level and reorder threshold.</span>
-    </div>
-  </a>
-
-  <!-- R3 C2: Suppliers -->
-  <a href="/suppliers" class="bento__tile" role="listitem" style="grid-column: 2; grid-row: 3;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      <span class="bento__tile-label">Network</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value"><%= @total_suppliers %></span>
-      <span class="bento__label">Suppliers</span>
-      <% if @total_suppliers.zero? %>
-        <span class="bento__sub">No suppliers added yet. Add your first supplier to start tracking lead times and creating purchase orders.</span>
-      <% else %>
-        <span class="bento__sub">Track contact info, lead times, and performance ratings. Link suppliers to variants for automated reorder routing.</span>
-      <% end %>
-    </div>
-  </a>
-
-  <!-- R3 C3: Alerts -->
-  <a href="/alerts" class="bento__tile" role="listitem" style="grid-column: 3; grid-row: 3;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span class="bento__tile-label">Notifications</span>
-      <% if @alerts_today.positive? %><span class="bento__live-dot" aria-hidden="true"></span><% end %>
-    </div>
-    <div class="bento__content">
-      <span class="bento__value"><%= @total_alerts %></span>
-      <span class="bento__label">Total Alerts</span>
-      <span class="bento__sub"><%= @alerts_today %> triggered today. Alerts fire when stock drops below thresholds — delivered via email and in-app feed.</span>
-    </div>
-  </a>
-
-  <!-- R3 C4: Recent Alerts -->
-  <a href="/alerts" class="bento__tile bento__tile--list" role="listitem" style="grid-column: 4; grid-row: 3;">
-    <div class="bento__tile-top">
-      <span class="bento__tile-label" style="font-weight: 600; color: var(--color-text);">Latest Alerts</span>
-    </div>
-    <div class="bento__content" style="margin-top: var(--space-2); flex: 1;">
-      <% if @recent_alerts.any? %>
-        <div class="bento__alert-list">
-          <% @recent_alerts.first(3).each do |alert| %>
-            <div class="bento__alert-row bento__alert-row--<%= alert.severity || 'warning' %>">
-              <span class="bento__alert-dot"></span>
-              <span><%= truncate(alert.message, length: 45) %></span>
-            </div>
-          <% end %>
-          <% if @recent_alerts.size > 3 %>
-            <span class="bento__sub" style="margin-top: 4px;">+ <%= @recent_alerts.size - 3 %> more alerts this week</span>
-          <% end %>
-        </div>
-      <% else %>
-        <span class="bento__sub">No recent alerts. Your inventory levels are within safe thresholds across all tracked SKUs.</span>
-      <% end %>
-    </div>
-  </a>
-
-  <!-- R4 C1-2: Reports -->
-  <a href="/inventory" class="bento__tile" role="listitem" style="grid-column: 1 / span 2; grid-row: 4;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-      <span class="bento__tile-label">Reports</span>
-      <span class="bento__pill bento__pill--sm">Every Monday</span>
-    </div>
-    <div class="bento__content">
-      <span class="bento__title">Weekly Intelligence Report</span>
-      <span class="bento__sub">Delivered at 8 AM in your timezone. Covers your top-selling products, stockout incidents, and supplier performance — so you start the week knowing exactly what needs attention.</span>
-    </div>
-  </a>
-
-  <!-- R4 C3-4: Sync -->
-  <div class="bento__tile" role="listitem" style="grid-column: 3 / span 2; grid-row: 4;">
-    <div class="bento__tile-top">
-      <svg class="bento__icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      <span class="bento__tile-label">Sync</span>
-      <% if current_shop&.synced_at %>
-        <span class="bento__pill bento__pill--sm" style="background: var(--green-100); color: var(--green-700);">Connected</span>
-      <% end %>
-    </div>
-    <div class="bento__content">
-      <span class="bento__title">Shopify Sync</span>
-      <span class="bento__sub">
-        <% if current_shop&.synced_at %>
-          Last synced <%= time_ago_in_words(current_shop.synced_at) %> ago. Your inventory is pulled from Shopify every 4 hours automatically, plus instant updates via webhooks when products change in your store.
-        <% else %>
-          Not synced yet. Head to the inventory page to trigger your first sync. Once connected, stock levels update automatically every 4 hours and instantly via Shopify webhooks.
-        <% end %>
-      </span>
     </div>
   </div>
+<% else %>
+  <div class="sp-page-header">
+    <h1>Catalog Overview</h1>
+    <p style="color: var(--color-text-secondary); margin-top: 6px;">
+      Review the current catalog footprint, active issues, and last sync status.
+    </p>
+  </div>
 
-</div>
+  <div class="bento" role="list" aria-label="Catalog overview">
+    <div class="bento__tile bento__tile--hero" role="listitem" style="grid-column: 1; grid-row: 1;">
+      <div class="bento__tile-top">
+        <span class="bento__tile-label">Products</span>
+      </div>
+      <div class="bento__content">
+        <span class="bento__value"><%= @total_products %></span>
+        <span class="bento__label">Products scanned</span>
+      </div>
+    </div>
 
-<form action="/dashboard/toggle_demo" method="post" style="display:inline">
-  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-  <button type="submit"
-    class="bento__demo-toggle <%= 'is-active' if demo_mode? %>"
-    id="demo-toggle"
-    title="<%= demo_mode? ? 'Exit demo mode' : 'Enter demo mode' %>"
-    aria-label="<%= demo_mode? ? 'Exit demo mode' : 'Enter demo mode' %>">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <%= demo_mode? ? 'Demo On' : 'Demo' %>
-  </button>
-</form>
+    <div class="bento__tile" role="listitem" style="grid-column: 2; grid-row: 1;">
+      <div class="bento__tile-top">
+        <span class="bento__tile-label">Variants</span>
+      </div>
+      <div class="bento__content">
+        <span class="bento__value"><%= @total_variants %></span>
+        <span class="bento__label">Variants tracked</span>
+      </div>
+    </div>
 
-<%= javascript_include_tag "demo-toggle" %>
+    <a href="/issues" class="bento__tile bento__tile--warn" role="listitem" style="grid-column: 3; grid-row: 1;">
+      <div class="bento__tile-top">
+        <span class="bento__tile-label">Issues</span>
+      </div>
+      <div class="bento__content">
+        <span class="bento__value"><%= @issue_count %></span>
+        <span class="bento__label">Open issues</span>
+        <span class="bento__sub"><%= @critical_issue_count %> critical, <%= @warning_issue_count %> warning</span>
+      </div>
+    </a>
+
+    <div class="bento__tile" role="listitem" style="grid-column: 4; grid-row: 1;">
+      <div class="bento__tile-top">
+        <span class="bento__tile-label">Coverage</span>
+      </div>
+      <div class="bento__content">
+        <span class="bento__value"><%= @catalog_coverage %>%</span>
+        <span class="bento__label">Products without active issues</span>
+      </div>
+    </div>
+
+    <div class="bento__tile" role="listitem" style="grid-column: 1 / span 2; grid-row: 2;">
+      <div class="bento__tile-top">
+        <span class="bento__tile-label">Sync</span>
+      </div>
+      <div class="bento__content">
+        <span class="bento__title">Current catalog snapshot</span>
+        <span class="bento__sub">
+          <% if current_shop.synced_at.present? %>
+            Last synced <%= time_ago_in_words(current_shop.synced_at) %> ago.
+          <% else %>
+            No sync completed yet.
+          <% end %>
+        </span>
+        <form action="<%= sync_catalog_path %>" method="post" style="margin-top: 16px;">
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+          <button type="submit" class="bento__btn">Run sync</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="bento__tile bento__tile--list" role="listitem" style="grid-column: 3 / span 2; grid-row: 2;">
+      <div class="bento__tile-top">
+        <span class="bento__tile-label">Recent issues</span>
+      </div>
+      <div class="bento__content" style="margin-top: var(--space-2); flex: 1;">
+        <% if @recent_issues.any? %>
+          <div class="bento__alert-list">
+            <% @recent_issues.each do |issue| %>
+              <div class="bento__alert-row bento__alert-row--<%= issue.severity || 'warning' %>">
+                <span class="bento__alert-dot"></span>
+                <div style="display: flex; flex-direction: column; min-width: 0;">
+                  <span style="font-weight: 600;"><%= truncate("#{issue.title} - #{issue.product.title}", length: 56) %></span>
+                  <span style="font-size: 12px; color: var(--color-text-secondary);">
+                    <%= truncate(issue.detail, length: 72) %>
+                  </span>
+                </div>
+                <span class="alert-severity--<%= issue.severity || 'warning' %>"><%= (issue.severity || 'warning').titleize %></span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="sp-empty" style="padding: var(--space-4) 0; text-align: left;">
+            <p class="sp-empty__title" style="margin-bottom: 4px;">Catalog looks clean</p>
+            <p class="sp-empty__desc">Run sync after product changes to confirm the current scan stays clean.</p>
+            <div style="margin-top: var(--space-4);">
+              <%= form_with url: sync_catalog_path, method: :post, data: { turbo: false }, html: { style: 'display: inline-block;' } do %>
+                <button type="submit" class="sp-btn sp-btn--sm">Run sync</button>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
 <% end %>

@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-# Fetches inventory from Shopify, persists snapshots, and sends alerts.
+# Single orchestration point for Shopify catalog sync.
 #
-# This is the main sync job — it runs daily for every shop and also
-# runs immediately after a merchant installs the app.
+# Keep this job thin: it fetches the current catalog, persists it, and
+# updates the sync timestamp. All catalog writes should flow through here
+# so webhook-triggered and manual syncs stay aligned.
 #
 class InventorySyncJob < ApplicationJob
   queue_as :default
@@ -24,22 +25,17 @@ class InventorySyncJob < ApplicationJob
 
   def perform(shop_id)
     shop = Shop.active.find(shop_id)
-    ActsAsTenant.with_tenant(shop) { sync_inventory(shop) }
+    sync_catalog(shop)
   end
 
   private
 
-  def sync_inventory(shop)
-    data = Shopify::InventoryFetcher.new(shop).fetch_all_products_with_inventory
-    Inventory::Persister.new(shop).upsert(data)
-    Inventory::Snapshotter.new(shop).create_snapshots_from_shopify_data(data)
-    detect_and_alert(shop)
+  # The persister owns tenant scoping and reconciliation of missing products.
+  # Do not reintroduce snapshots, alerts, or cache warming here; that would
+  # split the sync contract and make the product harder to explain.
+  def sync_catalog(shop)
+    data = Shopify::InventoryFetcher.new(shop).fetch_all_products
+    Inventory::Persister.new(shop).upsert_catalog(data)
     shop.update!(synced_at: Time.current)
-    Cache::ShopCache.new(shop).warm_inventory_stats
-  end
-
-  def detect_and_alert(shop)
-    flagged = Inventory::LowStockDetector.new(shop).detect
-    Notifications::AlertSender.new(shop).create_alerts_and_notify(flagged)
   end
 end

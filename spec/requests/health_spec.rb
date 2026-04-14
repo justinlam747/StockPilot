@@ -3,8 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe 'Health Check', type: :request do
+  let(:redis_client) { instance_double(Redis, ping: 'PONG', close: true) }
+
   describe 'GET /health' do
     context 'when all services are up' do
+      before do
+        allow(Redis).to receive(:new).and_return(redis_client)
+      end
+
       it 'returns ok status with db and redis true' do
         get '/health'
 
@@ -35,6 +41,7 @@ RSpec.describe 'Health Check', type: :request do
 
     context 'when DB is down' do
       before do
+        allow(Redis).to receive(:new).and_return(redis_client)
         allow(ActiveRecord::Base.connection).to receive(:execute)
           .and_raise(ActiveRecord::ConnectionNotEstablished.new('Connection refused'))
       end

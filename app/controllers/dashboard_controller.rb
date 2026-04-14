@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Renders the merchant dashboard with inventory stats and trend arrows.
+# Renders a lean dashboard focused on catalog health.
 class DashboardController < ApplicationController
   def index
     unless current_shop
@@ -8,69 +8,33 @@ class DashboardController < ApplicationController
       return
     end
 
-    load_dashboard_stats
-    load_trends
-    @recent_alerts = Alert.includes(variant: :product).order(created_at: :desc).limit(10)
+    audit = Catalog::AuditService.new(current_shop)
+    load_catalog_summary(audit)
+    @recent_issues = audit.issues.first(8)
+  end
+
+  def sync
+    require_shop!
+    return if performed?
+
+    InventorySyncJob.perform_later(current_shop.id)
+    redirect_to dashboard_path, notice: 'Catalog sync queued.'
   end
 
   private
 
-  def load_dashboard_stats
-    stats = shop_cache.inventory_stats
-    @total_products = stats[:total_products]
-    @low_stock = stats[:low_stock]
-    @out_of_stock = stats[:out_of_stock]
-    @pending_pos = stats[:pending_pos]
-    @total_suppliers = Supplier.where(shop_id: current_shop.id).count
-    @total_alerts = Alert.where(shop_id: current_shop.id).count
-    @total_variants = Variant.where(shop_id: current_shop.id).count
-    @healthy_products = [@total_products - @low_stock - @out_of_stock, 0].max
-    @health_pct = @total_products.positive? ? ((@healthy_products.to_f / @total_products) * 100).round : 0
-    @sent_pos = PurchaseOrder.where(shop_id: current_shop.id, status: 'sent').count
-    @alerts_today = Alert.where(shop_id: current_shop.id)
-                        .where('created_at >= ?', Time.current.beginning_of_day).count
-    @avg_variants_per_product = @total_products.positive? ? (@total_variants.to_f / @total_products).round(1) : 0
-  end
-
-  def load_trends
-    @trends = compute_trends
-  end
-
-  # Compares today's counts to yesterday's counts to show up/down/flat arrows.
-  def compute_trends
-    snapshots = InventorySnapshot.where(shop_id: current_shop.id)
-                                 .where('created_at < ?', 24.hours.ago)
-    return default_trends unless snapshots.exists?
-
-    prev = counts_from_yesterday(snapshots)
-    {
-      total_products: trend_direction(@total_products, prev[:total]),
-      low_stock: trend_direction(@low_stock, prev[:low]),
-      out_of_stock: trend_direction(@out_of_stock, prev[:out]),
-      pending_pos: :flat
-    }
-  end
-
-  # Counts stock levels from yesterday's snapshots for trend comparison.
-  # Uses the shop's configured threshold instead of a hardcoded value.
-  def counts_from_yesterday(snapshots)
-    threshold = current_shop.low_stock_threshold
-    prev_total = Product.where(shop_id: current_shop.id)
-                        .where('created_at < ?', 24.hours.ago).count
-    {
-      total: prev_total.zero? ? @total_products : prev_total,
-      low: snapshots.where('available > 0 AND available <= ?', threshold).count,
-      out: snapshots.where('available <= 0').count
-    }
-  end
-
-  def default_trends
-    { total_products: :flat, low_stock: :flat, out_of_stock: :flat, pending_pos: :flat }
-  end
-
-  def trend_direction(current, previous)
-    return :flat if current == previous
-
-    current > previous ? :up : :down
+  def load_catalog_summary(audit)
+    # Keep the dashboard counts aligned with the issues page by deriving both
+    # from the same audit run contract. Future edits should preserve that
+    # single source of truth so summary cards never drift from the list view.
+    summary = audit.summary
+    @total_products = summary[:total_products]
+    @total_variants = summary[:total_variants]
+    @issue_count = summary[:issue_count]
+    @affected_product_count = summary[:affected_product_count]
+    @critical_issue_count = summary[:critical_issue_count]
+    @warning_issue_count = summary[:warning_issue_count]
+    healthy_product_count = (@total_products - @affected_product_count).clamp(0, @total_products)
+    @catalog_coverage = @total_products.positive? ? (healthy_product_count.to_f / @total_products * 100).round : 100
   end
 end

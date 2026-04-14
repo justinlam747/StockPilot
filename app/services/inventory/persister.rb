@@ -1,30 +1,34 @@
 # frozen_string_literal: true
 
 module Inventory
-  # Saves products and variants from Shopify into our database.
+  # Saves Shopify catalog products and variants into our database.
   #
-  # Shopify sends us product data in two different formats:
+  # Shopify sends product data in two different formats:
   #   1. GraphQL batch sync — uses keys like 'legacyResourceId', 'productType'
   #   2. Webhook REST payload — uses keys like 'id', 'product_type'
   #
-  # Instead of writing two separate save functions (one per format),
-  # we NORMALIZE the data first into a common shape, then save it once.
-  # This means there's only one "save" path to understand.
+  # Normalize first, then write once. Keep that contract narrow so the
+  # sync path stays easy to reason about and easy to resume in later sessions.
   #
   class Persister
     def initialize(shop)
       @shop = shop
-      @cache = Cache::ShopCache.new(shop)
     end
 
     # Called by InventorySyncJob — saves a batch of products from GraphQL.
-    def upsert(data)
-      data[:products].each do |product_node|
-        product = upsert_single_product(product_node, source: :graphql)
-        @cache.write_product(product.reload) if product
+    def upsert_catalog(data)
+      ActsAsTenant.with_tenant(@shop) do
+        seen_product_ids = []
+
+        Array(data[:products]).each do |product_node|
+          product = upsert_single_product_without_tenant(product_node, source: :graphql)
+          seen_product_ids << product.shopify_product_id if product
+        end
+
+        mark_missing_products_deleted(seen_product_ids)
       end
-      @cache.invalidate_inventory
     end
+    alias upsert upsert_catalog
 
     # Called by WebhooksController — saves one product from a webhook.
     # Also called by upsert above for each product in a batch.
@@ -34,14 +38,20 @@ module Inventory
     #   source: :graphql  -> GraphQL format (keys like 'legacyResourceId', 'productType')
     #
     def upsert_single_product(raw_data, source:)
+      ActsAsTenant.with_tenant(@shop) do
+        upsert_single_product_without_tenant(raw_data, source: source)
+      end
+    end
+
+    private
+
+    def upsert_single_product_without_tenant(raw_data, source:)
       normalized = normalize_product_data(raw_data, source: source)
       product = find_or_initialize_product(normalized[:shopify_id])
       save_product(product, normalized)
       save_variants(product, normalized[:variants])
       product
     end
-
-    private
 
     # ---- Normalize: turn either format into the same hash shape ----
 
@@ -82,7 +92,8 @@ module Inventory
         shopify_id: data['id'].to_s,
         sku: data['sku'],
         title: data['title'],
-        price: data['price'].to_f
+        price: data['price'].to_f,
+        barcode: data['barcode']
       }
     end
 
@@ -91,7 +102,8 @@ module Inventory
         shopify_id: node['legacyResourceId'].to_s,
         sku: node['sku'],
         title: node['title'],
-        price: node['price'].to_f
+        price: node['price'].to_f,
+        barcode: node['barcode']
       }
     end
 
@@ -125,10 +137,17 @@ module Inventory
           product: product,
           sku: variant_data[:sku],
           title: variant_data[:title],
-          price: variant_data[:price]
+          price: variant_data[:price],
+          barcode: variant_data[:barcode]
         )
         variant.save!
       end
+    end
+
+    def mark_missing_products_deleted(seen_product_ids)
+      missing_products = Product.active
+      missing_products = missing_products.where.not(shopify_product_id: seen_product_ids) if seen_product_ids.any?
+      missing_products.update_all(deleted_at: Time.current)
     end
   end
 end

@@ -17,13 +17,10 @@ class GdprShopRedactJob < ApplicationJob
 
   def delete_tenant_data(shop)
     ActsAsTenant.with_tenant(shop) do
-      PurchaseOrderLineItem.delete_all
-      PurchaseOrder.delete_all
+      AuditLog.where(shop: shop).delete_all
       Alert.delete_all
-      InventorySnapshot.delete_all
       Variant.delete_all
       Product.delete_all
-      Supplier.delete_all
     end
   end
 

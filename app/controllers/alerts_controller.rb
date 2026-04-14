@@ -1,43 +1,37 @@
 # frozen_string_literal: true
 
-# Manages low-stock and out-of-stock alert display and dismissal.
+# Displays computed catalog audit issues.
 class AlertsController < ApplicationController
   before_action :require_shop!
 
   def index
-    scope = Alert.includes(variant: :product).order(created_at: :desc)
-    scope = apply_status_filter(scope)
-    scope = apply_severity_filter(scope)
-    @alerts = scope.page(params[:page]).per(25)
-  end
-
-  def dismiss
-    alert = Alert.find(params[:id])
-    alert.update!(dismissed: true)
-    AuditLog.record(action: 'alert_dismissed', shop: current_shop, request: request,
-                    metadata: { alert_id: alert.id, variant_id: alert.variant_id })
-    if request.headers['HX-Request']
-      render partial: 'alert_row', locals: { alert: alert.reload }
-    else
-      head :ok
-    end
+    # The audit service owns issue generation; this controller only shapes the
+    # current view by applying lightweight filters to the in-memory result set.
+    issues = Catalog::AuditService.new(current_shop).issues
+    issues = apply_severity_filter(issues)
+    issues = apply_search_filter(issues)
+    @issues = Kaminari.paginate_array(issues).page(params[:page]).per(25)
+    @search_query = params[:q].to_s.strip
+    @current_severity = params[:severity].presence
   end
 
   private
 
-  def apply_status_filter(scope)
-    case params[:status]
-    when 'active' then scope.active
-    when 'dismissed' then scope.dismissed
-    else scope
+  def apply_severity_filter(issues)
+    case params[:severity]
+    when 'critical', 'warning' then issues.select { |issue| issue.severity == params[:severity] }
+    else issues
     end
   end
 
-  def apply_severity_filter(scope)
-    case params[:severity]
-    when 'critical' then scope.where(alert_type: 'out_of_stock')
-    when 'warning' then scope.where(alert_type: 'low_stock')
-    else scope
+  def apply_search_filter(issues)
+    return issues if params[:q].blank?
+
+    query = params[:q].downcase
+    issues.select do |issue|
+      issue.product.title.to_s.downcase.include?(query) ||
+        issue.variant&.sku.to_s.downcase.include?(query) ||
+        issue.code.to_s.downcase.include?(query)
     end
   end
 end

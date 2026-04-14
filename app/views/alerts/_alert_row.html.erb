@@ -1,24 +1,16 @@
-<div class="alt-row alt-row--<%= alert.severity %>" id="alert-<%= alert.id %>">
-  <div class="alt-row__dot alt-row__dot--<%= alert.severity %>" aria-hidden="true"></div>
+<div class="alt-row alert-row--<%= issue.severity %>" id="issue-<%= issue.fingerprint %>">
+  <div class="alt-row__dot alt-row__dot--<%= issue.severity %>" aria-hidden="true"></div>
   <div class="alt-row__body">
-    <span class="alt-row__message"><%= alert.message %></span>
-    <span class="alt-row__time"><%= time_ago_in_words(alert.created_at) %> ago</span>
+    <span class="alt-row__message"><%= issue.title %> - <%= issue.product.title %></span>
+    <span class="alt-row__time"><%= issue.detail %></span>
   </div>
   <div class="alt-row__actions">
-    <% if alert.dismissed? %>
-      <span class="alt-row__dismissed">Dismissed</span>
-    <% else %>
-      <button hx-patch="<%= dismiss_alert_path(alert) %>"
-              hx-target="#alert-<%= alert.id %>"
-              hx-swap="outerHTML"
-              class="alt-row__dismiss"
-              aria-label="Dismiss alert: <%= alert.message %>">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-        Dismiss
-      </button>
+    <span class="alert-severity--<%= issue.severity %>"><%= issue.severity.titleize %></span>
+    <% if issue.variant&.sku.present? %>
+      <span class="alt-row__dismissed">SKU <%= issue.variant.sku %></span>
     <% end %>
+    <a href="<%= issue.admin_url %>" class="alt-row__dismiss" target="_blank" rel="noopener noreferrer" aria-label="Open <%= issue.product.title %> in Shopify">
+      Open in Shopify
+    </a>
   </div>
 </div>

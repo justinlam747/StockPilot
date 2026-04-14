@@ -3,10 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Rate limiting', type: :request do
-  let(:shop) { create(:shop) }
-
   before do
-    login_as(shop)
     Rack::Attack.enabled = true
     Rack::Attack.cache.store.clear
   end
@@ -17,15 +14,15 @@ RSpec.describe 'Rate limiting', type: :request do
 
   it 'throttles excessive requests at the configured limit' do
     # Verify the throttle config is correct
-    expect(Rack::Attack.throttles).to include('req/shop')
-    throttle = Rack::Attack.throttles['req/shop']
+    expect(Rack::Attack.throttles).to include('catalog/shop')
+    throttle = Rack::Attack.throttles['catalog/shop']
     expect(throttle).to be_present
   end
 
-  it 'throttles excessive dashboard requests' do
+  it 'throttles excessive landing requests' do
     responses = []
     65.times do
-      get '/dashboard'
+      get '/'
       responses << response.status
     end
     expect(responses).to include(429), "Expected 429 in responses: #{responses}"

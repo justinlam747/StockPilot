@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module Shopify
-  # Shopify Admin GraphQL client with throttle retry and pagination.
+  # Shared Shopify Admin GraphQL client with throttle retry and pagination.
+  # Keep transport concerns here so the sync job and webhook registration
+  # code paths stay aligned on retries and error handling.
   class GraphqlClient
     MAX_RETRIES = 3
     THROTTLE_SLEEP = 2.0
@@ -28,6 +30,8 @@ module Shopify
     end
 
     def paginate(graphql_query, connection_path:, variables: {})
+      # Cursor pagination is centralized here so callers can stay focused on
+      # business data instead of duplicating the page loop in each service.
       all_nodes = []
       cursor = nil
       loop do

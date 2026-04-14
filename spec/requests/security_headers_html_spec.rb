@@ -3,12 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Security headers', type: :request do
-  let(:user) { create(:user, :with_shop) }
-
-  before do
-    sign_in_as(user)
-    get '/dashboard'
-  end
+  before { get '/' }
 
   it 'sets Strict-Transport-Security' do
     expect(response.headers['Strict-Transport-Security']).to include('max-age=31536000')

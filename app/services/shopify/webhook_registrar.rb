@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module Shopify
-  # Registers required webhook subscriptions via Shopify GraphQL API.
+  # Registers the narrow webhook set that keeps catalog sync fresh.
+  # The webhook contract is intentionally small so the app keeps one clear
+  # sync path instead of branching into old inventory side flows.
   class WebhookRegistrar
     REQUIRED_TOPICS = %w[
       app/uninstalled

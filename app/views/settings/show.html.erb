@@ -2,26 +2,24 @@
   <h1>Settings</h1>
 </div>
 
+<% if current_shop.present? %>
 <%= form_with url: '/settings', method: :patch, data: { turbo: false }, html: { class: 'settings-form' } do %>
 
-  <!-- Inventory -->
   <section class="settings-section">
     <div class="settings-section__header">
-      <h2 class="settings-section__title">Inventory</h2>
-      <p class="settings-section__desc">Configure stock thresholds and alert behavior.</p>
+      <h2 class="settings-section__title">Store</h2>
+      <p class="settings-section__desc">Keep the app focused on one workflow: connect, sync, review issues.</p>
     </div>
 
     <div class="settings-card bento__tile">
       <div class="settings-row">
         <div class="settings-field">
-          <label for="low_stock_threshold" class="settings-label">Default Low Stock Threshold</label>
-          <input type="number"
-                 name="low_stock_threshold"
-                 id="low_stock_threshold"
+          <label class="settings-label">Connected shop</label>
+          <input type="text"
                  class="settings-input"
-                 value="<%= current_shop.low_stock_threshold %>"
-                 min="1" max="1000">
-          <span class="settings-hint">Variants below this quantity trigger low-stock alerts. Can be overridden per variant.</span>
+                 value="<%= current_shop.shop_domain %>"
+                 readonly>
+          <span class="settings-hint">This store is the current tenant for catalog scans.</span>
         </div>
 
         <div class="settings-field">
@@ -31,39 +29,62 @@
               <option value="<%= tz.name %>" <%= 'selected' if current_shop.timezone == tz.name %>><%= tz.to_s %></option>
             <% end %>
           </select>
-          <span class="settings-hint">Used for weekly report scheduling and alert timestamps.</span>
+          <span class="settings-hint">Used for timestamps in the catalog review UI.</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Notifications -->
   <section class="settings-section">
     <div class="settings-section__header">
-      <h2 class="settings-section__title">Notifications</h2>
-      <p class="settings-section__desc">Where to send alerts and reports.</p>
+      <h2 class="settings-section__title">Sync</h2>
+      <p class="settings-section__desc">Keep the product lean: one sync path, one review surface.</p>
     </div>
 
     <div class="settings-card bento__tile">
       <div class="settings-row">
         <div class="settings-field settings-field--full">
-          <label for="alert_email" class="settings-label">Alert Email</label>
-          <input type="email"
-                 name="alert_email"
-                 id="alert_email"
+          <label class="settings-label">Last sync</label>
+          <input type="text"
                  class="settings-input"
-                 placeholder="you@example.com"
-                 value="<%= current_shop.alert_email %>">
-          <span class="settings-hint">Low-stock alerts and weekly reports are sent to this address.</span>
+                 value="<%= current_shop.synced_at.present? ? time_ago_in_words(current_shop.synced_at) + ' ago' : 'Not synced yet' %>"
+                 readonly>
+          <span class="settings-hint">Use the dashboard to run a new sync and refresh the issue list.</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Save -->
   <div class="settings-actions">
     <button type="submit" class="bento__btn settings-save">Save Settings</button>
     <div id="settings-notice"></div>
   </div>
 
+<% end %>
+<% else %>
+  <div class="settings-section">
+    <div class="settings-section__header">
+      <h2 class="settings-section__title">Connect your store</h2>
+      <p class="settings-section__desc">Start with one store connection, then run a sync and review the audit results.</p>
+    </div>
+
+    <div class="settings-card bento__tile">
+      <%= form_with url: shopify_connect_path, method: :post, data: { turbo: false } do %>
+        <div class="settings-row">
+          <div class="settings-field settings-field--full">
+            <label for="shop_domain" class="settings-label">Shop domain</label>
+            <input type="text"
+                   name="shop_domain"
+                   id="shop_domain"
+                   class="settings-input"
+                   placeholder="your-store or your-store.myshopify.com">
+            <span class="settings-hint">Use your myshopify domain. The app will start the Shopify OAuth flow.</span>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button type="submit" class="bento__btn settings-save">Connect Shopify store</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
 <% end %>

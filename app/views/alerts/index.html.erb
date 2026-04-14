@@ -1,62 +1,46 @@
 <div class="alt-header">
   <div class="alt-header__top">
     <div>
-      <h1 class="alt-header__title">Alerts</h1>
-      <span class="alt-header__count"><%= @alerts.total_count %> alert<%= @alerts.total_count == 1 ? '' : 's' %></span>
+      <h1 class="alt-header__title">Issues</h1>
+      <span class="alt-header__count"><%= @issues.total_count %> issue<%= @issues.total_count == 1 ? '' : 's' %></span>
     </div>
   </div>
 
   <div class="alt-filters inv-filters">
     <span class="inv-filters__label">Filter</span>
-    <a href="<%= alerts_path %>"
-       class="inv-filter-btn <%= 'is-active' unless params[:severity].present? || params[:status].present? %>"
-       aria-label="Show all alerts">All</a>
-    <a href="<%= alerts_path(severity: 'critical') %>"
-       class="inv-filter-btn <%= 'is-active' if params[:severity] == 'critical' %>">
+    <a href="<%= issues_path(q: @search_query.presence) %>"
+       class="inv-filter-btn <%= 'is-active' unless @current_severity.present? %>">
+      All
+    </a>
+    <a href="<%= issues_path(severity: 'critical', q: @search_query.presence) %>"
+       class="inv-filter-btn <%= 'is-active' if @current_severity == 'critical' %>">
       <span class="inv-filter-dot inv-filter-dot--danger" aria-hidden="true"></span>
       Critical
     </a>
-    <a href="<%= alerts_path(severity: 'warning') %>"
-       class="inv-filter-btn <%= 'is-active' if params[:severity] == 'warning' %>">
+    <a href="<%= issues_path(severity: 'warning', q: @search_query.presence) %>"
+       class="inv-filter-btn <%= 'is-active' if @current_severity == 'warning' %>">
       <span class="inv-filter-dot inv-filter-dot--warn" aria-hidden="true"></span>
       Warning
     </a>
-    <a href="<%= alerts_path(status: 'active') %>"
-       class="inv-filter-btn <%= 'is-active' if params[:status] == 'active' %>">Active</a>
-    <a href="<%= alerts_path(status: 'dismissed') %>"
-       class="inv-filter-btn <%= 'is-active' if params[:status] == 'dismissed' %>">Dismissed</a>
+    <form action="<%= issues_path %>" method="get" style="display: inline-flex; margin-left: 12px;">
+      <% if @current_severity.present? %>
+        <input type="hidden" name="severity" value="<%= @current_severity %>">
+      <% end %>
+      <input type="text" name="q" value="<%= @search_query %>" placeholder="Search title, SKU, or issue code" class="settings-input" style="min-width: 220px;">
+    </form>
   </div>
 </div>
 
-<% if @alerts.any? %>
-  <%
-    today_alerts = @alerts.select { |a| a.created_at.to_date == Date.current }
-    older_alerts = @alerts.reject { |a| a.created_at.to_date == Date.current }
-  %>
-
-  <% if today_alerts.any? %>
-    <div class="alt-group">
-      <h2 class="alt-group__title">Today</h2>
-      <div class="alt-list bento__tile">
-        <% today_alerts.each do |alert| %>
-          <%= render "alert_row", alert: alert %>
-        <% end %>
-      </div>
+<% if @issues.any? %>
+  <div class="alt-group">
+    <div class="alt-list bento__tile">
+      <% @issues.each do |issue| %>
+        <%= render "alert_row", issue: issue %>
+      <% end %>
     </div>
-  <% end %>
+  </div>
 
-  <% if older_alerts.any? %>
-    <div class="alt-group">
-      <h2 class="alt-group__title">Older</h2>
-      <div class="alt-list bento__tile">
-        <% older_alerts.each do |alert| %>
-          <%= render "alert_row", alert: alert %>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
-  <%= render "shared/pagination", collection: @alerts %>
+  <%= render "shared/pagination", collection: @issues %>
 <% else %>
   <div class="bento__tile" style="padding: var(--space-12) var(--space-6); text-align: center;">
     <div class="sp-empty">
@@ -65,8 +49,21 @@
         <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
         <polyline points="22 4 12 14.01 9 11.01"/>
       </svg>
-      <p class="sp-empty__title">All clear</p>
-      <p class="sp-empty__desc">No alerts to display. Your inventory is looking good.</p>
+      <% if @current_severity.present? || @search_query.present? %>
+        <p class="sp-empty__title">No matching issues</p>
+        <p class="sp-empty__desc">Try clearing the current filter or search term to review the full scan.</p>
+        <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+          <a href="<%= issues_path %>" class="sp-btn">Clear filters</a>
+          <a href="<%= dashboard_path %>" class="sp-btn sp-btn--sm">Back to dashboard</a>
+        </div>
+      <% else %>
+        <p class="sp-empty__title">No issues found</p>
+        <p class="sp-empty__desc">The current catalog scan does not show any active issues. Run another sync after catalog changes to refresh the review.</p>
+        <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+          <a href="<%= dashboard_path %>" class="sp-btn">Run sync from dashboard</a>
+          <a href="<%= settings_path %>" class="sp-btn sp-btn--sm">Connection settings</a>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>

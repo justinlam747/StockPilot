@@ -1,117 +1,67 @@
 # Technical Decisions Log
 
-A running record of architectural and engineering decisions made in StockPilot, with rationale. Use this for portfolio discussions, interviews, and onboarding context.
+This log now tracks the Catalog Audit implementation only. Inventory-era entries were retired with the pivot so the file stays useful in interviews and in future context sessions.
 
 ---
 
-## TD-001: Multi-Tenancy via `acts_as_tenant`
+## TD-001: Tenant Isolation via `acts_as_tenant`
 
-**Date:** 2026-03-09
-**Decision:** Use the `acts_as_tenant` gem scoped to `Shop` for all models.
-**Why:** Every Shopify app serves multiple merchants. Without tenant isolation, one merchant could accidentally (or maliciously) access another's data. `acts_as_tenant` enforces `WHERE shop_id = ?` on every query automatically, making it impossible to forget scoping.
-**Trade-off:** Slightly harder to write admin/cross-tenant queries. Worth it for the safety guarantee.
-
----
-
-## TD-002: Webhook HMAC Verification
-
-**Date:** 2026-03-09
-**Decision:** Verify every inbound Shopify webhook using HMAC-SHA256 signature comparison.
-**Why:** Webhooks are public HTTP endpoints — anyone who knows the URL can send fake payloads. HMAC verification ensures the payload actually came from Shopify by comparing a hash of the request body against the shared secret.
-**Implementation:** Custom verification in `WebhooksController` using `OpenSSL::HMAC.hexdigest` against `SHOPIFY_API_SECRET`.
+**Date:** 2026-04-14
+**Decision:** Scope all catalog data to the current `Shop` using `acts_as_tenant`.
+**Why:** The app is multi-tenant by nature. Tenant scoping at the ORM boundary makes cross-shop leakage much harder to introduce accidentally.
+**Trade-off:** Cross-tenant admin queries are more awkward, but the safety benefit outweighs that cost.
 
 ---
 
-## TD-003: Rate Limiting via Rack::Attack
+## TD-002: Embedded Shopify App Shell
 
-**Date:** 2026-03-15
-**Decision:** Implement per-shop and per-IP rate limiting using `rack-attack`.
-**Why:** Protects against abuse, brute force, and accidental DDoS from misbehaving clients. AI/insights endpoints are expensive (Claude API calls), so they get tighter limits (5 req/min) vs general API (60 req/min).
-**Limits:**
-- General API: 60 req/min per shop
-- AI endpoints: 5 req/min per shop
-- Auth endpoints: 10 req/5 min per IP
-- Webhooks: 100 req/min per IP
+**Date:** 2026-04-14
+**Decision:** Keep the product embedded inside Shopify Admin and use Shopify OAuth/session auth as the public entry point.
+**Why:** The product should feel native to a merchant and demonstrate Shopify platform fluency without adding a second app shell.
+**Trade-off:** Embedded auth and iframe constraints add some complexity, but they are the right constraints for a Shopify portfolio project.
 
 ---
 
-## TD-004: Embedded App Architecture
+## TD-003: Encrypt Shopify Access Tokens
 
-**Date:** 2026-03-15
-**Decision:** Build as an embedded Shopify app (runs inside Shopify Admin iframe).
-**Why:** Embedded apps feel native to merchants — no context switching. This requires careful security headers (`X-Frame-Options: ALLOWALL`, CSP `frame-ancestors` restricted to Shopify domains) and session token auth instead of cookies.
-**Trade-off:** More complex than standalone, but demonstrates platform integration skills and is required for Shopify App Store.
-
----
-
-## TD-005: Access Token Encryption at Rest
-
-**Date:** 2026-03-09
-**Decision:** Encrypt Shopify access tokens in the database using Rails 7.2 `encrypts :access_token`.
-**Why:** If the database is compromised, raw access tokens would let an attacker control every merchant's Shopify store. Encryption at rest ensures tokens are useless without the Rails master key.
+**Date:** 2026-04-14
+**Decision:** Keep `Shop` access tokens encrypted at rest.
+**Why:** Tokens grant direct store access. Encryption reduces the blast radius if the database is exposed.
+**Trade-off:** Requires the Rails master key to decrypt in runtime, but that is the correct security model.
 
 ---
 
-## TD-006: Custom OAuth via OmniAuth (Not `shopify_app` Gem)
+## TD-004: One Sync Path, One Audit Path
 
-**Date:** 2026-03-09
-**Decision:** Implement OAuth using `omniauth-shopify-oauth2` directly instead of the `shopify_app` gem.
-**Why:** The `shopify_app` gem bundles a lot of opinionated middleware and views. Using OmniAuth directly gives full control over the auth flow, session management, and error handling — better for learning and for a portfolio piece that demonstrates understanding of OAuth mechanics.
-**Trade-off:** More boilerplate to maintain, but every line is intentional and explainable.
-
----
-
-## TD-007: Separate Redis Instances for Cache vs Sidekiq
-
-**Date:** 2026-03-15
-**Decision:** Plan to use separate Redis instances — one for caching (LRU eviction) and one for Sidekiq (no eviction).
-**Why:** If a single Redis instance runs out of memory with LRU eviction, it could silently drop Sidekiq jobs. With `noeviction` policy, Redis returns errors instead of dropping data — but that would break caching. Separate instances let each use the right eviction policy.
+**Date:** 2026-04-14
+**Decision:** Keep catalog sync and catalog audit as the only substantive backend workflows.
+**Why:** The product needs to stay explainable and small. One task per service is easier to reason about, test, and maintain than the old inventory stack.
+**Trade-off:** Fewer automated side systems in v1, but much lower complexity and a clearer code story.
 
 ---
 
-## TD-008: Comprehensive Model Validations
+## TD-005: Compute Issues From Current Catalog State
 
-**Date:** 2026-03-18
-**Decision:** Add presence, format, numericality, and inclusion validations to all ActiveRecord models.
-**Why:** Models had zero validations — any data could be written to the database regardless of format or completeness. This is a data integrity risk; invalid data silently corrupts business logic (e.g., alerts with missing types, suppliers with negative lead times, snapshots with nil quantities).
-**Trade-off:** Slightly stricter — existing seed data or test factories may need updates. Worth it because validations catch bugs at the source rather than in downstream services.
-
----
-
-## TD-009: Fix Missing Database Columns (alerts.threshold, alerts.dismissed, etc.)
-
-**Date:** 2026-03-18
-**Decision:** Add migration for `alerts.threshold`, `alerts.current_quantity`, `alerts.dismissed`, `purchase_orders.order_date`, `purchase_orders.expected_delivery`, and performance indexes.
-**Why:** Application code (AlertSender, AlertsController, factories) referenced these columns but they didn't exist in the schema. This would cause `ActiveRecord::UnknownAttributeError` at runtime — a production-blocking bug.
-**Trade-off:** None — this was a straightforward schema gap that needed filling.
+**Date:** 2026-04-14
+**Decision:** Derive audit issues from the current synced product and variant data instead of building a broad historical subsystem.
+**Why:** The user need is immediate visibility into catalog quality, not a long-lived warehouse of inventory history.
+**Trade-off:** Less historical richness in v1, but faster implementation and a cleaner product surface.
 
 ---
 
-## TD-010: Fix Double request.body.read Bug in Webhook/GDPR Controllers
+## TD-006: Session Continuity Files as Durable Context
 
-**Date:** 2026-03-18
-**Decision:** Memoize the webhook body via `@webhook_body ||= request.body.read` and rewind the body stream in GDPR controller after HMAC verification.
-**Why:** The `request.body` is a stream — reading it once exhausts it. The HMAC verification `before_action` read the body for signature checking, then `receive` tried to read it again for JSON parsing and got an empty string. This meant ALL webhook product updates were silently failing with empty payloads.
-**Trade-off:** None — pure bug fix.
-
----
-
-## TD-011: Weekly Report Job with Timezone-Aware Scheduling
-
-**Date:** 2026-03-18
-**Decision:** Create `WeeklyReportJob` that respects each shop's configured timezone when determining the report week boundaries. Scheduled via sidekiq-cron every Monday at 9 AM UTC.
-**Why:** The `WeeklyReportAllShopsJob` was referenced in the cron schedule but never existed. The `Reports::WeeklyGenerator` and `ReportMailer` were built but never connected. This closes the loop so merchants actually receive their weekly reports.
-**Trade-off:** Running at 9 AM UTC means different local times for different merchants. A per-shop cron would be more precise but adds complexity — UTC scheduling with timezone-aware week boundaries is a reasonable compromise.
+**Date:** 2026-04-14
+**Decision:** Maintain `ACTIVE_CONTEXT.md`, `AGENT_WORKBOARD.md`, and `CRITIC_LOG.md` as durable session memory.
+**Why:** The repo should be resumable from files alone, even after a chat or agent session ends.
+**Trade-off:** A little extra documentation work each round, but much better handoff quality.
 
 ---
 
-## TD-012: Clerk for Authentication over Devise/Auth0
+## TD-007: High-Signal LLM Comment Blocks
 
-**Date:** 2026-03-22
-**Decision:** Use Clerk (clerk-sdk-ruby) for user authentication instead of Devise, Auth0, or rolling our own.
-**Why:** Clerk provides production-grade auth (email+password, Google OAuth, MFA) with minimal code. The Ruby SDK integrates with Rails middleware for session validation. The free tier covers 10K MAU which is sufficient for launch. Moving from embedded Shopify app to standalone SaaS requires our own auth system — Clerk lets us ship in days instead of weeks.
-**Trade-off:** Adds a SaaS dependency (~$25/mo after free tier). If Clerk has downtime, users can't log in. Mitigated by the fact that Clerk has 99.99% uptime SLA and we can migrate to Devise later if needed since our User model is decoupled from Clerk internals (only stores clerk_user_id).
+**Date:** 2026-04-14
+**Decision:** Require short context-recovery comment blocks around non-obvious code paths.
+**Why:** Future sessions need fast intent reconstruction when reading the codebase cold.
+**Trade-off:** Slightly more inline documentation, but only where it helps explain non-obvious contracts.
 
----
-
-*Add new entries as decisions are made. Format: TD-XXX, date, decision, why, trade-offs.*
