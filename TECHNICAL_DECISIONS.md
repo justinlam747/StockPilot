@@ -102,6 +102,7 @@ A running record of architectural and engineering decisions made in StockPilot, 
 **Decision:** Create `WeeklyReportJob` that respects each shop's configured timezone when determining the report week boundaries. Scheduled via sidekiq-cron every Monday at 9 AM UTC.
 **Why:** The `WeeklyReportAllShopsJob` was referenced in the cron schedule but never existed. The `Reports::WeeklyGenerator` and `ReportMailer` were built but never connected. This closes the loop so merchants actually receive their weekly reports.
 **Trade-off:** Running at 9 AM UTC means different local times for different merchants. A per-shop cron would be more precise but adds complexity — UTC scheduling with timezone-aware week boundaries is a reasonable compromise.
+**Status:** **Reversed in TD-013.** `WeeklyReportJob` and `ReportMailer` were removed along with the rest of the Clerk/demo feature surface because the feature depended on the User model (which was also removed) and was never actually wired to a working send-email path.
 
 ---
 
@@ -111,6 +112,35 @@ A running record of architectural and engineering decisions made in StockPilot, 
 **Decision:** Use Clerk (clerk-sdk-ruby) for user authentication instead of Devise, Auth0, or rolling our own.
 **Why:** Clerk provides production-grade auth (email+password, Google OAuth, MFA) with minimal code. The Ruby SDK integrates with Rails middleware for session validation. The free tier covers 10K MAU which is sufficient for launch. Moving from embedded Shopify app to standalone SaaS requires our own auth system — Clerk lets us ship in days instead of weeks.
 **Trade-off:** Adds a SaaS dependency (~$25/mo after free tier). If Clerk has downtime, users can't log in. Mitigated by the fact that Clerk has 99.99% uptime SLA and we can migrate to Devise later if needed since our User model is decoupled from Clerk internals (only stores clerk_user_id).
+**Status:** **Reversed in TD-013.** The Clerk integration was never finished — `ApplicationController` never implemented the `clerk_session_user_id` / `current_user` methods the rest of the code and test harness depended on, `VisionController` and `AccountController` skipped a `require_clerk_session` callback that didn't exist, and the Clerk Railtie load order in `application.rb` was broken. The app had been unable to run its test suite end-to-end for weeks as a result.
+
+---
+
+## TD-013: Remove Clerk in Favor of Shopify OAuth as Sole Auth Surface
+
+**Date:** 2026-04-10
+**Decision:** Rip out the `clerk-sdk-ruby` gem, `Svix`, the `User` model, the `users` table, `shops.user_id`, and every controller/view/spec/helper that referenced Clerk. Authentication is now exclusively Shopify OAuth (via `omniauth-shopify-oauth2`), keyed on `session[:shopify_domain]`. Each Shop is its own tenant root.
+**Why:** The Clerk migration from TD-012 was abandoned mid-flight — `ApplicationController` was missing the `clerk_session_user_id` / `current_user` / `require_clerk_session` methods the rest of the code and test suite expected. Tests had been skipping (blocked by a red lint job) for long enough that nobody noticed the Clerk path had been non-functional for weeks. Two paths forward existed: finish the Clerk integration, or delete it. `CLAUDE.md` itself describes the product as an "embedded Shopify app" with no mention of Clerk, and the feature that motivated Clerk (one user managing multiple Shopify stores) wasn't on any current roadmap. Deletion was cheaper than completion and aligned with the stated product direction.
+**Why it matters for the test suite:** Before removal, `spec/requests/*` were raising `NameError: Before process_action callback :require_clerk_session has not been defined` on every authenticated request, and `Rails::Engine#set_autoload_paths` raised `FrozenError` during boot (likely caused by the broken Clerk Railtie load order in `config/application.rb`). Both issues disappeared the moment Clerk was gone. CI went from 0 passing tests to **280 passing tests, 0 failures**.
+**Trade-off:** Gives up the ability for one person to manage multiple Shopify stores from a single account. If that ever becomes a requirement, it'll need to be rebuilt, but likely against a simpler session-based model rather than reintroducing Clerk. Also removes the `User` onboarding wizard, which was already orphaned.
+
+---
+
+## TD-014: Pin Rails at 7.2.3 and Document-Ignore CVE-2026-33658
+
+**Date:** 2026-04-10
+**Decision:** Pin `gem 'rails', '7.2.3'` in the Gemfile (exact version, not `~>`) and add `--ignore GHSA-p9fm-f462-ggrg` to the `bundle-audit` step in CI with an inline comment explaining why.
+**Why:** GHSA-p9fm-f462-ggrg is an Active Storage DoS in proxy mode. This app does not use Active Storage at all — there are no `has_one_attached` / `has_many_attached` declarations anywhere in `app/models`, and `config/environments/development.rb` is the only file that even mentions `ActiveStorage` (guarded by `if defined?(ActiveStorage)`). The advisory is not exploitable here. Rails 7.2.3 is the last release before the 7.2.3.1 set of changes that caused boot-time issues during our testing, so staying on 7.2.3 avoids those without giving up any security posture that's actually relevant to this codebase.
+**Trade-off:** Requires that any future reviewer understand why the ignore exists — if the app ever adopts Active Storage, the ignore must be removed and Rails upgraded. The inline comment in `ci.yml` makes this explicit so it doesn't get forgotten.
+
+---
+
+## TD-015: Adopt 11-Plugin RuboCop Suite (Minus `rubocop-sequel`)
+
+**Date:** 2026-04-10
+**Decision:** Extend the base `rubocop-rails-omakase` config with `rubocop-performance`, `rubocop-rails`, `rubocop-rspec`, `rubocop-minitest`, `rubocop-rake`, `rubocop-thread_safety`, `rubocop-capybara`, `rubocop-factory_bot`, `rubocop-rspec_rails`, and `rubocop-i18n`. Deliberately exclude `rubocop-sequel`.
+**Why:** The base rubocop config was catching style issues but missing important Rails / RSpec / performance patterns — N+1 query smells, Rails-idiom preferences (`where(created_at: range)` over SQL strings), FactoryBot conventions, thread-safety footguns, etc. The 11 plugins together flagged **400+ existing offenses** on first run, most of which auto-corrected cleanly. `rubocop-sequel` was excluded because this codebase is 100% ActiveRecord and the cop false-flags ActiveRecord `#save` calls as "should be `#save_changes`" (a Sequel-only method), which actively introduced a bug in `SuppliersController` when someone had followed its suggestion.
+**Trade-off:** More cops means more churn when upgrading Ruby/Rails/the plugins themselves. Mitigated by pinning cop thresholds in `.rubocop.yml` for anything that would otherwise be aesthetic (Metrics/MethodLength, RSpec/ExampleLength, etc.) rather than leaving them at plugin defaults. A few plugin-specific cops are disabled outright when they don't match this project (`Rails/I18nLocaleTexts`, `I18n/GetText/*`, `RSpec/VerifiedDoubles`, etc.) — documented inline in `.rubocop.yml`.
 
 ---
 
