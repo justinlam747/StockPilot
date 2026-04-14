@@ -36,8 +36,13 @@ case "${1:-help}" in
 
   start)
     step "Starting Rails server (port 3000)..."
-    echo "  Sidekiq: run 'bundle exec sidekiq -C config/sidekiq.yml' in a separate terminal"
+    echo "  Sidekiq: run './dev.sh sidekiq' in a separate terminal"
     bundle exec rails server
+    ;;
+
+  sidekiq)
+    step "Starting Sidekiq..."
+    bundle exec sidekiq -C config/sidekiq.yml
     ;;
 
   test)
@@ -83,6 +88,7 @@ case "${1:-help}" in
     echo "Commands:"
     echo "  setup      Install deps, create DB, migrate, seed"
     echo "  start      Start Rails server"
+    echo "  sidekiq    Start Sidekiq worker"
     echo "  test       Run RSpec test suite"
     echo "  lint       Run RuboCop linter"
     echo "  security   Run bundler-audit + brakeman"
