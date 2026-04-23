@@ -10,10 +10,64 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_10_060000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_22_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
+
+  create_table "agent_actions", force: :cascade do |t|
+    t.bigint "agent_run_id", null: false
+    t.string "action_type", null: false
+    t.string "status", default: "proposed", null: false
+    t.string "title"
+    t.text "details"
+    t.jsonb "payload", default: {}, null: false
+    t.text "resolution_note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_run_id", "created_at"], name: "index_agent_actions_on_agent_run_id_and_created_at"
+    t.index ["agent_run_id", "status", "created_at"], name: "index_agent_actions_on_agent_run_id_and_status_and_created_at"
+    t.index ["agent_run_id"], name: "index_agent_actions_on_agent_run_id"
+  end
+
+  create_table "agent_events", force: :cascade do |t|
+    t.bigint "agent_run_id", null: false
+    t.string "event_type", null: false
+    t.string "role"
+    t.integer "sequence", null: false
+    t.text "content"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_run_id", "created_at"], name: "index_agent_events_on_agent_run_id_and_created_at"
+    t.index ["agent_run_id", "sequence"], name: "index_agent_events_on_agent_run_id_and_sequence", unique: true
+    t.index ["agent_run_id"], name: "index_agent_events_on_agent_run_id"
+  end
+
+  create_table "agent_runs", force: :cascade do |t|
+    t.bigint "shop_id", null: false
+    t.bigint "parent_run_id"
+    t.string "agent_kind", default: "inventory_monitor", null: false
+    t.string "status", default: "queued", null: false
+    t.string "trigger_source", default: "manual", null: false
+    t.text "goal"
+    t.integer "progress_percent", default: 0, null: false
+    t.string "current_phase"
+    t.integer "turns_count", default: 0, null: false
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.text "error_message"
+    t.text "summary"
+    t.jsonb "input_payload", default: {}, null: false
+    t.jsonb "result_payload", default: {}, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parent_run_id"], name: "index_agent_runs_on_parent_run_id"
+    t.index ["shop_id", "created_at"], name: "index_agent_runs_on_shop_id_and_created_at"
+    t.index ["shop_id", "status", "created_at"], name: "index_agent_runs_on_shop_id_and_status_and_created_at"
+    t.index ["shop_id"], name: "index_agent_runs_on_shop_id"
+  end
 
   create_table "alerts", force: :cascade do |t|
     t.bigint "shop_id", null: false
@@ -162,6 +216,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_10_060000) do
     t.index ["supplier_id"], name: "index_variants_on_supplier_id"
   end
 
+  add_foreign_key "agent_actions", "agent_runs", on_delete: :cascade
+  add_foreign_key "agent_events", "agent_runs", on_delete: :cascade
+  add_foreign_key "agent_runs", "agent_runs", column: "parent_run_id", on_delete: :nullify
+  add_foreign_key "agent_runs", "shops", on_delete: :cascade
   add_foreign_key "alerts", "shops", on_delete: :cascade
   add_foreign_key "alerts", "variants", on_delete: :cascade
   add_foreign_key "audit_logs", "shops"

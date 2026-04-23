@@ -31,9 +31,27 @@
       Monitors every SKU. Fires alerts when stock runs low. Drafts purchase orders to your suppliers. Generates weekly inventory reports. All automatic.
     </p>
 
-    <div class="lp-hero__buttons" data-animate="hero">
-      <a href="/auth/shopify" class="lp-btn--primary">Connect Shopify</a>
+    <div class="lp-hero__buttons" data-animate="hero" id="shopify-connect">
+      <%= form_with url: '/auth/shopify',
+                    method: :post,
+                    local: true,
+                    data: { turbo: false },
+                    html: { class: 'lp-shopify-form' } do %>
+        <label for="shop-domain" class="sr-only">Shopify store domain</label>
+        <%= text_field_tag :shop,
+                           params[:shop],
+                           id: 'shop-domain',
+                           class: 'lp-shopify-form__input',
+                           placeholder: 'your-store or your-store.myshopify.com',
+                           required: true,
+                           autocomplete: 'off',
+                           spellcheck: false %>
+        <%= submit_tag 'Connect Shopify', class: 'lp-btn--primary' %>
+      <% end %>
     </div>
+    <p class="lp-shopify-form__hint" data-animate="hero">
+      Enter your Shopify subdomain. We normalize <code>your-store</code> to <code>your-store.myshopify.com</code>.
+    </p>
   </div>
 
   <div class="lp-hero__right">
@@ -317,7 +335,7 @@
   <div class="lp-cta__inner" data-animate="fade">
     <h2 class="lp-cta__title">Ready to put your inventory on autopilot?</h2>
     <p class="lp-cta__sub">Join Shopify merchants who never worry about stock again.</p>
-    <a href="<%= Rails.env.development? ? '/dev/login' : '#' %>" id="cta-get-started-btn" class="lp-cta__btn">Get Started</a>
+    <a href="#shopify-connect" id="cta-get-started-btn" class="lp-cta__btn">Get Started</a>
   </div>
 </section>
 

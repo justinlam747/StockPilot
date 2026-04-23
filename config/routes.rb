@@ -12,6 +12,9 @@ Rails.application.routes.draw do
 
   # App
   get '/dashboard', to: 'dashboard#index'
+  resources :agents, only: %i[index show]
+  post '/agents/run', to: 'agents#run', as: :run_agents
+  post '/agents/:id/corrections', to: 'agents#corrections', as: :agent_corrections
 
   resources :inventory, only: %i[index show]
   resources :suppliers, except: %i[new edit]

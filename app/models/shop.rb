@@ -15,6 +15,7 @@ class Shop < ApplicationRecord
   has_many :alerts, dependent: :destroy
   has_many :purchase_orders, dependent: :destroy
   has_many :audit_logs, dependent: :destroy
+  has_many :agent_runs, dependent: :destroy
 
   DOMAIN_FORMAT = /\A[a-z0-9-]+\.myshopify\.com\z/i
 

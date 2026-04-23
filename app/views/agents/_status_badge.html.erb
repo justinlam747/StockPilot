@@ -1,0 +1,19 @@
+<% status = local_assigns.fetch(:status).to_s %>
+<% palette = {
+  'queued' => ['#EFF6FF', '#1D4ED8'],
+  'running' => ['#ECFDF3', '#047857'],
+  'completed' => ['#F0FDF4', '#15803D'],
+  'failed' => ['#FEF2F2', '#B91C1C'],
+  'cancelled' => ['#F3F4F6', '#374151'],
+  'proposed' => ['#EFF6FF', '#1D4ED8'],
+  'approved' => ['#ECFDF3', '#047857'],
+  'applied' => ['#F0FDF4', '#15803D'],
+  'rejected' => ['#FEF2F2', '#B91C1C'],
+  'retry' => ['#FFF7ED', '#C2410C'],
+  'paused' => ['#FFF7ED', '#C2410C'],
+  'awaiting_review' => ['#FFF7ED', '#C2410C']
+} %>
+<% bg, fg = palette.fetch(status, ['#F3F4F6', '#374151']) %>
+<span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:<%= bg %>;color:<%= fg %>;font-size:12px;font-weight:600;">
+  <%= status.humanize %>
+</span>

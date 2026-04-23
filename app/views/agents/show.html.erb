@@ -1,0 +1,156 @@
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:24px;">
+  <div>
+    <a href="<%= agents_path %>" style="display:inline-block;margin-bottom:10px;color:#6B7280;text-decoration:none;">&larr; Back to agent runs</a>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h1 style="margin:0;font-size:30px;">Agent Run #<%= @run.id %></h1>
+      <%= render 'status_badge', status: @run.status %>
+    </div>
+    <p style="margin:10px 0 0;color:#6B7280;max-width:760px;"><%= @run.summary.presence || 'This run is still building its summary.' %></p>
+  </div>
+  <div style="min-width:260px;padding:18px 20px;border:1px solid #E5E7EB;border-radius:18px;background:#FFFFFF;">
+    <div style="font-size:13px;color:#6B7280;margin-bottom:10px;">Current progress</div>
+    <%= render 'progress_bar', percent: @run.progress_percent %>
+    <div style="display:flex;justify-content:space-between;gap:16px;font-size:13px;color:#6B7280;margin-top:8px;">
+      <span><%= @run.current_phase || 'Not started' %></span>
+      <span><%= @run.progress_percent %>%</span>
+    </div>
+  </div>
+</div>
+
+<section style="display:grid;gap:24px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:16px;">
+    <div style="padding:20px;border:1px solid #E5E7EB;border-radius:18px;background:#FFFFFF;">
+      <div style="font-size:13px;color:#6B7280;">Goal</div>
+      <div style="margin-top:8px;color:#111827;"><%= @run.goal.presence || 'No custom goal provided.' %></div>
+    </div>
+    <div style="padding:20px;border:1px solid #E5E7EB;border-radius:18px;background:#FFFFFF;">
+      <div style="font-size:13px;color:#6B7280;">Trigger</div>
+      <div style="margin-top:8px;color:#111827;"><%= @run.trigger_source.humanize %></div>
+      <div style="margin-top:6px;font-size:13px;color:#6B7280;">Started <%= @run.started_at ? time_ago_in_words(@run.started_at) + ' ago' : 'not yet' %></div>
+    </div>
+    <div style="padding:20px;border:1px solid #E5E7EB;border-radius:18px;background:#FFFFFF;">
+      <div style="font-size:13px;color:#6B7280;">Turns</div>
+      <div style="margin-top:8px;color:#111827;"><%= @run.turns_count %></div>
+      <% if @run.finished_at.present? %>
+        <div style="margin-top:6px;font-size:13px;color:#6B7280;">Finished <%= time_ago_in_words(@run.finished_at) %> ago</div>
+      <% end %>
+    </div>
+    <div style="padding:20px;border:1px solid #E5E7EB;border-radius:18px;background:#FFFFFF;">
+      <div style="font-size:13px;color:#6B7280;">Related Runs</div>
+      <div style="margin-top:8px;color:#111827;">
+        <% if @run.parent_run.present? %>
+          Parent: <a href="<%= agent_path(@run.parent_run) %>" style="color:#111827;">#<%= @run.parent_run.id %></a>
+        <% else %>
+          Root run
+        <% end %>
+      </div>
+      <div style="margin-top:6px;font-size:13px;color:#6B7280;"><%= pluralize(@child_runs.size, 'follow-up run') %></div>
+    </div>
+  </div>
+
+  <% if @run.input_payload['correction'].present? %>
+    <div style="padding:20px;border:1px solid #FDE68A;border-radius:18px;background:#FFFBEB;">
+      <h2 style="margin:0 0 10px;font-size:18px;">Operator Correction</h2>
+      <div style="color:#78350F;"><%= simple_format(@run.input_payload['correction']) %></div>
+    </div>
+  <% end %>
+
+  <% if @run.error_message.present? %>
+    <div style="padding:20px;border:1px solid #FCA5A5;border-radius:18px;background:#FEF2F2;color:#991B1B;">
+      <h2 style="margin:0 0 10px;font-size:18px;">Run Error</h2>
+      <div><%= @run.error_message %></div>
+    </div>
+  <% end %>
+
+  <div style="display:grid;grid-template-columns:minmax(0, 2fr) minmax(320px, 1fr);gap:24px;align-items:start;">
+    <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
+      <h2 style="margin:0 0 16px;font-size:22px;">Timeline</h2>
+      <% if @events.any? %>
+        <div style="display:grid;gap:14px;">
+          <% @events.each do |event| %>
+            <div style="padding-left:16px;border-left:2px solid #E5E7EB;">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <strong style="color:#111827;"><%= event.event_type.humanize %></strong>
+                  <% if event.role.present? %>
+                    <span style="font-size:12px;color:#6B7280;"><%= event.role.humanize %></span>
+                  <% end %>
+                </div>
+                <span style="font-size:12px;color:#6B7280;"><%= event.created_at.strftime('%b %-d, %Y %H:%M') %></span>
+              </div>
+              <% if event.content.present? %>
+                <div style="margin-top:8px;color:#374151;"><%= simple_format(event.content) %></div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div style="padding:18px;border:1px dashed #D1D5DB;border-radius:16px;color:#6B7280;">No events logged yet.</div>
+      <% end %>
+    </div>
+
+    <div style="display:grid;gap:24px;">
+      <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
+        <h2 style="margin:0 0 16px;font-size:22px;">Proposed Actions</h2>
+        <% if @actions.any? %>
+          <div style="display:grid;gap:14px;">
+            <% @actions.each do |action| %>
+              <div style="padding:16px;border:1px solid #E5E7EB;border-radius:16px;">
+                <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+                  <strong style="color:#111827;"><%= action.title.presence || action.action_type.humanize %></strong>
+                  <%= render 'status_badge', status: action.status %>
+                </div>
+                <% if action.details.present? %>
+                  <p style="margin:10px 0 0;color:#374151;"><%= action.details %></p>
+                <% end %>
+                <% if action.payload['items'].present? %>
+                  <ul style="margin:12px 0 0;padding-left:18px;color:#374151;">
+                    <% action.payload['items'].first(5).each do |item| %>
+                      <li><strong><%= item['sku'] || 'Unknown SKU' %></strong> &middot; <%= item['available'] %> on hand &middot; suggested <%= item['suggested_qty'] %></li>
+                    <% end %>
+                  </ul>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div style="padding:18px;border:1px dashed #D1D5DB;border-radius:16px;color:#6B7280;">No actions proposed yet.</div>
+        <% end %>
+      </div>
+
+      <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
+        <h2 style="margin:0 0 10px;font-size:22px;">Correct This Run</h2>
+        <p style="margin:0 0 14px;color:#6B7280;">Queue a follow-up run with operator guidance. The next run keeps the parent link and stores your correction in its history.</p>
+        <%= form_with url: agent_corrections_path(@run), method: :post, local: true, html: { style: 'display:grid;gap:12px;' } do |f| %>
+          <%= f.text_area :correction, rows: 4, placeholder: 'Example: ignore supplierless SKUs for now and focus only on out-of-stock apparel items.', style: 'width:100%;padding:12px 14px;border:1px solid #D1D5DB;border-radius:14px;font:inherit;resize:vertical;' %>
+          <%= f.submit 'Queue Correction Run', style: 'border:0;border-radius:999px;padding:12px 18px;background:#111827;color:#FFFFFF;font-weight:600;cursor:pointer;' %>
+        <% end %>
+      </div>
+
+      <% if @child_runs.any? %>
+        <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
+          <h2 style="margin:0 0 16px;font-size:22px;">Follow-Up Runs</h2>
+          <div style="display:grid;gap:12px;">
+            <% @child_runs.each do |child_run| %>
+              <a href="<%= agent_path(child_run) %>" style="display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 16px;border:1px solid #E5E7EB;border-radius:16px;color:#111827;text-decoration:none;">
+                <span>Run #<%= child_run.id %></span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:13px;color:#6B7280;"><%= child_run.progress_percent %>%</span>
+                  <%= render 'status_badge', status: child_run.status %>
+                </div>
+              </a>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<% if %w[queued running paused awaiting_review].include?(@run.status) %>
+  <script>
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 10000);
+  </script>
+<% end %>

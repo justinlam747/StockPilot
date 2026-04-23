@@ -1,0 +1,115 @@
+<div class="inv-header">
+  <div class="inv-header__top">
+    <div>
+      <h1 class="inv-header__title">Agents</h1>
+      <span class="inv-header__count"><%= pluralize(@runs.size, 'recent run') %> &middot; monitor progress, review history, and queue corrections</span>
+    </div>
+  </div>
+
+  <div class="inv-stats">
+    <div class="inv-stat">
+      <span class="inv-stat__dot inv-stat__dot--green"></span>
+      <span><%= @status_counts.fetch('running', 0) %> running</span>
+    </div>
+    <div class="inv-stat">
+      <span class="inv-stat__dot inv-stat__dot--amber"></span>
+      <span><%= @status_counts.fetch('queued', 0) %> queued</span>
+    </div>
+    <div class="inv-stat">
+      <span class="inv-stat__dot inv-stat__dot--red"></span>
+      <span><%= @status_counts.fetch('failed', 0) %> failed</span>
+    </div>
+    <div class="inv-stat">
+      <span class="inv-stat__dot inv-stat__dot--green"></span>
+      <span><%= @status_counts.fetch('completed', 0) %> completed</span>
+    </div>
+  </div>
+</div>
+
+<section style="display:grid;gap:24px;">
+  <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
+    <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+      <div>
+        <h2 style="margin:0 0 8px;font-size:20px;">Queue A New Run</h2>
+        <p style="margin:0;color:#6B7280;max-width:720px;">Run the inventory monitor against the latest synced data. Use the optional goal field to steer the agent toward a specific review.</p>
+      </div>
+      <% if @has_active_runs %>
+        <div style="font-size:13px;color:#6B7280;">Auto-refresh is enabled while runs are active.</div>
+      <% end %>
+    </div>
+
+    <%= form_with url: run_agents_path, method: :post, local: true, html: { style: 'margin-top:20px;display:grid;gap:12px;' } do |f| %>
+      <div>
+        <label for="agent-goal" style="display:block;margin-bottom:6px;font-size:13px;font-weight:600;">Goal (optional)</label>
+        <%= f.text_area :goal, id: 'agent-goal', rows: 3, placeholder: 'Example: focus on urgent out-of-stock SKUs and supplier gaps.', style: 'width:100%;padding:12px 14px;border:1px solid #D1D5DB;border-radius:14px;font:inherit;resize:vertical;' %>
+      </div>
+      <div>
+        <%= f.submit 'Run Inventory Agent', style: 'border:0;border-radius:999px;padding:12px 18px;background:#111827;color:#FFFFFF;font-weight:600;cursor:pointer;' %>
+      </div>
+    <% end %>
+  </div>
+
+  <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
+    <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+      <div>
+        <h2 style="margin:0 0 8px;font-size:20px;">Run History</h2>
+        <p style="margin:0;color:#6B7280;">Every run keeps its progress, messages, proposed actions, and correction lineage.</p>
+      </div>
+    </div>
+
+    <% if @runs.any? %>
+      <div style="display:grid;gap:16px;margin-top:20px;">
+        <% @runs.each do |run| %>
+          <article style="border:1px solid #E5E7EB;border-radius:18px;padding:18px 20px;">
+            <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <a href="<%= agent_path(run) %>" style="font-size:18px;font-weight:600;color:#111827;text-decoration:none;">Run #<%= run.id %></a>
+                  <%= render 'status_badge', status: run.status %>
+                  <% if run.parent_run_id.present? %>
+                    <span style="font-size:12px;color:#6B7280;">Correction of #<%= run.parent_run_id %></span>
+                  <% end %>
+                </div>
+                <p style="margin:10px 0 0;color:#374151;"><%= run.summary.presence || run.goal.presence || 'Queued without a summary yet.' %></p>
+              </div>
+              <div style="text-align:right;font-size:13px;color:#6B7280;">
+                <div><strong>Phase:</strong> <%= run.current_phase || 'Not started' %></div>
+                <div><strong>Triggered:</strong> <%= run.trigger_source.humanize %></div>
+                <div><strong>Started:</strong> <%= run.started_at ? time_ago_in_words(run.started_at) + ' ago' : 'Pending' %></div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div style="display:flex;justify-content:space-between;gap:16px;font-size:13px;color:#6B7280;margin-bottom:6px;">
+                <span>Progress</span>
+                <span><%= run.progress_percent %>%</span>
+              </div>
+              <%= render 'progress_bar', percent: run.progress_percent %>
+            </div>
+
+            <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:#6B7280;">
+              <span><strong><%= run.events.size %></strong> events</span>
+              <span><strong><%= run.actions.size %></strong> actions</span>
+              <span><strong><%= run.child_runs.size %></strong> follow-up runs</span>
+              <% if run.finished_at.present? %>
+                <span>Finished <%= time_ago_in_words(run.finished_at) %> ago</span>
+              <% end %>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% else %>
+      <div style="margin-top:20px;padding:20px;border:1px dashed #D1D5DB;border-radius:16px;color:#6B7280;">
+        No agent runs yet. Queue the first run above to start building history.
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<% if @has_active_runs %>
+  <script>
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 10000);
+  </script>
+<% end %>
