@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :agent_action do
-    association :agent_run
+    agent_run
     sequence(:action_type) { |n| "action_#{n}" }
     status { 'proposed' }
     title { 'Review recommendation' }

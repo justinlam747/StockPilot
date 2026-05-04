@@ -14,6 +14,8 @@ RSpec.describe PurchaseOrder do
     end
 
     it { is_expected.to belong_to(:supplier) }
+    it { is_expected.to belong_to(:source_agent_run).class_name('AgentRun').optional }
+    it { is_expected.to belong_to(:source_agent_action).class_name('AgentAction').optional }
     it { is_expected.to have_many(:line_items).class_name('PurchaseOrderLineItem').dependent(:destroy) }
   end
 

@@ -5,6 +5,11 @@ require 'rails_helper'
 RSpec.describe 'Health Check' do
   describe 'GET /health' do
     context 'when all services are up' do
+      before do
+        redis = instance_double(Redis, ping: 'PONG', close: true)
+        allow(Redis).to receive(:new).and_return(redis)
+      end
+
       it 'returns ok status with db and redis true' do
         get '/health'
 

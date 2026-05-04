@@ -91,30 +91,15 @@
 
     <div style="display:grid;gap:24px;">
       <div style="padding:24px;border:1px solid #E5E7EB;border-radius:20px;background:#FFFFFF;">
-        <h2 style="margin:0 0 16px;font-size:22px;">Proposed Actions</h2>
+        <h2 style="margin:0 0 16px;font-size:22px;">Recommendations</h2>
         <% if @actions.any? %>
           <div style="display:grid;gap:14px;">
             <% @actions.each do |action| %>
-              <div style="padding:16px;border:1px solid #E5E7EB;border-radius:16px;">
-                <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">
-                  <strong style="color:#111827;"><%= action.title.presence || action.action_type.humanize %></strong>
-                  <%= render 'status_badge', status: action.status %>
-                </div>
-                <% if action.details.present? %>
-                  <p style="margin:10px 0 0;color:#374151;"><%= action.details %></p>
-                <% end %>
-                <% if action.payload['items'].present? %>
-                  <ul style="margin:12px 0 0;padding-left:18px;color:#374151;">
-                    <% action.payload['items'].first(5).each do |item| %>
-                      <li><strong><%= item['sku'] || 'Unknown SKU' %></strong> &middot; <%= item['available'] %> on hand &middot; suggested <%= item['suggested_qty'] %></li>
-                    <% end %>
-                  </ul>
-                <% end %>
-              </div>
+              <%= render 'action_card', action: action, suppliers: @suppliers %>
             <% end %>
           </div>
         <% else %>
-          <div style="padding:18px;border:1px dashed #D1D5DB;border-radius:16px;color:#6B7280;">No actions proposed yet.</div>
+          <div style="padding:18px;border:1px dashed #D1D5DB;border-radius:16px;color:#6B7280;">No recommendations proposed yet.</div>
         <% end %>
       </div>
 

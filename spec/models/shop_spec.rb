@@ -76,6 +76,39 @@ RSpec.describe Shop do
     end
   end
 
+  describe '#agent_preferences' do
+    it 'returns default agent preferences when none are configured' do
+      shop.settings.delete('agent_preferences')
+
+      expect(shop.agent_preferences).to include(
+        'default_reorder_days' => 30,
+        'min_order_qty' => 0,
+        'preferred_suppliers' => {},
+        'ignored_skus' => []
+      )
+    end
+
+    it 'deep merges configured preferences over defaults' do
+      shop.settings['agent_preferences'] = {
+        'min_order_qty' => 25,
+        'preferred_suppliers' => { '123' => 456 }
+      }
+
+      expect(shop.agent_preferences['min_order_qty']).to eq(25)
+      expect(shop.agent_preferences['default_reorder_days']).to eq(30)
+      expect(shop.agent_preferences.dig('preferred_suppliers', '123')).to eq(456)
+    end
+  end
+
+  describe '#update_agent_preferences!' do
+    it 'merges updates into the agent preferences settings' do
+      shop.update_agent_preferences!('min_order_qty' => 50)
+
+      expect(shop.reload.agent_preferences['min_order_qty']).to eq(50)
+      expect(shop.agent_preferences['default_reorder_days']).to eq(30)
+    end
+  end
+
   describe 'encryption' do
     it 'encrypts the access_token attribute' do
       shop = create(:shop, access_token: 'shpat_secret_value')

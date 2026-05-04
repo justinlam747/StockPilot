@@ -86,36 +86,58 @@ module Agents
 
     def fallback_summary(context)
       counts = context.fetch('counts', {})
-      lines = []
-      lines << "#{@shop.shop_domain} has #{context['flagged_count'].to_i} flagged SKU(s): " \
-               "#{counts['low_stock'].to_i} low stock and #{counts['out_of_stock'].to_i} out of stock."
+      [
+        stock_count_line(context, counts),
+        recommendation_count_line(context, counts),
+        urgent_items_line(context),
+        supplier_follow_up_line(context),
+        supplierless_line(counts),
+        correction_line(context)
+      ].compact.join(' ')
+    end
 
+    def stock_count_line(context, counts)
+      "#{@shop.shop_domain} has #{context['flagged_count'].to_i} flagged SKU(s): " \
+        "#{counts['low_stock'].to_i} low stock and #{counts['out_of_stock'].to_i} out of stock."
+    end
+
+    def recommendation_count_line(context, counts)
+      recommendation_count = context['recommendation_count'].to_i
+      return unless recommendation_count.positive?
+
+      draft_count = counts.dig('recommendations', 'purchase_order_draft').to_i
+      "StockPilot generated #{recommendation_count} recommendation(s), including #{draft_count} purchase order draft action(s)."
+    end
+
+    def urgent_items_line(context)
       top_items = Array(context['top_items']).first(3)
-      if top_items.any?
-        labels = top_items.map do |item|
-          "#{item['sku'] || 'Unknown SKU'} (#{item['available']} left)"
-        end
-        lines << "Most urgent items: #{labels.join(', ')}."
-      end
+      return if top_items.empty?
 
+      labels = top_items.map { |item| "#{item['sku'] || 'Unknown SKU'} (#{item['available']} left)" }
+      "Most urgent items: #{labels.join(', ')}."
+    end
+
+    def supplier_follow_up_line(context)
       supplier_recommendations = Array(context['supplier_recommendations']).first(2)
-      if supplier_recommendations.any?
-        supplier_notes = supplier_recommendations.map do |supplier|
-          "#{supplier['supplier_name']} (#{supplier['item_count']} SKU#{'s' unless supplier['item_count'] == 1})"
-        end
-        lines << "Supplier follow-up: #{supplier_notes.join(', ')}."
-      end
+      return if supplier_recommendations.empty?
 
+      supplier_notes = supplier_recommendations.map do |supplier|
+        "#{supplier['supplier_name']} (#{supplier['item_count']} SKU#{'s' unless supplier['item_count'] == 1})"
+      end
+      "Supplier follow-up: #{supplier_notes.join(', ')}."
+    end
+
+    def supplierless_line(counts)
       supplierless_count = counts['supplierless'].to_i
-      if supplierless_count.positive?
-        lines << "#{supplierless_count} flagged SKU(s) are still missing a supplier assignment."
-      end
+      return unless supplierless_count.positive?
 
-      if context['correction'].present?
-        lines << "Operator correction applied: #{truncate(context['correction'])}."
-      end
+      "#{supplierless_count} flagged SKU(s) are still missing a supplier assignment."
+    end
 
-      lines.join(' ')
+    def correction_line(context)
+      return if context['correction'].blank?
+
+      "Operator correction applied: #{truncate(context['correction'])}."
     end
 
     def truncate(text, max_length = 140)
@@ -125,11 +147,11 @@ module Agents
     end
 
     def openai_api_key
-      ENV['OPENAI_API_KEY']
+      ENV.fetch('OPENAI_API_KEY', nil)
     end
 
     def anthropic_api_key
-      ENV['ANTHROPIC_API_KEY']
+      ENV.fetch('ANTHROPIC_API_KEY', nil)
     end
 
     def openai_model

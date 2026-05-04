@@ -15,6 +15,13 @@ Rails.application.routes.draw do
   resources :agents, only: %i[index show]
   post '/agents/run', to: 'agents#run', as: :run_agents
   post '/agents/:id/corrections', to: 'agents#corrections', as: :agent_corrections
+  resources :agent_actions, only: [] do
+    member do
+      patch :accept
+      patch :reject
+      patch :edit_recommendation
+    end
+  end
 
   resources :inventory, only: %i[index show]
   resources :suppliers, except: %i[new edit]

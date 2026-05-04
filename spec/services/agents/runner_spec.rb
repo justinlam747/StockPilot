@@ -19,7 +19,7 @@ RSpec.describe Agents::Runner do
   end
 
   describe '.run_for_shop' do
-    it 'creates a queued run and enqueues the job' do
+    it 'creates a queued run and enqueues the job', :aggregate_failures do
       expect do
         @run = described_class.run_for_shop(shop.id, goal: 'Focus on urgent stockouts')
       end.to change(AgentRun, :count).by(1)

@@ -2,7 +2,7 @@
 
 client_id = "20afdf418d6ed8240cee854d5b171a69"
 name = "StockPilot"
-application_url = "https://meryl-congeneric-lula.ngrok-free.dev"
+application_url = "https://saul-untempestuous-overdeferentially.ngrok-free.dev"
 embedded = true
 
 [webhooks]
@@ -27,5 +27,5 @@ use_legacy_install_flow = true
 
 [auth]
 redirect_urls = [
-  "https://meryl-congeneric-lula.ngrok-free.dev/auth/shopify/callback"
+  "https://saul-untempestuous-overdeferentially.ngrok-free.dev/auth/shopify/callback"
 ]

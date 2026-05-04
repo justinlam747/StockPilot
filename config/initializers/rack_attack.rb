@@ -10,6 +10,8 @@ Rack::Attack.cache.store = if Rails.env.test?
                              )
                            end
 
+Rails.application.config.middleware.use Rack::Attack
+
 module Rack
   # Rate limiting and throttle rules for API abuse prevention.
   class Attack

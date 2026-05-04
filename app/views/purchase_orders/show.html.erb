@@ -40,8 +40,38 @@
       <span class="sp-detail-item__label">Created</span>
       <span class="sp-detail-item__value"><%= @purchase_order.created_at.strftime("%b %d, %Y %H:%M") %></span>
     </div>
+    <% if @purchase_order.source == 'agent_action' %>
+      <div class="sp-detail-item">
+        <span class="sp-detail-item__label">Source</span>
+        <span class="sp-detail-item__value">
+          Generated from AI
+          <% if @purchase_order.source_agent_run.present? %>
+            &middot; <a href="<%= agent_path(@purchase_order.source_agent_run) %>">Agent Run #<%= @purchase_order.source_agent_run_id %></a>
+          <% end %>
+        </span>
+      </div>
+    <% end %>
   </div>
 </div>
+
+<% if @email_draft %>
+  <section class="sp-section" aria-labelledby="email-draft-heading">
+    <div class="sp-card">
+      <h2 id="email-draft-heading" class="sp-card__title">Supplier email draft</h2>
+      <div class="sp-detail-grid">
+        <div class="sp-detail-item">
+          <span class="sp-detail-item__label">To</span>
+          <span class="sp-detail-item__value"><%= @email_draft.to %></span>
+        </div>
+        <div class="sp-detail-item">
+          <span class="sp-detail-item__label">Subject</span>
+          <span class="sp-detail-item__value"><%= @email_draft.subject %></span>
+        </div>
+      </div>
+      <pre class="sp-email-draft" aria-label="Email body draft"><%= @email_draft.body %></pre>
+    </div>
+  </section>
+<% end %>
 
 <section class="sp-section" aria-labelledby="line-items-heading">
   <div class="sp-card">

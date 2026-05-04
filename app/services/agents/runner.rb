@@ -51,8 +51,9 @@ module Agents
       private
 
       def acquire_enqueue_lock!(shop_id)
-        ActiveRecord::Base.connection.execute(
-          "SELECT pg_advisory_xact_lock(#{LOCK_NAMESPACE}, #{Integer(shop_id)})"
+        ActiveRecord::Base.connection.raw_connection.exec_params(
+          'SELECT pg_advisory_xact_lock($1, $2)',
+          [LOCK_NAMESPACE, Integer(shop_id)]
         )
       end
 

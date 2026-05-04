@@ -8,7 +8,9 @@ class ConnectionsController < ApplicationController
     shop = upsert_shop(auth)
 
     session[:shopify_domain] = shop.shop_domain
+    session[:shop_id] = shop.id
     AuditLog.record(action: 'shop_connected', shop: shop, request: request)
+    AfterAuthenticateJob.perform_later(shop_domain: shop.shop_domain)
 
     redirect_to '/dashboard', notice: 'Shopify store connected!'
   rescue ActiveRecord::RecordInvalid => e

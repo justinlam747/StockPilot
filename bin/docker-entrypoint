@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+# Run database migrations on web boot. Idempotent — Rails skips already-applied migrations.
+if [ "${@: -2:1}" = "./bin/rails" ] && [ "${@: -1}" = "server" ]; then
+  ./bin/rails db:prepare
+fi
+
+exec "${@}"

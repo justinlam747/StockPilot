@@ -47,7 +47,7 @@ RSpec.describe 'Agents' do
     it 'queues a new agent run' do
       expect do
         post '/agents/run', params: { goal: 'Focus on apparel stockouts' }
-      end.to change { AgentRun.unscoped.count }.by(1)
+      end.to(change { AgentRun.unscoped.count }.by(1))
 
       expect(response).to redirect_to(agent_path(AgentRun.unscoped.last))
       expect(AgentRun.unscoped.last.input_payload['goal']).to eq('Focus on apparel stockouts')
@@ -60,7 +60,7 @@ RSpec.describe 'Agents' do
 
       expect do
         post "/agents/#{parent_run.id}/corrections", params: { correction: 'Ignore supplierless SKUs' }
-      end.to change { AgentRun.unscoped.count }.by(1)
+      end.to(change { AgentRun.unscoped.count }.by(1))
 
       child_run = AgentRun.unscoped.last
       expect(response).to redirect_to(agent_path(child_run))
@@ -73,7 +73,7 @@ RSpec.describe 'Agents' do
 
       expect do
         post "/agents/#{run.id}/corrections", params: { correction: '   ' }
-      end.not_to change { AgentRun.unscoped.count }
+      end.not_to(change { AgentRun.unscoped.count })
 
       expect(response).to redirect_to(agent_path(run))
       expect(flash[:alert]).to eq('Correction cannot be blank')
@@ -98,7 +98,7 @@ RSpec.describe 'Agents' do
 
       expect do
         post "/agents/#{foreign_run.id}/corrections", params: { correction: 'Ignore this' }
-      end.not_to change { AgentRun.unscoped.count }
+      end.not_to(change { AgentRun.unscoped.count })
 
       expect(response).to have_http_status(:not_found)
     end

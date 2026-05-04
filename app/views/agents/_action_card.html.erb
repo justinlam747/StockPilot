@@ -1,0 +1,126 @@
+<% payload = action.payload || {} %>
+<% items = Array(payload['items']) %>
+<% editable = %w[proposed edited].include?(action.status) %>
+
+<div style="padding:16px;border:1px solid #E5E7EB;border-radius:16px;">
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+    <div>
+      <strong style="color:#111827;"><%= action.title.presence || action.action_type.humanize %></strong>
+      <div style="margin-top:4px;font-size:12px;color:#6B7280;"><%= action.action_type.humanize %></div>
+    </div>
+    <%= render 'status_badge', status: action.status %>
+  </div>
+
+  <% if action.details.present? %>
+    <p style="margin:10px 0 0;color:#374151;"><%= action.details %></p>
+  <% end %>
+
+  <% if items.any? %>
+    <ul style="margin:12px 0 0;padding-left:18px;color:#374151;">
+      <% items.first(6).each do |item| %>
+        <li>
+          <strong><%= item['sku'] || 'Unknown SKU' %></strong>
+          <% if item['current_quantity'].present? || item['available'].present? %>
+            &middot; <%= item['current_quantity'] || item['available'] %> available
+          <% end %>
+          <% if item['threshold'].present? %>
+            &middot; threshold <%= item['threshold'] %>
+          <% end %>
+          <% if item['recommended_quantity'].present? || item['suggested_qty'].present? %>
+            &middot; recommend <%= item['recommended_quantity'] || item['suggested_qty'] %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% elsif payload['sku'].present? || payload['variant_id'].present? %>
+    <div style="margin-top:12px;color:#374151;">
+      <strong><%= payload['sku'] || "Variant ##{payload['variant_id']}" %></strong>
+      <% if payload['available'].present? %>
+        &middot; <%= payload['available'] %> available
+      <% end %>
+      <% if payload['recommended_threshold'].present? %>
+        &middot; recommended threshold <%= payload['recommended_threshold'] %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if payload['applied_purchase_order_id'].present? %>
+    <div style="margin-top:12px;font-size:13px;">
+      <a href="<%= purchase_order_path(payload['applied_purchase_order_id']) %>" style="color:#111827;font-weight:600;">View generated purchase order</a>
+    </div>
+  <% end %>
+
+  <% if action.feedback_note.present? %>
+    <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#F9FAFB;color:#374151;font-size:13px;">
+      <strong>Feedback:</strong> <%= action.feedback_note %>
+    </div>
+  <% end %>
+
+  <% if action.resolved_at.present? %>
+    <div style="margin-top:10px;font-size:12px;color:#6B7280;">
+      Resolved <%= time_ago_in_words(action.resolved_at) %> ago
+      <% if action.resolved_by.present? %>
+        by <%= action.resolved_by %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if editable %>
+    <div style="margin-top:14px;display:grid;gap:12px;">
+      <%= form_with url: edit_recommendation_agent_action_path(action), method: :patch, local: true, html: { style: 'display:grid;gap:10px;padding:12px;border:1px solid #E5E7EB;border-radius:14px;background:#F9FAFB;' } do %>
+        <% if action.action_type == 'threshold_adjustment' %>
+          <label style="display:grid;gap:4px;font-size:13px;color:#374151;">
+            Recommended threshold
+            <input type="number" name="recommended_threshold" min="1" value="<%= payload['recommended_threshold'] %>" style="padding:9px 10px;border:1px solid #D1D5DB;border-radius:10px;font:inherit;">
+          </label>
+        <% elsif items.size > 1 %>
+          <div style="display:grid;gap:8px;">
+            <% items.each do |item| %>
+              <label style="display:grid;gap:4px;font-size:13px;color:#374151;">
+                <%= item['sku'] || "Variant ##{item['variant_id']}" %> quantity
+                <input type="number" name="quantities[<%= item['variant_id'] %>]" min="1" value="<%= item['recommended_quantity'] || item['suggested_qty'] %>" style="padding:9px 10px;border:1px solid #D1D5DB;border-radius:10px;font:inherit;">
+              </label>
+            <% end %>
+          </div>
+        <% elsif payload['recommended_quantity'].present? || items.first&.dig('recommended_quantity').present? || items.first&.dig('suggested_qty').present? %>
+          <label style="display:grid;gap:4px;font-size:13px;color:#374151;">
+            Recommended quantity
+            <input type="number" name="recommended_quantity" min="1" value="<%= payload['recommended_quantity'] || items.first&.dig('recommended_quantity') || items.first&.dig('suggested_qty') %>" style="padding:9px 10px;border:1px solid #D1D5DB;border-radius:10px;font:inherit;">
+          </label>
+        <% end %>
+
+        <% if %w[reorder_recommendation purchase_order_draft supplier_grouping supplier_assignment].include?(action.action_type) && suppliers.any? %>
+          <label style="display:grid;gap:4px;font-size:13px;color:#374151;">
+            Supplier
+            <select name="supplier_id" style="padding:9px 10px;border:1px solid #D1D5DB;border-radius:10px;font:inherit;">
+              <option value="">Keep current supplier</option>
+              <% suppliers.each do |supplier| %>
+                <option value="<%= supplier.id %>" <%= 'selected' if supplier.id == payload['supplier_id'].to_i %>><%= supplier.name %></option>
+              <% end %>
+            </select>
+          </label>
+        <% end %>
+
+        <label style="display:grid;gap:4px;font-size:13px;color:#374151;">
+          Feedback note
+          <textarea name="feedback_note" rows="2" style="padding:9px 10px;border:1px solid #D1D5DB;border-radius:10px;font:inherit;resize:vertical;"><%= action.feedback_note %></textarea>
+        </label>
+
+        <button type="submit" style="justify-self:start;border:1px solid #D1D5DB;border-radius:999px;padding:9px 14px;background:#FFFFFF;color:#111827;font-weight:600;cursor:pointer;">Save edits</button>
+      <% end %>
+
+      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+        <%= button_to 'Accept',
+              accept_agent_action_path(action),
+              method: :patch,
+              class: 'sp-btn--primary',
+              style: 'border:0;border-radius:999px;padding:10px 16px;background:#111827;color:#FFFFFF;font-weight:600;cursor:pointer;' %>
+
+        <%= form_with url: reject_agent_action_path(action), method: :patch, local: true, html: { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;' } do %>
+          <input type="text" name="feedback_note" placeholder="Reason for rejection" style="padding:9px 10px;border:1px solid #D1D5DB;border-radius:999px;font:inherit;">
+          <button type="submit" style="border:1px solid #FCA5A5;border-radius:999px;padding:9px 14px;background:#FEF2F2;color:#991B1B;font-weight:600;cursor:pointer;">Reject</button>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

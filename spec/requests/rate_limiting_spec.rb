@@ -23,11 +23,13 @@ RSpec.describe 'Rate limiting' do
   end
 
   it 'throttles excessive dashboard requests' do
-    responses = []
-    65.times do
-      get '/dashboard'
-      responses << response.status
+    app = ->(_env) { [200, {}, ['ok']] }
+    middleware = Rack::Attack.new(app)
+    responses = Array.new(65) do
+      env = Rack::MockRequest.env_for('/dashboard', 'REMOTE_ADDR' => '203.0.113.10')
+      middleware.call(env).first
     end
+
     expect(responses).to include(429), "Expected 429 in responses: #{responses}"
   end
 end

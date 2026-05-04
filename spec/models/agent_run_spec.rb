@@ -83,7 +83,7 @@ RSpec.describe AgentRun do
       end
     end
 
-    it 'uses database-backed defaults for new runs' do
+    it 'uses database-backed defaults for new runs', :aggregate_failures do
       ActsAsTenant.with_tenant(shop) do
         run = described_class.create!(shop: shop)
 

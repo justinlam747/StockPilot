@@ -5,6 +5,8 @@ class PurchaseOrder < ApplicationRecord
   acts_as_tenant :shop
 
   belongs_to :supplier
+  belongs_to :source_agent_run, class_name: 'AgentRun', optional: true
+  belongs_to :source_agent_action, class_name: 'AgentAction', optional: true
   has_many :line_items, class_name: 'PurchaseOrderLineItem', dependent: :destroy
   accepts_nested_attributes_for :line_items
 

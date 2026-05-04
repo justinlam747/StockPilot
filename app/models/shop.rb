@@ -2,6 +2,13 @@
 
 # A Shopify merchant store — the tenant root for all scoped data.
 class Shop < ApplicationRecord
+  DEFAULT_AGENT_PREFERENCES = {
+    'default_reorder_days' => 30,
+    'min_order_qty' => 0,
+    'preferred_suppliers' => {},
+    'ignored_skus' => []
+  }.freeze
+
   # Rails 7+ encrypts :access_token stores the value encrypted in the database (as ciphertext),
   # but auto-decrypts it when you access the attribute in Ruby (shop.access_token returns plaintext).
   # Encryption happens on save, decryption on read. Requires RAILS_MASTER_KEY environment variable.
@@ -43,6 +50,15 @@ class Shop < ApplicationRecord
 
   def alert_email
     settings['alert_email']
+  end
+
+  def agent_preferences
+    DEFAULT_AGENT_PREFERENCES.deep_merge(settings['agent_preferences'] || {})
+  end
+
+  def update_agent_preferences!(updates)
+    normalized = updates.deep_stringify_keys
+    update!(settings: settings.merge('agent_preferences' => agent_preferences.deep_merge(normalized)))
   end
 
   def update_setting(key, value)

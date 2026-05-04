@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_22_090000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_28_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -25,6 +25,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_22_090000) do
     t.text "resolution_note"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "feedback_note"
+    t.datetime "resolved_at"
+    t.string "resolved_by"
     t.index ["agent_run_id", "created_at"], name: "index_agent_actions_on_agent_run_id_and_created_at"
     t.index ["agent_run_id", "status", "created_at"], name: "index_agent_actions_on_agent_run_id_and_status_and_created_at"
     t.index ["agent_run_id"], name: "index_agent_actions_on_agent_run_id"
@@ -161,8 +164,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_22_090000) do
     t.date "order_date"
     t.date "expected_delivery"
     t.text "po_notes"
+    t.string "source"
+    t.bigint "source_agent_run_id"
+    t.bigint "source_agent_action_id"
     t.index ["shop_id", "status"], name: "index_purchase_orders_on_shop_id_and_status"
     t.index ["shop_id"], name: "index_purchase_orders_on_shop_id"
+    t.index ["source_agent_action_id"], name: "index_purchase_orders_on_source_agent_action_id"
+    t.index ["source_agent_run_id"], name: "index_purchase_orders_on_source_agent_run_id"
     t.index ["supplier_id"], name: "index_purchase_orders_on_supplier_id"
   end
 
@@ -228,6 +236,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_22_090000) do
   add_foreign_key "products", "shops", on_delete: :cascade
   add_foreign_key "purchase_order_line_items", "purchase_orders", on_delete: :cascade
   add_foreign_key "purchase_order_line_items", "variants"
+  add_foreign_key "purchase_orders", "agent_actions", column: "source_agent_action_id", on_delete: :nullify
+  add_foreign_key "purchase_orders", "agent_runs", column: "source_agent_run_id", on_delete: :nullify
   add_foreign_key "purchase_orders", "shops", on_delete: :cascade
   add_foreign_key "purchase_orders", "suppliers"
   add_foreign_key "suppliers", "shops", on_delete: :cascade

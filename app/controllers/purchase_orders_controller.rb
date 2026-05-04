@@ -12,6 +12,7 @@ class PurchaseOrdersController < ApplicationController
 
   def show
     @purchase_order = PurchaseOrder.includes(line_items: { variant: :product }).find(params[:id])
+    @email_draft = Agents::SupplierEmailDraft.call(@purchase_order) if @purchase_order.supplier&.email.present?
   end
 
   def mark_sent

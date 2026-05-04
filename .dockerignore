@@ -1,0 +1,16 @@
+.git
+.github
+.env
+.env.*
+log/*
+tmp/*
+storage/*
+node_modules
+coverage
+test/e2e/screenshots
+*.png
+*.md
+!README.md
+spec
+docs
+scripts

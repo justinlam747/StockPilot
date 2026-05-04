@@ -30,15 +30,17 @@ RSpec.describe Agents::InventoryMonitor do
     create(:inventory_snapshot, shop: shop, variant: supplierless_variant, available: 3, on_hand: 3)
   end
 
-  it 'records events, proposed actions, and a completed result payload' do
+  it 'records events, proposed actions, and a completed result payload', :aggregate_failures do
     described_class.new(shop, summary_client: summary_client).execute(run)
 
     expect(run.reload.status).to eq('completed')
     expect(run.summary).to eq('Summary text')
     expect(run.events.pluck(:event_type)).to include('progress', 'goal', 'correction', 'summary')
-    expect(run.actions.pluck(:action_type)).to include('reorder_review', 'supplier_assignment', 'urgent_restock')
+    expect(run.actions.pluck(:action_type)).to include('reorder_recommendation', 'purchase_order_draft',
+                                                       'supplier_assignment')
     expect(run.result_payload.dig('counts', 'out_of_stock')).to eq(1)
     expect(run.result_payload.dig('counts', 'supplierless')).to eq(1)
+    expect(run.result_payload['recommendation_count']).to eq(run.actions.count)
   end
 
   it 'applies correction rules before proposing actions and carries parent context' do
@@ -55,7 +57,7 @@ RSpec.describe Agents::InventoryMonitor do
 
     described_class.new(shop, summary_client: summary_client).execute(corrected_run)
 
-    expect(corrected_run.actions.pluck(:action_type)).to include('reorder_review', 'urgent_restock')
+    expect(corrected_run.actions.pluck(:action_type)).to include('reorder_recommendation', 'purchase_order_draft')
     expect(corrected_run.actions.pluck(:action_type)).not_to include('supplier_assignment')
     expect(corrected_run.events.find_by(event_type: 'correction_applied').metadata['parent_run_id']).to eq(parent_run.id)
     expect(corrected_run.result_payload['previous_summary']).to eq('Previous operator summary')

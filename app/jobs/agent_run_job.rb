@@ -13,7 +13,7 @@ class AgentRunJob < ApplicationJob
     run = AgentRun.includes(:shop, :parent_run).find(agent_run_id)
 
     ActsAsTenant.with_tenant(run.shop) do
-      return unless claim_run!(run)
+      return unless claim_run?(run)
 
       Agents::InventoryMonitor.new(run.shop).execute(run)
     end
@@ -25,7 +25,7 @@ class AgentRunJob < ApplicationJob
 
   private
 
-  def claim_run!(run)
+  def claim_run?(run)
     run.with_lock do
       return false unless run.status == 'queued'
 
@@ -53,7 +53,7 @@ class AgentRunJob < ApplicationJob
       metadata: { error_class: error.class.name }
     )
     Rails.logger.error("[AgentRunJob] Run #{run.id} failed: #{error.class}: #{error.message}")
-  rescue StandardError => logging_error
-    Rails.logger.error("[AgentRunJob] Failed to record error for run #{run.id}: #{logging_error.message}")
+  rescue StandardError => e
+    Rails.logger.error("[AgentRunJob] Failed to record error for run #{run.id}: #{e.message}")
   end
 end

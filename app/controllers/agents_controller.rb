@@ -2,19 +2,22 @@
 
 # Monitoring and operator controls for agent runs.
 class AgentsController < ApplicationController
+  ACTIVE_RUN_STATUSES = %w[queued running paused awaiting_review].freeze
+
   before_action :require_shop!
   before_action :set_run, only: %i[show corrections]
 
   def index
     @runs = current_shop.agent_runs.includes(:parent_run, :child_runs, :actions, :events).recent_first.limit(25)
     @status_counts = current_shop.agent_runs.group(:status).count
-    @has_active_runs = @runs.any? { |run| %w[queued running paused awaiting_review].include?(run.status) }
+    @has_active_runs = @runs.any? { |run| ACTIVE_RUN_STATUSES.include?(run.status) }
   end
 
   def show
     @events = @run.events
     @actions = @run.actions
     @child_runs = @run.child_runs.order(created_at: :desc)
+    @suppliers = current_shop.suppliers.order(:name)
   end
 
   def run
