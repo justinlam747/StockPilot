@@ -1,110 +1,116 @@
-<p align="center">
-  <img src="docs/banner.png" alt="StockPilot — Inventory intelligence for Shopify" width="1700">
-</p>
-
 # StockPilot
 
-An embedded Shopify app that gives merchants real-time inventory intelligence — low-stock alerts, purchase order drafts, supplier management, and snapshot history.
+A local, one-page inventory dashboard: see stores at a glance, watch stock move,
+and act on predicted stockouts with forecast-based transfer recommendations.
 
+StockPilot is moving from a broad Shopify app toward a focused inventory
+intelligence showcase. The workflow is **inventory → demand forecast → stockout
+warning → transfer → updated inventory**. Supplier management, purchase orders,
+and a general-purpose AI copilot are outside the current dashboard scope.
 
-## Tech Stack
+## Run locally
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Ruby on Rails 7.2 |
-| Database | PostgreSQL 16 |
-| Background Jobs | Sidekiq 7 + Redis 7 |
-| Auth | OmniAuth + Shopify OAuth |
-| Multi-tenancy | acts_as_tenant (shop-scoped data isolation) |
-| Security | Rack::Attack, Brakeman, bundler-audit, HMAC webhook verification |
-| Monitoring | Sentry (Rails + Sidekiq) |
-| CI | GitHub Actions (RuboCop, Brakeman, bundler-audit, RSpec + Postgres/Redis services) |
+Requires Python 3.12–3.14. From this repository on Windows:
 
-## Features
-
-- **Inventory Sync** — Pulls product and variant data from Shopify's GraphQL Admin API, snapshots stock levels over time
-- **Low-Stock Alerts** — Configurable per-variant thresholds with email notifications when stock drops below target
-- **Purchase Orders** — Draft purchase orders generated from low-stock signals, sent to suppliers via email
-- **Supplier Management** — Track suppliers, contacts, lead times, and star ratings; link suppliers to variants
-- **GDPR Compliance** — Handles `customers/data_request`, `customers/redact`, and `shop/redact` webhooks with full data processing
-- **Audit Logging** — Tracks all security-relevant events (auth, data exports, GDPR requests) with request metadata
-
-## Architecture
-
-```
-Shopify Admin (OAuth session)
-        │
-        ▼
-┌─────────────────────────────────────────────┐
-│  Rails 7.2 (embedded app)                   │
-│                                             │
-│  Auth ──── Inventory Sync ──── Alerts       │
-│  OAuth     GraphQL + Webhooks  Email notifs │
-│                                             │
-│  Supplier Mgmt ──── Purchase Orders         │
-│  CRUD + ratings     Draft + send flow       │
-│                                             │
-│  Security: Rack::Attack, HMAC, CSP, HSTS    │
-│  Multi-tenancy: acts_as_tenant :shop        │
-└──────────┬──────────────┬───────────────────┘
-           │              │
-     PostgreSQL 16    Sidekiq + Redis 7
+```powershell
+python -m venv .venv-dashboard
+.venv-dashboard\Scripts\python.exe -m pip install -r local_dashboard/requirements.txt
+.venv-dashboard\Scripts\python.exe -m local_dashboard.server
 ```
 
-## Security
+Open **http://127.0.0.1:8000**. No Shopify login, database, API keys, GPU, or cloud
+resources are needed. After setup, `npm run dev` starts the same dashboard and
+uses `.venv-dashboard`. Change ports with `npm run dev -- --port 8001`.
+On macOS/Linux use `python3` to create the environment and
+`.venv-dashboard/bin/python` for subsequent Python commands.
 
-- **Webhook HMAC-SHA256 verification** on all inbound Shopify webhooks
-- **Rate limiting** via Rack::Attack — 60 req/min general, 100 req/min webhooks
-- **Encrypted access tokens** at rest using Rails 7.2 `encrypts`
-- **Security headers** — HSTS, CSP (frame-ancestors restricted to Shopify), X-Content-Type-Options, Referrer-Policy
-- **Static analysis** — Brakeman runs in CI; bundler-audit checks gems for CVEs
-- **Tenant isolation** — All queries scoped via `acts_as_tenant`, no cross-merchant data leakage
-- **CORS** restricted to app domain + `admin.shopify.com`
+## The one-page dashboard
 
-## Database
+- **Store overview:** ten locations, fifty products per store, stock on hand, and
+  store-product stockout counts. Select a store to filter the page.
+- **Forecast updates:** real saved-model XGBoost inference for the next seven days
+  across all 500 series. Inspect any series alongside the previous-week baseline.
+  Refresh reruns inference; it does not retrain or invent new sales.
+- **Inventory alerts:** projected stockout day, current stock, and seven-day demand.
+  Search products/SKUs, filter urgent or empty positions, and inspect their forecasts.
+- **Transfer recommendations:** move the same product from a surplus store to a
+  shortage store. Suggestions explain quantities and the source safety-stock rule.
+- **Stock history and movements:** daily network inventory chart plus a ledger of
+  simulated sales, receipts, dispatched transfers, and received transfers.
+- **GraphQL inventory sync:** local fixture inventory passes through a real typed
+  GraphQL query at initialization and on each simulated day. UI reads and commands
+  also use GraphQL. The local dashboard does not connect to Shopify.
 
-`Shop` → `Product` → `Variant` → `InventorySnapshot`
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ `Alert`
-`Shop` → `Supplier` → `PurchaseOrder` → `PurchaseOrderLineItem`
-`Shop` → `AuditLog`
+Click **Advance one day** to simulate demand, record movements, receive transfers,
+sync inventory, and refresh forecasts. **Play simulation** repeats every ten
+seconds. **Reset simulation** restores the seeded scenario. State and audit events
+are in memory; restarting the server resets them.
 
-## Background Jobs
+## Our XGBoost model and the 29% result
 
-| Job | Purpose |
-|-----|---------|
-| `InventorySyncJob` | Fetches latest stock levels from Shopify GraphQL API |
-| `DailySyncAllShopsJob` | Triggers sync across all installed shops |
-| `SnapshotCleanupJob` | Prunes old inventory snapshots |
-| `GdprCustomerDataJob` | Processes customer data export requests |
-| `GdprCustomerRedactJob` | Redacts customer data on request |
-| `GdprShopRedactJob` | Cleans up all shop data after uninstall |
-| `AfterAuthenticateJob` | Post-OAuth: registers webhooks + triggers initial sync |
+The dashboard includes the trained model and feature logic from `StockPilot-rebuild`,
+using its `evaluation_20261116T165116Z` artifacts.
 
-## Running Locally
+| Measured result | Value |
+| --- | --- |
+| Store-product series | 500 (10 stores × 50 products) |
+| Evaluation period | Calendar year 2017 |
+| Rolling backtest | 53 weekly origins; 52 complete seven-day windows |
+| Previous-week weekly-total MAE | 26.66 units |
+| XGBoost weekly-total MAE | 18.91 units |
+| Relative reduction | **29.07%** |
 
-Prerequisites: PostgreSQL 16 and Redis 7.
+Weekly error is measured after summing the seven predictions for each
+store/product/origin, then averaging absolute error across those observations.
+The baseline repeats the previous week's daily sales. Training uses only data
+preceding each origin; recursive forecasts never use future observed sales.
+See [the backtest summary](local_dashboard/artifacts/backtest-summary.md) and
+[run metadata](local_dashboard/artifacts/backtest-run.json) for the original
+protocol, results, and limits. The backtest was imported, not rerun during this refactor.
 
-```bash
-bundle install
-bundle exec rails db:prepare
-bundle exec rails server
-bundle exec sidekiq -C config/sidekiq.yml   # separate terminal
+Features: categorical store/item, calendar fields, lags at 1/7/14/28/364 days,
+and shifted 7/28-day rolling means. CPU inference uses the saved last-origin model;
+there is no retraining in the demo.
 
-# Tests
-bundle exec rspec
+## What is historical and what is simulated?
 
-# Lint + security
-bundle exec rubocop
-bundle exec brakeman
-bundle exec bundler-audit check --update
+- **Historical:** the bundled 364-day sales context (2017-01-02 to 2017-12-31),
+  trained model, and evaluation results. Sales may differ from unconstrained demand.
+  This model is a backtest snapshot, not a production refit.
+- **Simulated:** initial inventory, friendly store/product names, subsequent demand,
+  receipts, transfers, stock history, and stockout scenarios. The simulation starts
+  on 2018-01-01 to preserve the model's calendar context. Later demand is sampled
+  around forecasts and is not evaluation evidence.
+- **Projected:** stockout is the first day cumulative predicted demand reaches
+  available stock plus next-day inbound units. These dates are point projections,
+  not calibrated probabilities. Negative chart balances show unmet demand, not
+  physically negative inventory.
+
+Transfers reserve source stock immediately and arrive before sales on the next
+simulated day. Donors retain seven forecast days plus two safety days. Suggestions
+share donor budgets to prevent over-allocation. Inbound units count toward recipient
+coverage after dispatch. Day-one shortages are conservatively excluded; replenishment
+may be needed. Partial transfers may reduce a shortage without eliminating it.
+
+The **29.07% forecast improvement is measured**. Stockout avoidance, transfer ROI,
+and service-level improvements have not been measured. The source dataset has no
+inventory or transfer-cost observations to establish those outcomes.
+
+## Development
+
+```powershell
+.venv-dashboard\Scripts\python.exe -m pytest local_dashboard/tests -q
 ```
 
-## Environment Variables
+| Path | Purpose |
+| --- | --- |
+| `local_dashboard/engine.py` | Simulation, projections, alerts, recommendations, command audit |
+| `local_dashboard/demand.py` | Existing feature construction and recursive forecasts |
+| `local_dashboard/mock_sync.py` | Typed mock GraphQL inventory source |
+| `local_dashboard/server.py` | Loopback-only HTTP server and GraphQL API |
+| `local_dashboard/static/` | Responsive single-page dashboard; no frontend build |
+| `local_dashboard/artifacts/` | Model, historical context, and backtest evidence |
 
-See `.env.example` for the full list. Key variables:
-
-- `SHOPIFY_API_KEY` / `SHOPIFY_API_SECRET`
-- `SHOPIFY_APP_URL`
-- `DATABASE_URL`
-- `REDIS_URL`
-- `SENTRY_DSN` (optional)
+Earlier Rails/Shopify work (`app/`) and the unfinished Remix/AI work (`web/`, `ai/`)
+remain available. The dashboard does not depend on them.
+`npm run dev:shopify` retains the earlier Shopify development command.
