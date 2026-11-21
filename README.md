@@ -1,116 +1,50 @@
 # StockPilot
 
-A local, one-page inventory dashboard: see stores at a glance, watch stock move,
-and act on predicted stockouts with forecast-based transfer recommendations.
-
-StockPilot is moving from a broad Shopify app toward a focused inventory
-intelligence showcase. The workflow is **inventory → demand forecast → stockout
-warning → transfer → updated inventory**. Supplier management, purchase orders,
-and a general-purpose AI copilot are outside the current dashboard scope.
+Train an XGBoost sales forecast for **one item at a time**, using your own weekly sales. Import a CSV, see how accurately the model would have predicted recent weeks at each store, and get an estimate for the following week. The browser, training process and saved projects run on your computer.
 
 ## Run locally
 
-Requires Python 3.12–3.14. From this repository on Windows:
+Install **Node.js 20.9+ with npm** and **Python 3.11–3.14**. On macOS, install the OpenMP runtime with `brew install libomp`. Download and extract the StockPilot local release, or clone the repository. Open a terminal in the folder containing this README and run:
 
-```powershell
-python -m venv .venv-dashboard
-.venv-dashboard\Scripts\python.exe -m pip install -r local_dashboard/requirements.txt
-.venv-dashboard\Scripts\python.exe -m local_dashboard.server
+```sh
+npm run setup
+npm run dev
 ```
 
-Open **http://127.0.0.1:8000**. No Shopify login, database, API keys, GPU, or cloud
-resources are needed. After setup, `npm run dev` starts the same dashboard and
-uses `.venv-dashboard`. Change ports with `npm run dev -- --port 8001`.
-On macOS/Linux use `python3` to create the environment and
-`.venv-dashboard/bin/python` for subsequent Python commands.
+Open **[127.0.0.1:3000](http://127.0.0.1:3000)**. Setup creates a Python environment in `.venv` and installs the JavaScript and CPU forecasting dependencies. Setup needs internet access. Importing, training, reopening a project and forecasting work offline after installation. To run a production build locally, use `npm run build` followed by `npm start`.
 
-## The one-page dashboard
+## Bring your sales history
 
-- **Store overview:** ten locations, fifty products per store, stock on hand, and
-  store-product stockout counts. Select a store to filter the page.
-- **Forecast updates:** real saved-model XGBoost inference for the next seven days
-  across all 500 series. Inspect any series alongside the previous-week baseline.
-  Refresh reruns inference; it does not retrain or invent new sales.
-- **Inventory alerts:** projected stockout day, current stock, and seven-day demand.
-  Search products/SKUs, filter urgent or empty positions, and inspect their forecasts.
-- **Transfer recommendations:** move the same product from a surplus store to a
-  shortage store. Suggestions explain quantities and the source safety-stock rule.
-- **Stock history and movements:** daily network inventory chart plus a ledger of
-  simulated sales, receipts, dispatched transfers, and received transfers.
-- **GraphQL inventory sync:** local fixture inventory passes through a real typed
-  GraphQL query at initialization and on each simulated day. UI reads and commands
-  also use GraphQL. The local dashboard does not connect to Shopify.
+Download the [example CSV](forecast_app/public/weekly-sales-template.csv) from the app or this repository. It contains fictional sales you can replace. Use one row per item, store and trading week.
 
-Click **Advance one day** to simulate demand, record movements, receive transfers,
-sync inventory, and refresh forecasts. **Play simulation** repeats every ten
-seconds. **Reset simulation** restores the seeded scenario. State and audit events
-are in memory; restarting the server resets them.
-
-## Our XGBoost model and the 29% result
-
-The dashboard includes the trained model and feature logic from `StockPilot-rebuild`,
-using its `evaluation_20261116T165116Z` artifacts.
-
-| Measured result | Value |
+| Column | What to enter |
 | --- | --- |
-| Store-product series | 500 (10 stores × 50 products) |
-| Evaluation period | Calendar year 2017 |
-| Rolling backtest | 53 weekly origins; 52 complete seven-day windows |
-| Previous-week weekly-total MAE | 26.66 units |
-| XGBoost weekly-total MAE | 18.91 units |
-| Relative reduction | **29.07%** |
+| `week` | Monday starting the week, in `YYYY-MM-DD` format |
+| `item` | A stable product name or ID, such as `Black long cardigan` |
+| `store` | A stable store name or ID. A single store works. |
+| `units_sold` | Whole units sold that week, including genuine zeros. The alias `units` also works. |
+| `in_stock` | Optional. Use `false` for a week when availability constrained sales. Omitted flags assume the item was available. |
 
-Weekly error is measured after summing the seven predictions for each
-store/product/origin, then averaging absolute error across those observations.
-The baseline repeats the previous week's daily sales. Training uses only data
-preceding each origin; recursive forecasts never use future observed sales.
-See [the backtest summary](local_dashboard/artifacts/backtest-summary.md) and
-[run metadata](local_dashboard/artifacts/backtest-run.json) for the original
-protocol, results, and limits. The backtest was imported, not rerun during this refactor.
+Include **at least eight consecutive, completed weeks per store**, ending on the same Monday. For transaction data, sum units by item, store and week first. Fill a confirmed zero-sales week with `0`. Investigate missing records before importing. The maximum CSV size is 1 MiB.
 
-Features: categorical store/item, calendar fields, lags at 1/7/14/28/364 days,
-and shifted 7/28-day rolling means. CPU inference uses the saved last-origin model;
-there is no retraining in the demo.
+Import the file in the browser. A one-item file trains immediately. For a file containing several items, choose the item to train. Each import saves a project with that item's history, fitted model and forecasts. To update a forecast, import the full history with the newly completed weeks appended.
 
-## What is historical and what is simulated?
+## Read the forecast
 
-- **Historical:** the bundled 364-day sales context (2017-01-02 to 2017-12-31),
-  trained model, and evaluation results. Sales may differ from unconstrained demand.
-  This model is a backtest snapshot, not a production refit.
-- **Simulated:** initial inventory, friendly store/product names, subsequent demand,
-  receipts, transfers, stock history, and stockout scenarios. The simulation starts
-  on 2018-01-01 to preserve the model's calendar context. Later demand is sampled
-  around forecasts and is not evaluation evidence.
-- **Projected:** stockout is the first day cumulative predicted demand reaches
-  available stock plus next-day inbound units. These dates are point projections,
-  not calibrated probabilities. Negative chart balances show unmet demand, not
-  physically negative inventory.
+Each store has a next-week estimate in **units sold** and a chart of the predictions made for recent weeks alongside recorded sales. Decimal forecasts represent expected unit sales. Stock on hand and transfer quantities measure different things.
 
-Transfers reserve source stock immediately and arrive before sales on the next
-simulated day. Donors retain seven forecast days plus two safety days. Suggestions
-share donor budgets to prevent over-allocation. Inbound units count toward recipient
-coverage after dispatch. Day-one shortages are conservatively excluded; replenishment
-may be needed. Partial transfers may reduce a shortage without eliminating it.
+The model learns from the selected item across its stores. Inputs include store identity, recent sales, weeks since the first observation and calendar features. For each historical prediction, it fits on earlier eligible weeks, then compares the prediction with the actual result. It tests the last half of the shortest store history, rounded down, up to eight weeks. The final fit uses all eligible history for the next-week estimate.
 
-The **29.07% forecast improvement is measured**. Stockout avoidance, transfer ROI,
-and service-level improvements have not been measured. The source dataset has no
-inventory or transfer-cost observations to establish those outcomes.
+**Mean absolute error (MAE)** is the average distance in units between a forecast and the observed sales. An MAE of 2 means forecasts missed by two units on average. Weeks flagged out of stock are excluded as training targets and from MAE. Accuracy applies to this item, these stores and these dates. A short history may contain too little evidence to learn recurring holiday effects.
 
-## Development
+## Where your data lives
 
-```powershell
-.venv-dashboard\Scripts\python.exe -m pytest local_dashboard/tests -q
-```
+The Next.js server listens on the loopback interface. Your browser sends the CSV to the Python worker on that same computer. Only the selected item's normalized history is saved, along with its XGBoost model and results. You can reopen saved projects after restarting. The release includes a blank workspace and an optional synthetic CSV.
 
-| Path | Purpose |
+| Operating system | Default project folder |
 | --- | --- |
-| `local_dashboard/engine.py` | Simulation, projections, alerts, recommendations, command audit |
-| `local_dashboard/demand.py` | Existing feature construction and recursive forecasts |
-| `local_dashboard/mock_sync.py` | Typed mock GraphQL inventory source |
-| `local_dashboard/server.py` | Loopback-only HTTP server and GraphQL API |
-| `local_dashboard/static/` | Responsive single-page dashboard; no frontend build |
-| `local_dashboard/artifacts/` | Model, historical context, and backtest evidence |
+| Windows | `%LOCALAPPDATA%\StockPilot\forecasts` |
+| macOS | `~/Library/Application Support/StockPilot/forecasts` |
+| Linux | `$XDG_DATA_HOME/stockpilot/forecasts`, or `~/.local/share/stockpilot/forecasts` |
 
-Earlier Rails/Shopify work (`app/`) and the unfinished Remix/AI work (`web/`, `ai/`)
-remain available. The dashboard does not depend on them.
-`npm run dev:shopify` retains the earlier Shopify development command.
+Set `STOCKPILOT_DATA_DIR` before starting the app to choose another folder. Back up that folder to keep your projects. Delete a project's folder to remove its saved history, model and forecasts, then refresh the browser.

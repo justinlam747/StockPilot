@@ -41,3 +41,14 @@ Thumbs.db
 
 # Superpowers docs (local only)
 docs/superpowers/
+
+# Local forecasting and release artifacts
+.venv/
+node_modules/
+.next/
+__pycache__/
+.pytest_cache/
+.stockpilot-data/
+.env*
+*.ubj
+/dist/

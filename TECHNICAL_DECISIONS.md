@@ -115,3 +115,11 @@ A running record of architectural and engineering decisions made in StockPilot, 
 ---
 
 *Add new entries as decisions are made. Format: TD-XXX, date, decision, why, trade-offs.*
+
+## TD-028: Ship a local single-item forecasting workspace
+
+**Date:** 2026-11-21
+
+The public app fits a weekly XGBoost model for each selected product and shares its store histories within that fit. Expanding-window predictions on recent weeks show what an operator could have known at the time. Importing an updated history produces a new saved forecast. The local API persists normalized observations, the native fitted model and results together in the operating system's user data folder.
+
+An explicit manifest assembles the public source archive. It contains the responsive Next.js workspace, Python trainer, synthetic CSV template and release tests. Research comparisons, retailer records, pretrained weights and simulated transfers stay in the development workspace. The release starts empty and uses the same weekly XGBoost implementation that powers internal evaluation.
