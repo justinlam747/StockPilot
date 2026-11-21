@@ -1,4 +1,5 @@
 import './globals.css';
+import Workspace from './Workspace';
 
 export const metadata = {
   title: 'StockPilot | Item forecast',
@@ -6,5 +7,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body><Workspace>{children}</Workspace></body></html>;
 }

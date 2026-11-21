@@ -27,11 +27,11 @@ Download the [example CSV](forecast_app/public/weekly-sales-template.csv) from t
 
 Include **at least eight consecutive, completed weeks per store**, ending on the same Monday. For transaction data, sum units by item, store and week first. Fill a confirmed zero-sales week with `0`. Investigate missing records before importing. The maximum CSV size is 1 MiB.
 
-Import the file in the browser. A one-item file trains immediately. For a file containing several items, choose the item to train. Each import saves a project with that item's history, fitted model and forecasts. To update a forecast, import the full history with the newly completed weeks appended.
+Choose **Import sales** in the sidebar and select the file. A one-item file trains immediately. For a file containing several items, choose the item to train. Each import saves a project with that item's history, fitted model and forecasts. Reopen earlier imports from **Saved projects**. To update a forecast, import the full history with the newly completed weeks appended.
 
 ## Read the forecast
 
-Each store has a next-week estimate in **units sold** and a chart of the predictions made for recent weeks alongside recorded sales. Decimal forecasts represent expected unit sales. Stock on hand and transfer quantities measure different things.
+Open **Forecast** and select a store to see weekly predictions alongside actual sales. The cards below the chart show that store’s next-week forecast, last observed sales and mean absolute error. Forecasts are expected units sold and can include decimals. Open **Evaluation** for the scored weeks and training details.
 
 The model learns from the selected item across its stores. Inputs include store identity, recent sales, weeks since the first observation and calendar features. For each historical prediction, it fits on earlier eligible weeks, then compares the prediction with the actual result. It tests the last half of the shortest store history, rounded down, up to eight weeks. The final fit uses all eligible history for the next-week estimate.
 

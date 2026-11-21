@@ -46,16 +46,41 @@ async function getResponse(url, options) {
   return response;
 }
 
+async function checkWorkspacePages(origin) {
+  const pages = [
+    ['/', '/forecast', 'forecast-empty'],
+    ['/forecast', '/forecast', 'forecast-empty'],
+    ['/evaluation', '/evaluation', 'evaluation-page'],
+    ['/import', '/import', 'forecast-upload'],
+    ['/projects', '/projects', 'projects-page'],
+  ];
+  for (const [url, activeLink, contentId] of pages) {
+    const html = await (await getResponse(origin + url)).text();
+    assert.ok(html.includes(`id="${contentId}"`), `${url} must serve its own page content`);
+    const navigation = html.match(/<nav\b[^>]*id="workspace-navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
+    assert.ok(navigation, `${url} must serve the workspace navigation`);
+    const links = navigation.match(/<a\s+[^>]*>/g) ?? [];
+    for (const href of ['/forecast', '/evaluation', '/import', '/projects']) {
+      const link = links.find(tag => tag.includes(`href="${href}"`));
+      assert.ok(link, `${url} must link to ${href}`);
+      assert.equal(link.includes('aria-current="page"'), href === activeLink);
+    }
+    if (activeLink === '/forecast') {
+      assert.ok(!html.includes('id="forecast-upload"'), 'The import form belongs on the import page');
+      assert.ok(!html.includes('data-series="xgboost"'), 'A new workspace starts with an empty chart');
+    }
+  }
+}
+
 test('production workspace trains from the public template and restores its forecast after restart', async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), 'stockpilot-release-'));
   let server = startServer(dataDir);
   try {
     const origin = await server.address;
-    const html = await (await getResponse(origin + '/')).text();
-    assert.match(html, /id="forecast-upload"/);
+    await checkWorkspacePages(origin);
     const routes = JSON.parse(await readFile(path.join(app, '.next/routes-manifest.json'), 'utf8'));
     const pages = [...routes.staticRoutes, ...routes.dynamicRoutes].map(r => r.page).filter(p => !p.startsWith('/_'));
-    assert.deepEqual(pages.sort(), ['/', '/api/forecast', '/forecast']);
+    assert.deepEqual(pages.sort(), ['/', '/api/forecast', '/evaluation', '/forecast', '/import', '/projects']);
     assert.deepEqual(await readdir(path.join(app, 'public')), [template]);
     const empty = await (await getResponse(origin + '/api/forecast')).json();
     assert.deepEqual(empty, {projects: [], projectId: null, result: null, savedAt: null});

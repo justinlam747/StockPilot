@@ -1,44 +1,50 @@
+'use client';
+
+import { useWorkspace } from './Workspace';
+
 const columns = [
   ['week', 'Monday in YYYY-MM-DD format'],
-  ['item', 'Item name or stable item ID'],
-  ['store', 'Store name or stable store ID'],
-  ['units_sold', 'Whole units sold that week, including zero'],
+  ['item', 'Item name or ID'],
+  ['store', 'Store name or ID'],
+  ['units_sold', 'Whole units sold, including zero'],
+  ['in_stock', 'Optional. Use true or false.'],
 ];
 
-export function UploadButton({ onFile, children }) {
-  return <label className="upload-button">
-    <input id="forecast-upload" type="file" accept=".csv,text/csv" onChange={event => {
-      const file = event.currentTarget.files[0];
-      event.currentTarget.value = '';
-      if (file) onFile(file);
-    }} />
-    <span aria-hidden="true">↑</span>{children}
-  </label>;
-}
-
-export function CsvFormat() {
-  return <div className="format">
-    <dl>{columns.map(([key, description]) => <div key={key}>
-      <dt><code>{key}</code></dt><dd>{description}</dd>
-    </div>)}</dl>
-    <p>Optional <code>in_stock</code> accepts <code>true</code> or <code>false</code>.</p>
-    <a href="/weekly-sales-template.csv" download>Download CSV template <span aria-hidden="true">↓</span></a>
-  </div>;
-}
-
-export default function ImportSales({ onFile }) {
-  return <section className="setup" aria-labelledby="setup-title">
-    <div className="setup-intro"><h1 id="setup-title">Forecast one item</h1>
-      <p>Train XGBoost on your weekly sales and forecast next week for each store.</p>
-    </div>
-    <div className="setup-grid">
-      <section className="upload-area">
-        <h2>Import sales history</h2>
-        <p>Use one row per item, store and week. Include at least eight consecutive weeks per store, ending on the same Monday.</p>
-        <UploadButton onFile={onFile}>Choose CSV file</UploadButton>
-        <small>CSV · up to 1 MiB</small>
+export default function ImportSales() {
+  const { pending, busy, loading, importSales } = useWorkspace();
+  return <div className="page-body" id="import-page">
+    <header className="page-head"><h1>Import sales</h1></header>
+    <div className="import-layout">
+      <section className="panel upload-area">
+        <h2>Weekly sales CSV</h2>
+        <p>Include eight or more consecutive weeks per store, ending on the same Monday.</p>
+        <label className="button upload-button" aria-disabled={busy || loading}>
+          Choose CSV file
+          <input id="forecast-upload" type="file" accept=".csv,text/csv" disabled={busy || loading} onChange={event => {
+            const file = event.currentTarget.files[0];
+            event.currentTarget.value = '';
+            if (file) importSales(file);
+          }} />
+        </label>
+        <small>Up to 1 MiB</small>
+        {pending && <div className="item-choice">
+          <label htmlFor="forecast-item">Choose an item from {pending.fileName}</label>
+          <select id="forecast-item" value="" disabled={busy}
+            onChange={event => importSales(null, event.target.value)}>
+            <option disabled value="">Select item</option>
+            {pending.items.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+        </div>}
       </section>
-      <section className="format-area"><h2>CSV format</h2><CsvFormat /></section>
+      <section className="panel format-area">
+        <h2>CSV format</h2>
+        <div className="format">
+          <dl>{columns.map(([name, description]) => <div key={name}>
+            <dt>{name}</dt><dd>{description}</dd>
+          </div>)}</dl>
+          <a href="/weekly-sales-template.csv" download>Download CSV template</a>
+        </div>
+      </section>
     </div>
-  </section>;
+  </div>;
 }
