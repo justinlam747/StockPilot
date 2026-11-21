@@ -1,97 +1,142 @@
 import { useState } from 'react';
+import './charts.css';
 
-const amounts = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const numbers = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 const dates = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const fullDates = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-const units = value => value == null ? '—' : amounts.format(value);
+const units = value => value == null ? '—' : numbers.format(value);
 const dateLabel = (iso, full = false) => (full ? fullDates : dates).format(new Date(iso + 'T00:00:00Z'));
 
-function WeekPlot({ points, selected, select, store, top }) {
-  const size = points.length;
-  const x = index => (index + 0.5) * 500 / size;
-  const y = value => 112 - value / top * 104;
-  const bound = index => Math.max(0, Math.min(index, size - 1));
-  const width = Math.min(40, 290 / size);
-  let path = '';
-  points.forEach((point,i) => {
-    if (point.forecast != null) path += (points[i-1]?.forecast != null ? ' L' : ' M') + x(i) + ' ' + y(point.forecast);
-  });
-  function inspect(event) {
-    const box = event.currentTarget.getBoundingClientRect();
-    select(bound(Math.floor((event.clientX - box.left) * size / box.width)));
-  }
-  function onKey(event) {
-    const choices = {Home: 0, End: size-1, ArrowLeft: selected-1, ArrowRight: selected+1};
-    if (Object.hasOwn(choices, event.key)) { event.preventDefault(); select(bound(choices[event.key])); }
-  }
-  return <div className="plot"><div className="plot-axis" aria-hidden="true"><span>{units(top)}</span><span>0</span></div>
-    <div role="slider" tabIndex={0} aria-label={'Inspect weekly sales for ' + store} aria-valuemin={1} aria-valuemax={size}
-      aria-valuenow={selected+1} aria-valuetext={dateLabel(points[selected].date, true) + ', actual ' + units(points[selected].actual) + ', forecast ' + units(points[selected].forecast)}
-      onPointerDown={inspect} onPointerMove={inspect} onKeyDown={onKey}>
-      <svg viewBox="0 0 500 120" preserveAspectRatio="none" aria-hidden="true">
-        <rect className="future" x={500 - 500 / size} y="4" width={500 / size} height="108" />
-        {[8,60,112].map(h => <line key={h} className="rule" x1="0" x2="500" y1={h} y2={h} />)}
-        {points.map((p,i) => p.actual != null && <rect key={p.date} className="bar" x={x(i)-width/2} y={y(p.actual)}
-          width={width} height={y(0)-y(p.actual)} />)}
-        <path className="trend" data-series="xgboost" d={path} />
-        {points.map((p,i) => p.forecast != null && <circle key={p.date} cx={x(i)} cy={y(p.forecast)} r={i === selected ? 3.5 : 2} />)}
-        <line className="cursor" x1={x(selected)} x2={x(selected)} y1="4" y2="113" />
-      </svg>
-    </div>
-    <div className="plot-dates" aria-hidden="true"><span>{dateLabel(points[0].date)}</span><span>Next · {dateLabel(points.at(-1).date)}</span></div>
+function StorePicker({ stores, current, change }) {
+  if (stores.length === 1) return <span className="fc-store-name">{stores[0].name}</span>;
+  if (stores.length > 3) return <label className="fc-picker-label">Store
+    <select id="forecast-store" value={current} onChange={event => change(event.target.value)}>
+      {stores.map(store => <option key={store.id} value={store.id}>{store.name}</option>)}
+    </select></label>;
+  return <div className="fc-switch" role="group" aria-label="Store">
+    {stores.map(store => <button type="button" key={store.id} data-store-switch={store.id}
+      aria-pressed={store.id === current} onClick={() => change(store.id)}>{store.name}</button>)}
   </div>;
 }
 
-function StoreCard({ store, points, score, top, selected, select }) {
-  const point = points[selected], next = points.at(-1);
-  return <section className="store-card" data-single-store={store.id} aria-label={store.name + ' forecast'}>
-    <header className="store-header"><h3>{store.name}</h3>
-      <div className="store-estimate"><strong data-next-units={next.forecast ?? ''}>{units(next.forecast)}</strong><span>units next week</span></div>
-    </header>
-    <WeekPlot points={points} selected={selected} select={select} store={store.name} top={top} />
-    <div className="readout"><time dateTime={point.date}>{dateLabel(point.date)}</time>
-      <span>Actual <b data-value-for="actual" data-value={point.actual ?? ''}>{units(point.actual)}</b></span>
-      <span>XGBoost <b data-value-for="xgboost" data-value={point.forecast ?? ''}>{units(point.forecast)}</b></span>
-    </div>
-    <div className="store-error">Mean absolute error <strong data-store-mae={score?.mae.xgboost ?? ''}>{units(score?.mae.xgboost)} units</strong></div>
-  </section>;
+function scaleStep(weeks) {
+  let max = 1;
+  for (const week of weeks) for (const row of week.stores) {
+    max = Math.max(max, row.actual ?? 0, row.forecasts.xgboost ?? 0);
+  }
+  const rough = max / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  return [1, 2, 2.5, 5, 10].find(step => step * magnitude >= rough) * magnitude;
 }
 
-function Evaluation({ result, pooled }) {
-  return <details id="training-details" className="evaluation"><summary>Training &amp; evaluation</summary>
-    <div className="evaluation-metrics"><div><span>Initial training rows</span><b>{units(result.training.initialRows)}</b></div>
-      <div><span>Final training rows</span><b>{units(result.training.finalRows)}</b></div>
-      <div><span>Scored store-weeks</span><b>{units(pooled?.count)}</b></div>
-      <div><span>Mean absolute error</span><b>{units(pooled?.mae.xgboost)} units</b></div></div>
-    <p>XGBoost trains on this item's earlier sales across stores before forecasting each held-out week. Mean absolute error is the average distance between a forecast and observed sales.</p>
-    <p>{result.source.availability === 'assumed' ? 'Stock availability was omitted. Reported sales during stockouts can understate demand.'
-      : 'Weeks marked out of stock are excluded from the error calculation.'}</p>
-    <div className="table-wrap" role="region" aria-label="Weekly backtest observations" tabIndex={0}><table>
-      <caption>Held-out weekly sales</caption>
-      <thead><tr><th>Week</th><th>Store</th><th>Actual</th><th>XGBoost</th><th>Scored</th></tr></thead>
-      <tbody>{result.weeks.flatMap(week => week.stores.map(row => <tr key={week.week + '/' + row.id}>
-        <td>{dateLabel(week.week, true)}</td><td>{result.stores.find(s => s.id === row.id)?.name ?? row.id}</td>
-        <td>{units(row.actual)}</td><td>{units(row.forecasts.xgboost)}</td><td>{row.available && row.forecasts.xgboost != null ? 'Yes' : 'No'}</td>
-      </tr>))}</tbody></table></div>
-  </details>;
+function ChartMarks({ points, selected, step }) {
+  const n = points.length;
+  const x = i => (100 * (i + 0.5) / n) + '%';
+  const y = value => (100 * (1 - value / (4 * step))) + '%';
+  return <svg className="fc-marks" aria-hidden="true" focusable="false">
+    <rect className="fc-future" x={(100 - 100 / n) + '%'} y="0" width={(100 / n) + '%'} height="100%" />
+    {[0, 1, 2, 3, 4].map(i => <line key={i} className="fc-grid-line" x1="0" x2="100%" y1={i * 25 + '%'} y2={i * 25 + '%'} />)}
+    <g className="fc-bars" data-series="actual">{points.map((p, i) => p.actual != null &&
+      <rect key={p.date} x={(100 * (i + 0.27) / n) + '%'} y={y(p.actual)} width={(46 / n) + '%'}
+        height={(100 * p.actual / (4 * step)) + '%'} />)}</g>
+    <line className="fc-cursor" x1={x(selected)} x2={x(selected)} y1="0" y2="100%" />
+    <g className="fc-line" data-series="xgboost">
+      {points.map((p, i) => p.forecast != null && points[i - 1]?.forecast != null &&
+        <line key={p.date} x1={x(i - 1)} y1={y(points[i - 1].forecast)} x2={x(i)} y2={y(p.forecast)} />)}
+      {points.map((p, i) => p.forecast != null &&
+        <circle key={p.date} cx={x(i)} cy={y(p.forecast)} r={i === selected ? 4.5 : 3} />)}
+    </g>
+  </svg>;
+}
+
+function WeekPlot({ points, store, step }) {
+  const [selected, select] = useState(points.length - 2);
+  const last = points.length - 1;
+  const point = points[selected];
+  const clamp = index => Math.max(0, Math.min(last, index));
+  function inspect(event) {
+    const box = event.currentTarget.getBoundingClientRect();
+    select(clamp(Math.floor((event.clientX - box.left) / box.width * points.length)));
+  }
+  function navigate(event) {
+    const keys = { Home: 0, End: last, ArrowLeft: selected - 1, ArrowDown: selected - 1,
+      ArrowRight: selected + 1, ArrowUp: selected + 1 };
+    if (Object.hasOwn(keys, event.key)) { event.preventDefault(); select(clamp(keys[event.key])); }
+  }
+  return <>
+    <div className="fc-axis-title">Units sold</div>
+    <div className="fc-grid">
+      <div className="fc-ticks" aria-hidden="true">{[4, 3, 2, 1, 0].map(i =>
+        <span key={i}>{step * i >= 10000 ? compact.format(step * i) : units(step * i)}</span>)}</div>
+      <div className="fc-plot" role="slider" tabIndex={0} aria-label={'Inspect weeks for ' + store}
+        aria-valuemin={1} aria-valuemax={points.length} aria-valuenow={selected + 1}
+        aria-valuetext={dateLabel(point.date, true) + ', actual ' + (point.actual == null ? 'unavailable' : units(point.actual)) + ', forecast ' + units(point.forecast)}
+        onKeyDown={navigate} onPointerDown={inspect} onPointerMove={inspect}>
+        <ChartMarks points={points} selected={selected} step={step} />
+      </div>
+      <div className="fc-dates" aria-hidden="true">{points.map((p, i) =>
+        <span key={p.date} data-mid={i === Math.floor(last / 2)}>{dateLabel(p.date)}{i === last && <small>Next week</small>}</span>)}</div>
+    </div>
+    <div className="fc-readout"><time dateTime={point.date}>{dateLabel(point.date, true)}</time>
+      <span>Actual <span data-value-for="actual" data-value={point.actual ?? ''}>{units(point.actual)}</span></span>
+      <span>Forecast <span data-value-for="xgboost" data-value={point.forecast ?? ''}>{units(point.forecast)}</span></span>
+    </div>
+  </>;
+}
+
+function Metric({ label, value, note, id, ...attrs }) {
+  return <div className="fc-metric" data-kpi={id}>
+    <dt>{label}</dt><dd className="fc-metric-number" {...attrs}>{units(value)}</dd><dd className="fc-note">{note}</dd>
+  </div>;
 }
 
 export default function Results({ result }) {
-  const [selected, select] = useState(result.weeks.length - 1);
-  const grouped = new Map(result.stores.map(store => [store.id, []]));
-  let top = 1;
-  for (const week of [...result.weeks, result.next]) for (const row of week.stores) {
-    const forecast = row.forecasts.xgboost ?? null;
-    grouped.get(row.id).push({date: week.week, actual: row.actual ?? null, forecast});
-    top = Math.max(top, row.actual ?? 0, forecast ?? 0);
-  }
-  const pooled = result.scores.find(row => row.store == null);
-  return <article id="single-item-results">
-    <div className="forecast-header"><div><h2>Store forecasts</h2><p>Week of {dateLabel(result.next.week, true)}</p></div>
-      <div className="legend"><span><i className="actual-key" />Actual sales</span><span><i className="forecast-key" />XGBoost</span></div>
-    </div>
-    <div className="stores">{result.stores.map(store => <StoreCard key={store.id} store={store} points={grouped.get(store.id)}
-      selected={selected} select={select} top={Math.ceil(top)} score={result.scores.find(s => s.store === store.id)} />)}</div>
-    <Evaluation result={result} pooled={pooled} />
+  const [storeId, setStoreId] = useState(result.stores[0].id);
+  const store = result.stores.find(s => s.id === storeId) ?? result.stores[0];
+  const weeks = [...result.weeks, result.next];
+  const points = weeks.map(week => {
+    const row = week.stores.find(s => s.id === store.id);
+    return {date: week.week, actual: row?.actual ?? null, forecast: row?.forecasts.xgboost ?? null};
+  });
+  const next = points.at(-1), last = points.at(-2);
+  const score = result.scores.find(s => s.store === store.id);
+  const mae = score?.mae.xgboost;
+  return <article className="fc-result" id="single-item-results" data-single-store={store.id}>
+    <section className="fc-panel" aria-labelledby="fc-heading">
+      <div className="fc-heading"><h2 id="fc-heading">Weekly sales</h2>
+        <StorePicker stores={result.stores} current={store.id} change={setStoreId} /></div>
+      <div className="fc-legend"><span><i className="fc-actual-key" />Actual sales</span>
+        <span><i className="fc-predicted-key" />XGBoost forecast</span></div>
+      <WeekPlot points={points} store={store.name} step={scaleStep(weeks)} />
+    </section>
+    <dl className="fc-metrics" aria-label={store.name + ' forecast indicators'}>
+      <Metric id="next" label="Next week’s forecast" value={next.forecast} note={'Units · ' + dateLabel(next.date)}
+        data-next-units={next.forecast ?? ''} />
+      <Metric id="actual" label="Last week’s sales" value={last.actual} note={'Units · ' + dateLabel(last.date)} />
+      <Metric id="mae" label="Mean absolute error" value={mae} data-store-mae={mae ?? ''}
+        note={score?.count ? 'Units · ' + score.count + (score.count === 1 ? ' scored week' : ' scored weeks') : 'No scored weeks'} />
+    </dl>
   </article>;
+}
+
+export function Evaluation({ result }) {
+  const pooled = result.scores.find(score => score.store == null);
+  const metrics = [['Initial training rows', result.training.initialRows], ['Final training rows', result.training.finalRows],
+    ['Scored store-weeks', pooled?.count], ['Mean absolute error', pooled?.mae.xgboost]];
+  const names = new Map(result.stores.map(store => [store.id, store.name]));
+  return <section id="training-details" className="fc-evaluation" aria-label="Training and evaluation">
+    <dl className="fc-evaluation-summary">{metrics.map(([label, value]) =>
+      <div key={label}><dt>{label}</dt><dd>{units(value)}{label === 'Mean absolute error' && value != null && ' units'}</dd></div>)}</dl>
+    <div className="fc-table" role="region" aria-label="Weekly backtest observations" tabIndex={0}><table>
+      <caption>Held-out weekly sales</caption>
+      <thead><tr>{['Week', 'Store', 'Actual', 'XGBoost', 'Scored'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+      <tbody>{result.weeks.flatMap(week => week.stores.map(row => <tr key={week.week + '/' + row.id}>
+        <td>{dateLabel(week.week, true)}</td><td>{names.get(row.id) ?? row.id}</td>
+        <td>{units(row.actual)}</td><td>{units(row.forecasts.xgboost)}</td>
+        <td>{row.available && row.forecasts.xgboost != null ? 'Yes' : 'No'}</td>
+      </tr>))}</tbody></table></div>
+    <p className="fc-note">{result.source.availability === 'assumed' ? 'Stock availability was omitted. Weeks are assumed to be in stock.'
+      : 'Weeks marked out of stock are excluded from the error calculation.'}</p>
+  </section>;
 }

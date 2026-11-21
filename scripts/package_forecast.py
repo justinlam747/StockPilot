@@ -15,7 +15,7 @@ FILES = (
     "forecast_app/app/layout.jsx", "forecast_app/app/page.jsx",
     "forecast_app/app/forecast/page.jsx", "forecast_app/app/api/forecast/route.js",
     "forecast_app/app/ImportSales.jsx", "forecast_app/app/Results.jsx",
-    "forecast_app/app/Workspace.jsx", "forecast_app/app/globals.css",
+    "forecast_app/app/Workspace.jsx", "forecast_app/app/globals.css", "forecast_app/app/charts.css",
     "forecast_app/public/weekly-sales-template.csv",
     "stockpilot_local/__init__.py", "stockpilot_local/xgb.py",
     "stockpilot_local/store.py", "stockpilot_local/worker.py",

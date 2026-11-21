@@ -1,8 +1,35 @@
 :root {
-  --paper: #fff; --surface: #f6f6f7; --pressed: #edeeef; --ink: #1a1a1a; --muted: #606468;
-  --line: #c9cccf; --rule: #e1e3e5; --link: #2c6ecb; --danger: #a52b14;
-  color: var(--ink); background: var(--paper); font-family: system-ui, -apple-system, sans-serif;
-  font-variant-numeric: tabular-nums; line-height: 1.45;
+  color-scheme: light;
+  --paper: #fff;
+  --surface: #f6f6f7;
+  --pressed: #ededee;
+  --nav-active: #e7e7e9;
+  --ink: #1a1a1a;
+  --muted: #5e6267;
+  --line: #c9cccf;
+  --rule: #e1e3e5;
+  --link: #2c6ecb;
+  --danger: #a52b14;
+  --gap-1: .25rem;
+  --gap-2: .5rem;
+  --gap-3: .75rem;
+  --gap-4: 1rem;
+  --gap-5: 1.5rem;
+  --gap-6: 2rem;
+  --radius: .625rem;
+  --control-radius: .375rem;
+  --type-small: .8125rem;
+  --type-label: .875rem;
+  --type-body: 1rem;
+  --type-section: 1.25rem;
+  --type-metric: clamp(1.75rem, 3vw, 2.375rem);
+  font-family: system-ui;
+  font-weight: 400;
+  font-synthesis: none;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--paper);
 }
 * { box-sizing: border-box; }
 body, h1, h2, h3, p, dl, dd { margin: 0; }
