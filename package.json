@@ -1,8 +1,20 @@
 {
-  "name": "inventory-intelligence",
+  "name": "stockpilot-local",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
   "scripts": {
-    "dev": "npx shopify app dev",
+    "setup": "node scripts/local.mjs setup",
+    "dev": "node scripts/local.mjs dev",
+    "build": "node scripts/local.mjs build",
+    "start": "node scripts/local.mjs start",
+    "dev:shopify": "npx shopify app dev",
     "rails": "bundle exec rails server",
     "sidekiq": "bundle exec sidekiq -C config/sidekiq.yml",
     "console": "bundle exec rails console",
