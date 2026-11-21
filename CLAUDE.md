@@ -152,6 +152,7 @@ Track all CI pipeline stages here. Add new entries as pipeline evolves:
 | Request Tests | RSpec (request specs) | Tests full API endpoint behavior | 2026-03-09 |
 | Security Scan | `bundler-audit` | Checks gems for known CVEs | 2026-03-09 |
 | Secret Detection | `git-secrets` / CI check | Prevents accidental credential commits | 2026-03-09 |
+| Local forecast release | GitHub Actions, pytest, Node | Installs and builds the allowlisted XGBoost source ZIP on Windows, Linux and macOS and tests training and persistence before a tagged release | 2026-11-21 |
 
 #### CI Pipeline Iteration Rules
 
