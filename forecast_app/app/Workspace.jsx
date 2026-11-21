@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import ImportSales, { CsvFormat, UploadButton } from './ImportSales';
-import Results from './Results';
+import Results, { Evaluation } from './Results';
 
 async function request(path, signal, options) {
   const response = await fetch(path, {cache: 'no-store', ...options, signal});
@@ -97,6 +97,7 @@ export default function Workspace() {
     {notice.message && <p className="notice" id={notice.error ? 'forecast-error' : 'forecast-status'}
       role={notice.error ? 'alert' : 'status'}>{notice.message}</p>}
     {view.result && <><Results key={view.projectId + ':' + view.savedAt} result={view.result} />
+      <details className="evaluation"><summary>Training and evaluation</summary><Evaluation result={view.result} /></details>
       <details className="format-details"><summary>CSV format &amp; template</summary><CsvFormat /></details></>}
   </main>;
 }
