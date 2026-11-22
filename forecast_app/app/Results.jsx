@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import parameterSpecs from '../../stockpilot_local/training_parameters.json';
 import ForecastControls from './ForecastControls';
+import SalesPlot, { peerDash } from './SalesPlot';
 import './charts.css';
 
 const numbers = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
-const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 const dates = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const fullDates = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const units = value => value == null ? '—' : numbers.format(value);
@@ -22,41 +22,9 @@ function StorePicker({ stores, current, change }) {
   </div>;
 }
 
-function scaleStep(points, models) {
-  let max = 1;
-  for (const row of points) {
-    max = Math.max(max, row.actual ?? 0, ...models.map(({ id }) => row.forecasts[id] ?? 0));
-  }
-  const rough = max / 4;
-  const magnitude = 10 ** Math.floor(Math.log10(rough));
-  return [1, 2, 2.5, 5, 10].find(step => step * magnitude >= rough) * magnitude;
-}
-
-function ChartMarks({ points, selected, step, models }) {
-  const n = points.length;
-  const x = i => (100 * (i + 0.5) / n) + '%';
-  const y = value => (100 * (1 - value / (4 * step))) + '%';
-  return <svg className="fc-marks" aria-hidden="true" focusable="false">
-    {points.map((p, i) => p.actual == null && <rect key={p.date} className="fc-future"
-      x={100 * i / n + '%'} y="0" width={100 / n + '%'} height="100%" />)}
-    {[0, 1, 2, 3, 4].map(i => <line key={i} className="fc-grid-line" x1="0" x2="100%" y1={i * 25 + '%'} y2={i * 25 + '%'} />)}
-    <g className="fc-bars" data-series="actual">{points.map((p, i) => p.actual != null &&
-      <rect key={p.date} x={(100 * (i + 0.27) / n) + '%'} y={y(p.actual)} width={(46 / n) + '%'}
-        height={(100 * p.actual / (4 * step)) + '%'} />)}</g>
-    <line className="fc-cursor" x1={x(selected)} x2={x(selected)} y1="0" y2="100%" />
-    {models.map(model => <g key={model.id} className="fc-line" data-series={model.id} data-pattern={model.pattern}>
-      {points.map((p, i) => p.forecasts[model.id] != null && points[i - 1]?.forecasts[model.id] != null &&
-        <line key={p.date} x1={x(i - 1)} y1={y(points[i - 1].forecasts[model.id])} x2={x(i)} y2={y(p.forecasts[model.id])} />)}
-      {points.map((p, i) => p.forecasts[model.id] != null && (model.pattern === 0 || i === selected || n === 1) &&
-        <circle key={p.date} cx={x(i)} cy={y(p.forecasts[model.id])} r={i === selected ? 4.5 : 3} />)}
-    </g>)}
-  </svg>;
-}
-
-function WeekPlot({ points, dates, store, models, changeRange }) {
+function WeekPlot({ points, dates, store, models, futureIndex, changeRange }) {
   const [inspected, setInspected] = useState(null);
   const [drag, setDrag] = useState(null);
-  const step = scaleStep(points, models);
   const last = points.length - 1;
   const first = dates.indexOf(points[0].date);
   const clamp = index => Math.max(0, Math.min(last, index));
@@ -97,7 +65,7 @@ function WeekPlot({ points, dates, store, models, changeRange }) {
     if (Object.hasOwn(keys, event.key)) { event.preventDefault(); setInspected(first + clamp(keys[event.key])); }
   }
   return <>
-    <div className="fc-axis-title"><span>Units sold</span>
+    <div className="fc-axis-title"><span>Units sold per week</span>
       <div className="fc-zoom" role="group" aria-label="Chart zoom">
         <button type="button" className="button" aria-label="Zoom out" title="Zoom out" disabled={isFull}
           onClick={() => zoom(Math.min(dates.length, points.length * 2))}>−</button>
@@ -107,30 +75,25 @@ function WeekPlot({ points, dates, store, models, changeRange }) {
           onClick={() => changeRange(null)}>Reset</button>
       </div>
     </div>
-    <div className="fc-grid">
-      <div className="fc-ticks" aria-hidden="true">{[4, 3, 2, 1, 0].map(i =>
-        <span key={i}>{step * i >= 10000 ? compact.format(step * i) : units(step * i)}</span>)}</div>
+    <SalesPlot points={points} models={models} futureIndex={futureIndex}>
       <div className="fc-plot" role="slider" tabIndex={0} aria-label={'Inspect weeks for ' + store}
         aria-valuemin={1} aria-valuemax={points.length} aria-valuenow={selected + 1}
-        aria-valuetext={[dateLabel(point.date, true), 'Actual ' + units(point.actual),
+        aria-valuetext={[dateLabel(point.date, true), point.actual == null ? 'No recorded sales data' : 'Actual sales ' + units(point.actual),
           ...models.map(({ id, name }) => name + ' ' + units(point.forecasts[id]))].join(', ')}
         onKeyDown={navigate} onPointerDown={startDrag}
         onPointerMove={event => { if (event.isPrimary) setInspected(first + weekAt(event)); }}
         onPointerUp={endDrag} onLostPointerCapture={() => setDrag(null)} onPointerCancel={() => setDrag(null)}>
-        <ChartMarks points={points} selected={selected} step={step} models={models} />
+        <span className="fc-cursor" aria-hidden="true" style={{ left: 100 * (selected + .5) / points.length + '%' }} />
         {drag && selected !== drag.week && <div className="fc-zoom-selection" aria-hidden="true" style={{
           left: 100 * Math.min(selected, drag.week) / points.length + '%',
           width: 100 * (Math.abs(selected - drag.week) + 1) / points.length + '%',
         }} />}
       </div>
-      <div className="fc-dates" aria-hidden="true">{points.map((p, i) =>
-        <span key={p.date} data-mid={i === Math.floor(last / 2)}
-          data-tick={i === 0 || i === last || i === Math.floor(last / 2) || i % Math.max(1, Math.ceil(points.length / 7)) === 0}>
-          {dateLabel(p.date)}{p.isNext && <small>Next week</small>}</span>)}</div>
-    </div>
-    <div className="fc-readout"><time dateTime={point.date}>{dateLabel(point.date, true)}</time>
-      <span>Actual <span data-value-for="actual" data-value={point.actual ?? ''}>{units(point.actual)}</span></span>
-      {models.map(({ id, name }) => <span key={id}>{models.length === 1 && id === 'xgboost' ? 'Forecast' : name}{' '}
+    </SalesPlot>
+    <div className="fc-readout"><time dateTime={point.date}>Week of {dateLabel(point.date, true)}</time>
+      <span>Actual sales <span data-value-for="actual" data-value={point.actual ?? ''}>
+        {point.actual == null ? 'Unobserved' : units(point.actual)}</span></span>
+      {models.map(({ id, name }) => <span key={id}>{id === 'xgboost' ? 'Forecast' : name}{' '}
         <span data-value-for={id} data-value={point.forecasts[id] ?? ''}>{units(point.forecasts[id])}</span></span>)}
     </div>
   </>;
@@ -142,19 +105,24 @@ function Metric({ label, value, note, id, ...attrs }) {
   </div>;
 }
 
-function ChartLegend({ models, hidden, toggle }) {
+function ChartLegend({ models, future, hasGaps }) {
   return <div className="fc-legend" aria-label="Chart series">
-    <span><i className="fc-actual-key" />Actual sales</span>
-    {models.map(({ id, name, pattern }) => {
-      const mark = id === 'xgboost' ? <i className="fc-predicted-key" /> :
-        <svg className="fc-line fc-peer-key" data-pattern={pattern} width="23" height="6" aria-hidden="true">
-          <line x1="0" x2="23" y1="3" y2="3" />
-        </svg>;
-      if (models.length === 1) return <span key={id}>{mark}{name} forecast</span>;
-      return <button type="button" key={id} aria-pressed={!hidden.includes(id)}
-        onClick={() => toggle(id)}>{mark}{name}</button>;
-    })}
+    <span data-series="actual"><i className="fc-actual-key" />Actual sales</span>
+    {models.map(({ id, name, pattern }) => <span key={id} data-series={id}>
+      {id === 'xgboost' ? <i className="fc-predicted-key" /> :
+        <svg className="fc-peer-key" width="23" height="6" aria-hidden="true">
+          <line x1="0" x2="23" y1="3" y2="3" strokeDasharray={peerDash(pattern).join(' ')} />
+        </svg>}{name} forecast</span>)}
+    {hasGaps && <span><i className="fc-gap-key" aria-hidden="true">×</i>Actual unobserved</span>}
+    {future && <span><i className="fc-future-key" />Forecast only</span>}
   </div>;
+}
+
+// Frame recent observations with four upcoming forecasts in a long run.
+function initialRange(points, lastObserved) {
+  if (points.length <= 26) return null;
+  const end = Math.min(points.length - 1, Math.max(15, lastObserved + 4));
+  return { start: points[end - 15].date, end: points[end].date };
 }
 
 function Indicators({ points, visible, store, hasNext }) {
@@ -176,10 +144,10 @@ function Indicators({ points, visible, store, hasNext }) {
   </dl>;
 }
 
-export default function Results({ result }) {
+const Results = memo(function Results({ result }) {
   const [storeId, setStoreId] = useState(result.stores[0].id);
-  const [window, setWindow] = useState(null);
-  const [hidden, setHidden] = useState([]);
+  const [window, setWindow] = useState();
+  const [overlays, setOverlays] = useState(['xgboost']);
   const store = result.stores.find(s => s.id === storeId) ?? result.stores[0];
   const weeks = result.next ? [...result.weeks, result.next] : result.weeks;
   const points = weeks.map(week => {
@@ -188,25 +156,33 @@ export default function Results({ result }) {
       isNext: result.next?.week === week.week };
   });
   const dates = points.map(p => p.date);
-  const range = window && dates.includes(window.start) && dates.includes(window.end) ? window :
+  const lastObserved = points.findLastIndex(point => point.actual != null);
+  const chosen = window === undefined ? initialRange(points, lastObserved) : window;
+  const range = chosen && dates.includes(chosen.start) && dates.includes(chosen.end) ? chosen :
     { start: dates[0], end: dates.at(-1) };
   const visible = points.filter(p => p.date >= range.start && p.date <= range.end);
   const models = result.models.map((model, index) => ({ ...model, pattern: index }));
-  const shown = models.length === 1 ? models : models.filter(model => !hidden.includes(model.id));
+  const shown = models.length === 1 ? models : models.filter(model => overlays.includes(model.id));
+  const futureIndex = visible.findIndex(point => lastObserved < 0 || point.date > points[lastObserved].date);
+  const hasGaps = visible.some((point, i) => point.actual == null && (futureIndex < 0 || i < futureIndex));
   function toggle(id) {
-    setHidden(current => current.includes(id) ? current.filter(key => key !== id) : [...current, id]);
+    setOverlays(current => current.includes(id) ? current.filter(key => key !== id) : [...current, id]);
   }
   return <article className="fc-result" id="single-item-results" data-single-store={store.id}>
     <section className="fc-panel" aria-labelledby="fc-heading">
-      <div className="fc-heading"><h2 id="fc-heading">Weekly sales</h2>
+      <div className="fc-heading"><div><h2 id="fc-heading">Weekly sales</h2>
+        <p className="fc-range">{dateLabel(range.start, true)} – {dateLabel(range.end, true)}</p></div>
         <StorePicker stores={result.stores} current={store.id} change={setStoreId} /></div>
-      <ChartLegend models={models} hidden={hidden} toggle={toggle} />
-      <WeekPlot key={store.id} points={visible} dates={dates} store={store.name} models={shown} changeRange={setWindow} />
-      <ForecastControls result={result} dates={dates} range={range} changeRange={setWindow} points={visible} />
+      <ChartLegend models={shown} future={futureIndex >= 0} hasGaps={hasGaps} />
+      <WeekPlot key={store.id} points={visible} dates={dates} store={store.name} models={shown} futureIndex={futureIndex} changeRange={setWindow} />
+      <ForecastControls result={result} dates={dates} range={range} changeRange={setWindow} points={visible}
+        overlays={overlays} toggleOverlay={toggle} />
     </section>
-    <Indicators points={points} visible={visible} store={store} hasNext={Boolean(result.next)} />
+    <Indicators points={points} visible={visible} store={store} hasNext={Boolean(result.next && visible.length > 1 && visible.at(-1).isNext)} />
   </article>;
-}
+});
+
+export default Results;
 
 export function Evaluation({ result }) {
   const pooled = result.scores.find(score => score.store == null);

@@ -58,16 +58,11 @@ h3 { font-size: var(--type-body); }
 .wordmark { display: inline-block; margin-inline: var(--gap-2); color: var(--ink); font-size: 1.45rem; letter-spacing: -.07em; text-decoration: none; }
 .sidebar-nav { display: grid; gap: var(--gap-1); margin-top: var(--gap-6); padding-top: var(--gap-3); border-top: 1px dashed var(--line); }
 .sidebar-nav a {
-  position: relative; display: flex; align-items: center; min-height: 2.75rem; padding: .55rem 1.35rem;
+  display: flex; align-items: center; min-height: 2.75rem; padding: .55rem var(--gap-3);
   color: var(--muted); text-decoration: none; font-size: var(--type-label);
 }
 .sidebar-nav a:hover { background: var(--pressed); color: var(--ink); }
 .sidebar-nav a[aria-current="page"] { background: var(--accent-surface); color: var(--accent); }
-.sidebar-nav a[aria-current="page"]::before, .sidebar-nav a[aria-current="page"]::after {
-  content: ""; position: absolute; width: .28rem; height: 1.1em; border-block: 1px solid;
-}
-.sidebar-nav a[aria-current="page"]::before { left: .55rem; border-left: 1px solid; }
-.sidebar-nav a[aria-current="page"]::after { right: .55rem; border-right: 1px solid; }
 .skip-link { position: fixed; top: var(--gap-2); left: var(--gap-2); padding: var(--gap-2); z-index: 5; transform: translateY(-180%); background: var(--paper); }
 .skip-link:focus { transform: none; }
 .skip-link:not(:focus) { clip-path: inset(50%); }
@@ -107,6 +102,10 @@ select { appearance: none; cursor: pointer; }
 .upload-button, .empty-chart-action .button { border-color: var(--accent); color: var(--accent); }
 .empty-state { display: grid; justify-items: start; gap: var(--gap-4); padding: var(--gap-6); }
 .empty-state p { color: var(--muted); }
+
+.forecast-method { margin-top: var(--gap-5); padding-top: var(--gap-4); border-top: 1px dashed var(--line); }
+.forecast-method h2 { font-size: var(--type-label); }
+.forecast-method p { margin: var(--gap-2) 0 0; max-width: 80ch; color: var(--muted); font-size: var(--type-small); }
 
 .import-layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-4); align-items: start; }
 .upload-area, .format-area { padding: clamp(1.25rem, 2.6vw, 2rem); }
