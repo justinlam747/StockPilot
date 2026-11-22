@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 
 export default {
+  serverExternalPackages: ['bullmq', 'ioredis'],
   turbopack: { root: fileURLToPath(new URL('../', import.meta.url)) },
   devIndicators: false,
   poweredByHeader: false,
