@@ -88,18 +88,31 @@ test('production workspace trains from the public template and restores its fore
     const trained = await (await getResponse(origin + '/api/forecast', {
       method: 'POST', headers: {'Content-Type': 'application/json', Origin: origin}, body: JSON.stringify({csv}),
     })).json();
+    assert.equal(trained.result.training.parameters.n_estimators, 40);
     assert.deepEqual(trained.result.models.map(m => m.id), ['xgboost']);
     assert.equal(trained.result.scores[0].count, 4);
     assert.ok(Number.isFinite(trained.result.scores[0].mae.xgboost));
     assert.match(trained.projectId, /^[a-f0-9]{64}$/);
-    const project = path.join(dataDir, trained.projectId);
+    const parameters = {n_estimators: 32, max_depth: 3, learning_rate: 0.12};
+    const tuned = await (await getResponse(origin + '/api/forecast', {
+      method: 'POST', headers: {'Content-Type': 'application/json', Origin: origin},
+      body: JSON.stringify({csv, parameters}),
+    })).json();
+    assert.notEqual(tuned.projectId, trained.projectId);
+    for (const [name, value] of Object.entries(parameters)) {
+      assert.equal(tuned.result.training.parameters[name], value);
+    }
+    const project = path.join(dataDir, tuned.projectId);
     assert.deepEqual((await readdir(project)).sort(), ['forecast.json', 'history.csv', 'model.ubj', 'project.json']);
 
     await server.stop();
     server = startServer(dataDir);
-    const restored = await (await getResponse((await server.address) + '/api/forecast')).json();
-    assert.equal(restored.projectId, trained.projectId);
-    assert.deepEqual(restored.result, trained.result);
+    const endpoint = (await server.address) + '/api/forecast';
+    const restored = await (await getResponse(endpoint)).json();
+    assert.equal(restored.projectId, tuned.projectId);
+    assert.deepEqual(restored.result, tuned.result);
+    const original = await (await getResponse(endpoint + '?id=' + trained.projectId)).json();
+    assert.deepEqual(original.result, trained.result);
     const replay = spawnSync(python, ['-B', '-c', [
       'import json, sys',
       'from pathlib import Path',

@@ -29,6 +29,8 @@ Include **at least eight consecutive, completed weeks per store**, ending on the
 
 Choose **Import sales** in the sidebar and select the file. A one-item file trains immediately. For a file containing several items, choose the item to train. Each import saves a project with that item's history, fitted model and forecasts. Reopen earlier imports from **Saved projects**. To update a forecast, import the full history with the newly completed weeks appended.
 
+To try another XGBoost configuration, open **Training settings** before choosing the CSV. The defaults are **40 trees**, **maximum depth 2** and a **learning rate of 0.05**. These are fixed starting values. More trees add fitting steps, depth lets each tree learn more specific patterns, and the learning rate controls the size of each step. Import the same history with different settings to save another run. **Evaluation** shows the settings and error for each run. If you use those scores to choose settings, keep later weeks aside for a final check.
+
 ## Read the forecast
 
 Open **Forecast** and select a store to see weekly predictions alongside actual sales. The cards below the chart show that store’s next-week forecast, last observed sales and mean absolute error. Forecasts are expected units sold and can include decimals. Open **Evaluation** for the scored weeks and training details.

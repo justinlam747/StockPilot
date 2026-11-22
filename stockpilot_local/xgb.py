@@ -9,10 +9,9 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from xgboost import XGBRegressor
 
+from .parameters import XGB_OPTIONS, validate_parameters
+
 WEEK = timedelta(days=7)
-XGB_OPTIONS = dict(n_estimators=40, max_depth=2, learning_rate=0.05, min_child_weight=2,
-                   reg_lambda=1, objective="reg:squarederror", tree_method="hist",
-                   random_state=7, n_jobs=1)
 FEATURES = ["Previous 1–3 weeks", "Up to 3-week average", "Weeks since first record",
             "Annual seasonality", "Christmas window", "Store identity"]
 
@@ -82,11 +81,11 @@ def predict_frame(tree, targets, origin, store_count):
     return {"week": origin.isoformat(), "stores": cells}
 
 
-def fit_week(samples, origin, store_count):
+def fit_week(samples, origin, store_count, options=XGB_OPTIONS):
     train = [s for s in samples if s["trainable"] and s["week"] < origin]
     if not train:
         raise ValueError("Too few prior in-stock weeks with sales history to fit the first forecast.")
-    tree = XGBRegressor(**XGB_OPTIONS)
+    tree = XGBRegressor(**options)
     tree.fit(model_input(train, store_count), [s["actual"] for s in train])
     targets = [s for s in samples if s["week"] == origin]
     return predict_frame(tree, targets, origin, store_count), len(train), tree
@@ -114,15 +113,19 @@ def score_weeks(weeks, stores):
     return scores
 
 
-def train_item(rows, *, holdout_start=None):
+def train_item(rows, *, holdout_start=None, parameters=None):
     """Refit at each test week, then return the evaluation and a native saveable final estimator."""
+    options = XGB_OPTIONS.copy()
+    if parameters is not None:
+        validate_parameters(parameters)
+        options.update(parameters)
     groups = group_rows(rows)
     stores = sorted(groups)
     samples = training_examples(groups, stores)
     origins = forecast_origins(groups, holdout_start)
-    runs = [fit_week(samples, origin, len(stores))[:2] for origin in origins[:-1]]
+    runs = [fit_week(samples, origin, len(stores), options)[:2] for origin in origins[:-1]]
     weeks = [frame for frame, count in runs]
-    next_week, final_count, final_tree = fit_week(samples, origins[-1], len(stores))
+    next_week, final_count, final_tree = fit_week(samples, origins[-1], len(stores), options)
     item = rows[0]["item"]
     metadata = dict(version=1, item=item, stores=stores, trainedThrough=(origins[-1] - WEEK).isoformat(),
                     firstWeeks={store: min(groups[store]).isoformat() for store in stores})
@@ -133,7 +136,7 @@ def train_item(rows, *, holdout_start=None):
         "models": [{"id": "xgboost", "name": "XGBoost"}],
         "weeks": weeks, "scores": score_weeks(weeks, stores), "next": next_week,
         "training": {"initialRows": runs[0][1], "finalRows": final_count, "holdoutWeeks": len(weeks),
-                     "features": FEATURES, "storeOrder": stores, "parameters": XGB_OPTIONS,
+                     "features": FEATURES, "storeOrder": stores, "parameters": options,
                      "scope": "XGBoost shares one model across stores for this item and refits before each forecast."},
     }
     return result, final_tree

@@ -44,10 +44,14 @@ test('local worker selects an item, trains it and restores its saved forecast in
       dataset.push(monday + ',Cardigan,Queen West,' + (i + 2) + ',' + (i !== 6));
     }
     dataset.push('2025-01-06,Scarf,Queen West,1,true');
-    const trained = await POST(upload({csv: dataset.join('\n'), item: 'Cardigan'}));
+    const invalidSettings = await POST(upload({csv: dataset.join('\n'), parameters: {max_depth: '4'}}));
+    assert.equal(invalidSettings.status, 422);
+    const trained = await POST(upload({csv: dataset.join('\n'), item: 'Cardigan', parameters: {max_depth: 4}}));
     const snapshot = await trained.json();
     assert.equal(trained.status, 200, snapshot.error);
     assert.deepEqual(snapshot.result.models.map(m => m.id), ['xgboost']);
+    assert.equal(snapshot.result.training.parameters.max_depth, 4);
+    assert.equal(snapshot.result.training.parameters.n_estimators, 40);
     assert.equal(snapshot.result.scores[0].count, 3);
     assert.equal(snapshot.result.next.week, '2025-03-03');
     assert.equal(snapshot.result.source.availability, 'reported');

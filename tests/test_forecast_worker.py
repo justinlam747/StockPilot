@@ -45,6 +45,36 @@ def test_selected_history_and_native_model_restore(tmp_path, monkeypatch):
     assert process_request({"op": "read"})["projectId"] == project_id
 
 
+def test_explicit_defaults_reuse_a_project_and_custom_settings_survive_restore(tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    upload = {"csv": dataset(), "item": "../../Black, cardigan"}
+    original = process_request(upload)
+    defaults = {"n_estimators": 40, "max_depth": 2, "learning_rate": 0.05}
+    assert process_request({**upload, "parameters": defaults})["projectId"] == original["projectId"]
+    changed = process_request({**upload, "parameters": {"max_depth": 1}})
+    assert changed["projectId"] != original["projectId"]
+    assert len(changed["projects"]) == 2
+    restored = process_request({"op": "read", "id": changed["projectId"]})
+    assert restored["result"]["training"]["parameters"] == {**original["result"]["training"]["parameters"], "max_depth": 1}
+    assert process_request({**upload, "parameters": {}})["projectId"] == original["projectId"]
+
+
+@pytest.mark.parametrize("parameters,error", [
+    (None, "object"), ([], "object"), ({"n_jobs": 2}, "Unknown"),
+    ({"max_depth": True}, "Maximum depth"), ({"max_depth": 0}, "Maximum depth"),
+    ({"max_depth": 7}, "Maximum depth"), ({"n_estimators": "40"}, "Trees"),
+    ({"n_estimators": 2.5}, "Trees"), ({"n_estimators": 201}, "Trees"),
+    ({"learning_rate": None}, "Learning rate"), ({"learning_rate": 0.005}, "Learning rate"),
+    ({"learning_rate": 0.301}, "Learning rate"), ({"learning_rate": float("nan")}, "Learning rate"),
+    ({"learning_rate": float("inf")}, "Learning rate"),
+])
+def test_invalid_parameters_rejected_before_selection_or_saving(parameters, error, tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    with pytest.raises(ValueError, match=error):
+        process_request({"csv": dataset(), "parameters": parameters})
+    assert list(tmp_path.iterdir()) == []
+
+
 @pytest.mark.parametrize("header,records,error", [
     ("week,item,store,units_sold", "2025-01-06,A,B,-1", "nonnegative"),
     ("week,item,store,units_sold", "2025-01-06,A,B,", "nonnegative"),

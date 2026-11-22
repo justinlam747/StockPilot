@@ -4,6 +4,7 @@ from statistics import fmean
 import pytest
 from xgboost import XGBRegressor
 
+from stockpilot_local import xgb
 from stockpilot_local.xgb import predict_next, train_item
 
 
@@ -60,6 +61,33 @@ def test_native_model_roundtrip_with_recent_history(tmp_path):
     next_forecast = predict_next(loaded, extended)
     assert next_forecast["week"] == "2024-03-18"
     assert all(c["actual"] is None and c["forecasts"]["xgboost"] >= 0 for c in next_forecast["stores"])
+
+
+def test_custom_options_apply_to_every_fit_without_changing_defaults(monkeypatch, tmp_path):
+    rows = weekly_rows()
+    default_result, _ = train_item(rows)
+    fits = []
+
+    def record_fit(**options):
+        fits.append(options)
+        return XGBRegressor(**options)
+
+    monkeypatch.setattr(xgb, "XGBRegressor", record_fit)
+    choices = {"n_estimators": 3, "max_depth": 1, "learning_rate": 0.3}
+    expected = {**default_result["training"]["parameters"], **choices}
+    result, tree = train_item(rows, parameters=choices)
+    assert fits == [expected] * (result["training"]["holdoutWeeks"] + 1)
+    assert result["training"]["parameters"] == expected
+    assert result["weeks"] != default_result["weeks"]
+    assert result["next"] != default_result["next"]
+    assert choices == {"n_estimators": 3, "max_depth": 1, "learning_rate": 0.3}
+    result["training"]["parameters"]["max_depth"] = 6
+    assert train_item(rows)[0] == default_result
+    tree.save_model(tmp_path / "model.ubj")
+    loaded = XGBRegressor()
+    loaded.load_model(tmp_path / "model.ubj")
+    assert loaded.get_booster().num_boosted_rounds() == 3
+    assert predict_next(loaded, rows) == result["next"]
 
 
 def test_missing_dates_and_insufficient_training_are_explicit():

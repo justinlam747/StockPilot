@@ -1,0 +1,5 @@
+{
+  "n_estimators": {"label": "Trees", "default": 40, "min": 1, "max": 200, "integer": true},
+  "max_depth": {"label": "Maximum depth", "default": 2, "min": 1, "max": 6, "integer": true},
+  "learning_rate": {"label": "Learning rate", "default": 0.05, "min": 0.01, "max": 0.3, "integer": false}
+}
