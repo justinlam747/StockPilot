@@ -1,116 +1,55 @@
 # StockPilot
 
-A local, one-page inventory dashboard: see stores at a glance, watch stock move,
-and act on predicted stockouts with forecast-based transfer recommendations.
+Forecast weekly sales for one item across its stores. Import a CSV, train XGBoost on that item's history, and compare predictions with actual sales for each store. The Next.js frontend, forecast queue, model, and saved projects run on your computer. An optional Shopify connection keeps a local copy of your shop's inventory.
 
-StockPilot is moving from a broad Shopify app toward a focused inventory
-intelligence showcase. The workflow is **inventory → demand forecast → stockout
-warning → transfer → updated inventory**. Supplier management, purchase orders,
-and a general-purpose AI copilot are outside the current dashboard scope.
+## Run the forecast app
 
-## Run locally
+Install Node.js 20.9 or newer with npm and Python 3.11–3.14. On Windows x64, setup installs a portable Redis server. On macOS, install the queue server and XGBoost runtime with `brew install valkey libomp`. On Linux, install Redis 6.2 or newer, or Valkey.
 
-Requires Python 3.12–3.14. From this repository on Windows:
-
-```powershell
-python -m venv .venv-dashboard
-.venv-dashboard\Scripts\python.exe -m pip install -r local_dashboard/requirements.txt
-.venv-dashboard\Scripts\python.exe -m local_dashboard.server
+```sh
+npm run setup
+npm run dev
 ```
 
-Open **http://127.0.0.1:8000**. No Shopify login, database, API keys, GPU, or cloud
-resources are needed. After setup, `npm run dev` starts the same dashboard and
-uses `.venv-dashboard`. Change ports with `npm run dev -- --port 8001`.
-On macOS/Linux use `python3` to create the environment and
-`.venv-dashboard/bin/python` for subsequent Python commands.
+Open **Forecast**, then choose **Import sales** in the sidebar. For a production build, run `npm run build` followed by `npm start`. [Open the local frontend](http://127.0.0.1:3000/forecast)
 
-## The one-page dashboard
+## Forecast an item
 
-- **Store overview:** ten locations, fifty products per store, stock on hand, and
-  store-product stockout counts. Select a store to filter the page.
-- **Forecast updates:** real saved-model XGBoost inference for the next seven days
-  across all 500 series. Inspect any series alongside the previous-week baseline.
-  Refresh reruns inference; it does not retrain or invent new sales.
-- **Inventory alerts:** projected stockout day, current stock, and seven-day demand.
-  Search products/SKUs, filter urgent or empty positions, and inspect their forecasts.
-- **Transfer recommendations:** move the same product from a surplus store to a
-  shortage store. Suggestions explain quantities and the source safety-stock rule.
-- **Stock history and movements:** daily network inventory chart plus a ledger of
-  simulated sales, receipts, dispatched transfers, and received transfers.
-- **GraphQL inventory sync:** local fixture inventory passes through a real typed
-  GraphQL query at initialization and on each simulated day. UI reads and commands
-  also use GraphQL. The local dashboard does not connect to Shopify.
+Supply one row per item, store, and week, with at least eight consecutive completed weeks per store ending in the same week. Files can contain several items. Choose one per training run. The upload limit is 1 MiB. [Download the sample sales CSV](forecast_app/public/weekly-sales-template.csv)
 
-Click **Advance one day** to simulate demand, record movements, receive transfers,
-sync inventory, and refresh forecasts. **Play simulation** repeats every ten
-seconds. **Reset simulation** restores the seeded scenario. State and audit events
-are in memory; restarting the server resets them.
-
-## Our XGBoost model and the 29% result
-
-The dashboard includes the trained model and feature logic from `StockPilot-rebuild`,
-using its `evaluation_20261116T165116Z` artifacts.
-
-| Measured result | Value |
+| Column | Value |
 | --- | --- |
-| Store-product series | 500 (10 stores × 50 products) |
-| Evaluation period | Calendar year 2017 |
-| Rolling backtest | 53 weekly origins; 52 complete seven-day windows |
-| Previous-week weekly-total MAE | 26.66 units |
-| XGBoost weekly-total MAE | 18.91 units |
-| Relative reduction | **29.07%** |
+| `week` | Monday of the trading week, in `YYYY-MM-DD` format |
+| `item` | A consistent item name or ID |
+| `store` | A consistent store name or ID |
+| `units_sold` | Whole units sold that week. Enter `0` for confirmed zero sales. |
+| `in_stock` | Optional. Use `false` if availability constrained sales that week. The default is `true`. |
 
-Weekly error is measured after summing the seven predictions for each
-store/product/origin, then averaging absolute error across those observations.
-The baseline repeats the previous week's daily sales. Training uses only data
-preceding each origin; recursive forecasts never use future observed sales.
-See [the backtest summary](local_dashboard/artifacts/backtest-summary.md) and
-[run metadata](local_dashboard/artifacts/backtest-run.json) for the original
-protocol, results, and limits. The backtest was imported, not rerun during this refactor.
+Select a store on **Forecast** to see its sales and predictions. **Chart window** changes the dates shown. **Forecast period** sets the weeks to predict. **Queue forecast** runs that period using only history from before its start. The queue shows waiting, running, and completed forecasts.
 
-Features: categorical store/item, calendar fields, lags at 1/7/14/28/364 days,
-and shifted 7/28-day rolling means. CPU inference uses the saved last-origin model;
-there is no retraining in the demo.
+The default run tests up to eight recent weeks and predicts the following week. **Evaluation** shows mean absolute error (MAE), the average miss in units, for weeks with stock available. To try a different model configuration, adjust tree count, depth, or learning rate under **Training settings** when importing.
 
-## What is historical and what is simulated?
+To build a source ZIP for distribution, run `python scripts/package_forecast.py` from the repository root.
 
-- **Historical:** the bundled 364-day sales context (2017-01-02 to 2017-12-31),
-  trained model, and evaluation results. Sales may differ from unconstrained demand.
-  This model is a backtest snapshot, not a production refit.
-- **Simulated:** initial inventory, friendly store/product names, subsequent demand,
-  receipts, transfers, stock history, and stockout scenarios. The simulation starts
-  on 2018-01-01 to preserve the model's calendar context. Later demand is sampled
-  around forecasts and is not evaluation evidence.
-- **Projected:** stockout is the first day cumulative predicted demand reaches
-  available stock plus next-day inbound units. These dates are point projections,
-  not calibrated probabilities. Negative chart balances show unmet demand, not
-  physically negative inventory.
+**Saved projects** reopens your history and results. Set `STOCKPILOT_DATA_DIR` to choose where projects and the queue are stored. By default they live under `%LOCALAPPDATA%\StockPilot\forecasts` on Windows, `~/Library/Application Support/StockPilot/forecasts` on macOS, or `~/.local/share/stockpilot/forecasts` on Linux (`XDG_DATA_HOME` is respected).
 
-Transfers reserve source stock immediately and arrive before sales on the next
-simulated day. Donors retain seven forecast days plus two safety days. Suggestions
-share donor budgets to prevent over-allocation. Inbound units count toward recipient
-coverage after dispatch. Day-one shortages are conservatively excluded; replenishment
-may be needed. Partial transfers may reduce a shortage without eliminating it.
+## Connect Shopify
 
-The **29.07% forecast improvement is measured**. Stockout avoidance, transfer ROI,
-and service-level improvements have not been measured. The source dataset has no
-inventory or transfer-cost observations to establish those outcomes.
+Choose **Connect Shopify** on the import page to authorize a store and sync inventory through Shopify's Admin GraphQL API. Inventory quantities describe current stock. The forecasting model takes weekly units sold from the CSV above.
 
-## Development
+The connector is optional. To enable it, use Ruby 3.3+, PostgreSQL, a running Redis server, and a Shopify app. From `shopify/`, run `bundle install` and copy `.env.example` to `.env`. Fill in the Shopify client ID and secret, the PostgreSQL and Redis URLs, and your public HTTPS connector origin in `SHOPIFY_APP_URL`. Expose the connector port through your HTTPS tunnel. In `shopify.app.toml`, use the client ID of your Shopify app and replace the example URLs with your HTTPS origin followed by `/connect` and `/auth/shopify/callback`. From `shopify/`, publish the configuration to that app with `shopify app deploy` to register its product, uninstall, and privacy webhooks. [Shopify app configuration](https://shopify.dev/docs/apps/build/cli-for-apps/app-configuration)
 
-```powershell
-.venv-dashboard\Scripts\python.exe -m pytest local_dashboard/tests -q
+For a new connector database, generate three separate Active Record encryption keys with `ruby -rsecurerandom -e "3.times { puts SecureRandom.hex(16) }"` and a session secret with `ruby -rsecurerandom -e "puts SecureRandom.hex(64)"`. Enter them in `.env`. When reusing an existing installation, use its database and original encryption keys so stored access tokens can still be read.
+
+From `shopify/`, prepare the database and start the connector. Run the worker in a second terminal from the same directory.
+
+```sh
+bundle exec ruby bin/rails db:prepare
+bundle exec ruby bin/rails server -b 127.0.0.1 -p 3001
 ```
 
-| Path | Purpose |
-| --- | --- |
-| `local_dashboard/engine.py` | Simulation, projections, alerts, recommendations, command audit |
-| `local_dashboard/demand.py` | Existing feature construction and recursive forecasts |
-| `local_dashboard/mock_sync.py` | Typed mock GraphQL inventory source |
-| `local_dashboard/server.py` | Loopback-only HTTP server and GraphQL API |
-| `local_dashboard/static/` | Responsive single-page dashboard; no frontend build |
-| `local_dashboard/artifacts/` | Model, historical context, and backtest evidence |
+```sh
+bundle exec sidekiq -q shopify_inventory
+```
 
-Earlier Rails/Shopify work (`app/`) and the unfinished Remix/AI work (`web/`, `ai/`)
-remain available. The dashboard does not depend on them.
-`npm run dev:shopify` retains the earlier Shopify development command.
+The first connection queues an inventory sync. Use the connector to view inventory or request another sync. The frontend opens `http://127.0.0.1:3001/connect` by default. Set `NEXT_PUBLIC_SHOPIFY_CONNECT_URL` before starting or building Next.js to use a different connector address.

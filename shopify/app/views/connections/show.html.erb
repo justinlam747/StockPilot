@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect Shopify · StockPilot</title>
+</head>
+<body>
+  <main>
+    <h1>Shopify connection</h1>
+    <% if @shop %>
+      <p><%= @shop.shop_domain %></p>
+      <p>Last inventory sync: <%= @shop.synced_at&.iso8601 || 'Waiting for first sync' %></p>
+      <% if @shop.reauthorization_required_at? %>
+        <p>Reconnect Shopify to resume inventory sync.</p>
+      <% else %>
+        <%= button_to 'Sync inventory', '/sync' %>
+      <% end %>
+      <%= button_to 'Reconnect Shopify', '/auth/shopify', params: { shop: @shop.shop_domain } %>
+      <p><%= link_to 'View inventory', '/inventory' %></p>
+    <% else %>
+      <%= form_tag('/auth/shopify', method: :post) do %>
+        <%= label_tag :shop, 'Shop domain' %>
+        <%= text_field_tag :shop, nil, placeholder: 'your-shop.myshopify.com', required: true, autocomplete: 'off' %>
+        <%= submit_tag 'Connect Shopify' %>
+      <% end %>
+    <% end %>
+  </main>
+</body>
+</html>

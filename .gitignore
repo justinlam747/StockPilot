@@ -1,43 +1,23 @@
-# Environment
-.env
-.env.local
-.env.production
-
-# Rails
-/log/*
-/tmp/*
-!/log/.keep
-!/tmp/.keep
-/storage/*
-!/storage/.keep
-config/master.key
-config/credentials/*.key
-
-# Ruby
-/.bundle
-/vendor/bundle
-
-# Node
-/node_modules
-/frontend/node_modules
-
-# Vite
-/public/vite*
-/public/assets
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS
+node_modules/
+.next/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+dist/
+.stockpilot-data/
+*.ubj
+.env*
+!.env.example
+/shopify/.bundle/
+/shopify/vendor/bundle/
+/shopify/log/
+/shopify/tmp/
+/shopify/storage/
+/shopify/db/*.sqlite3*
+/shopify/db/schema.rb
+/shopify/config/master.key
+/shopify/config/credentials/*.key
+/shopify/.shopify/
 .DS_Store
 Thumbs.db
-
-# Coverage
-/coverage
-
-# Superpowers docs (local only)
-docs/superpowers/

@@ -1,0 +1,9 @@
+week,item,store,units_sold,in_stock
+2025-01-06,Example item,North,12,true
+2025-01-13,Example item,North,9,true
+2025-01-20,Example item,North,14,true
+2025-01-27,Example item,North,11,true
+2025-02-03,Example item,North,13,true
+2025-02-10,Example item,North,16,true
+2025-02-17,Example item,North,12,true
+2025-02-24,Example item,North,15,true
