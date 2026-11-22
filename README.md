@@ -1,62 +1,55 @@
 # StockPilot
 
-Train an XGBoost sales forecast for **one item at a time**, using your own weekly sales. Import a CSV, see how accurately the model would have predicted recent weeks at each store, and get an estimate for the following week. The browser, training process and saved projects run on your computer.
+Forecast weekly sales for one item across its stores. Import a CSV, train XGBoost on that item's history, and compare predictions with actual sales for each store. The Next.js frontend, forecast queue, model, and saved projects run on your computer. An optional Shopify connection keeps a local copy of your shop's inventory.
 
-## Run locally
+## Run the forecast app
 
-Install **Node.js 20.9+ with npm** and **Python 3.11–3.14**. Windows setup installs a checksum-verified portable Redis queue server in the project. On macOS, install the trainer and queue dependencies with `brew install libomp valkey`. On Linux, install Valkey or Redis 6.2 or later (for example, `sudo apt install redis-server` on Ubuntu 24.04). Download and extract the StockPilot local release, or clone the repository. Open a terminal in the folder containing this README and run:
+Install Node.js 20.9 or newer with npm and Python 3.11–3.14. On Windows x64, setup installs a portable Redis server. On macOS, install the queue server and XGBoost runtime with `brew install valkey libomp`. On Linux, install Redis 6.2 or newer, or Valkey.
 
 ```sh
 npm run setup
 npm run dev
 ```
 
-Open the [StockPilot forecast](http://127.0.0.1:3000/forecast). Use its sidebar to import sales, evaluate a forecast or reopen a saved project. Setup creates a Python environment in `.venv` and installs the JavaScript and CPU forecasting dependencies. Setup needs internet access. Importing, training, reopening a project and forecasting work offline after installation. To run a production build locally, use `npm run build` followed by `npm start`.
+Open **Forecast**, then choose **Import sales** in the sidebar. For a production build, run `npm run build` followed by `npm start`. [Open the local frontend](http://127.0.0.1:3000/forecast)
 
-From a repository checkout, run `python scripts/package_forecast.py` to create the distributable source archive at `dist/stockpilot-local.zip`.
+## Forecast an item
 
-## Bring your sales history
+Supply one row per item, store, and week, with at least eight consecutive completed weeks per store ending in the same week. Files can contain several items. Choose one per training run. The upload limit is 1 MiB. [Download the sample sales CSV](forecast_app/public/weekly-sales-template.csv)
 
-Download the [example CSV](forecast_app/public/weekly-sales-template.csv) from the app or this repository. It contains fictional sales you can replace. Use one row per item, store and trading week.
-
-| Column | What to enter |
+| Column | Value |
 | --- | --- |
-| `week` | Monday starting the week, in `YYYY-MM-DD` format |
-| `item` | A stable product name or ID, such as `Black long cardigan` |
-| `store` | A stable store name or ID. A single store works. |
-| `units_sold` | Whole units sold that week, including genuine zeros. The alias `units` also works. |
-| `in_stock` | Optional. Use `false` for a week when availability constrained sales. Omitted flags assume the item was available. |
+| `week` | Monday of the trading week, in `YYYY-MM-DD` format |
+| `item` | A consistent item name or ID |
+| `store` | A consistent store name or ID |
+| `units_sold` | Whole units sold that week. Enter `0` for confirmed zero sales. |
+| `in_stock` | Optional. Use `false` if availability constrained sales that week. The default is `true`. |
 
-Include **at least eight consecutive, completed weeks per store**, ending on the same Monday. For transaction data, sum units by item, store and week first. Fill a confirmed zero-sales week with `0`. Investigate missing records before importing. The maximum CSV size is 1 MiB.
+Select a store on **Forecast** to see its sales and predictions. **Chart window** changes the dates shown. **Forecast period** sets the weeks to predict. **Queue forecast** runs that period using only history from before its start. The queue shows waiting, running, and completed forecasts.
 
-Choose **Import sales** in the sidebar and select the file. A one-item file goes straight into the forecast queue. For a file containing several items, choose the item to queue. Each import saves a project with that item's history, fitted model and forecasts. Reopen earlier imports from **Saved projects**. To update a forecast, import the full history with the newly completed weeks appended.
+The default run tests up to eight recent weeks and predicts the following week. **Evaluation** shows mean absolute error (MAE), the average miss in units, for weeks with stock available. To try a different model configuration, adjust tree count, depth, or learning rate under **Training settings** when importing.
 
-To try another XGBoost configuration, open **Training settings** before choosing the CSV. The defaults are **40 trees**, **maximum depth 2** and a **learning rate of 0.05**. These are fixed starting values. More trees add fitting steps, depth lets each tree learn more specific patterns, and the learning rate controls the size of each step. Import the same history with different settings to save another run. **Evaluation** shows the settings and error for each run. If you use those scores to choose settings, keep later weeks aside for a final check.
+To build a source ZIP for distribution, run `python scripts/package_forecast.py` from the repository root.
 
-## Read the forecast
+**Saved projects** reopens your history and results. Set `STOCKPILOT_DATA_DIR` to choose where projects and the queue are stored. By default they live under `%LOCALAPPDATA%\StockPilot\forecasts` on Windows, `~/Library/Application Support/StockPilot/forecasts` on macOS, or `~/.local/share/stockpilot/forecasts` on Linux (`XDG_DATA_HOME` is respected).
 
-Open **Forecast** and select a store to see weekly predictions alongside actual sales. Under **Timeline**, the **Chart window** sets the first and last calculated week shown. Choose **All weeks** to restore the full chart.
+## Connect Shopify
 
-Use **Forecast period** to predict a specific historical or future interval. Choose its first and last Monday, then select **Queue forecast**. StockPilot fits the model on the saved history before the start and uses its own predictions for later weeks, including any gap after the last recorded sale. The limit is 50,000 store-weeks per run, including gap weeks. A historical period lets you compare those predictions with recorded sales. Choose **Reset period** and rerun to return to the default forecast.
+Choose **Connect Shopify** on the import page to authorize a store and sync inventory through Shopify's Admin GraphQL API. Inventory quantities describe current stock. The forecasting model takes weekly units sold from the CSV above.
 
-**Forecast queue** sits below the chart and its cards. It shows the active run, waiting runs in submission order and recent results. You can queue another period while a run is active, leave the page and return, or open a completed run to inspect its forecast. When a run includes comparison models, each model shows its own progress.
+The connector is optional. To enable it, use Ruby 3.3+, PostgreSQL, a running Redis server, and a Shopify app. From `shopify/`, run `bundle install` and copy `.env.example` to `.env`. Fill in the Shopify client ID and secret, the PostgreSQL and Redis URLs, and your public HTTPS connector origin in `SHOPIFY_APP_URL`. Expose the connector port through your HTTPS tunnel. In `shopify.app.toml`, use the client ID of your Shopify app and replace the example URLs with your HTTPS origin followed by `/connect` and `/auth/shopify/callback`. From `shopify/`, publish the configuration to that app with `shopify app deploy` to register its product, uninstall, and privacy webhooks. [Shopify app configuration](https://shopify.dev/docs/apps/build/cli-for-apps/app-configuration)
 
-For the default run, the cards below the chart show that store’s next-week forecast, last observed sales and mean absolute error. Forecasts are expected units sold and can include decimals. Open **Evaluation** for the scored weeks and training details.
+For a new connector database, generate three separate Active Record encryption keys with `ruby -rsecurerandom -e "3.times { puts SecureRandom.hex(16) }"` and a session secret with `ruby -rsecurerandom -e "puts SecureRandom.hex(64)"`. Enter them in `.env`. When reusing an existing installation, use its database and original encryption keys so stored access tokens can still be read.
 
-The model learns from the selected item across its stores. Inputs include store identity, recent sales, weeks since the first observation and calendar features. The default forecast tests the last half of the shortest store history, rounded down, up to eight weeks. It refits before each of those weeks, then uses all eligible history for the next-week estimate.
+From `shopify/`, prepare the database and start the connector. Run the worker in a second terminal from the same directory.
 
-**Mean absolute error (MAE)** is the average distance in units between a forecast and the observed sales. An MAE of 2 means forecasts missed by two units on average. Weeks flagged out of stock are excluded as training targets and from MAE. Accuracy applies to this item, these stores and these dates. A short history may contain too little evidence to learn recurring holiday effects.
+```sh
+bundle exec ruby bin/rails db:prepare
+bundle exec ruby bin/rails server -b 127.0.0.1 -p 3001
+```
 
-## Where your data lives
+```sh
+bundle exec sidekiq -q shopify_inventory
+```
 
-The Next.js server listens on the loopback interface. Your browser sends the CSV to the Python worker on that same computer. Queued inputs stay in the local data folder until processing finishes. Each saved project holds the selected item's normalized history, XGBoost model and results. Recent queue entries also retain the forecast snapshot for that particular run. You can reopen saved projects after restarting. The release includes a blank workspace and an optional synthetic CSV.
-
-| Operating system | Default project folder |
-| --- | --- |
-| Windows | `%LOCALAPPDATA%\StockPilot\forecasts` |
-| macOS | `~/Library/Application Support/StockPilot/forecasts` |
-| Linux | `$XDG_DATA_HOME/stockpilot/forecasts`, or `~/.local/share/stockpilot/forecasts` |
-
-Set `STOCKPILOT_DATA_DIR` before starting the app to choose another folder. Back up that folder to keep your projects. Delete a project's folder to remove its saved history, model and forecasts, then refresh the browser.
-
-The local launcher starts an authenticated BullMQ broker bound to loopback and persists its queue under the forecast folder. You can use an existing local Redis 6.2+ or Valkey instance by setting `STOCKPILOT_REDIS_URL`. Configure persistence and the `noeviction` policy on an external broker to retain waiting jobs across restarts.
+The first connection queues an inventory sync. Use the connector to view inventory or request another sync. The frontend opens `http://127.0.0.1:3001/connect` by default. Set `NEXT_PUBLIC_SHOPIFY_CONNECT_URL` before starting or building Next.js to use a different connector address.

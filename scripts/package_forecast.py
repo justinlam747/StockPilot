@@ -1,7 +1,6 @@
-"""Build the local trainer's source ZIP from an explicit release manifest."""
+"""Package the forecasting workspace and optional Shopify connector for local use."""
 
 import argparse
-import json
 import os
 import tempfile
 from pathlib import Path
@@ -10,7 +9,8 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = (
-    "README.md", "requirements.txt", "scripts/local.mjs", "scripts/queue-broker.mjs", "scripts/setup-redis.py",
+    ".gitignore", "README.md", "requirements.txt", "package.json", "package-lock.json",
+    "scripts/local.mjs", "scripts/package_forecast.py", "scripts/queue-broker.mjs", "scripts/setup-redis.py",
     "forecast_app/next.config.mjs", "forecast_app/package.json",
     "forecast_app/instrumentation.js", "forecast_app/server/redis-connection.mjs",
     "forecast_app/server/forecast-queue.mjs", "forecast_app/server/forecast-worker.mjs",
@@ -31,43 +31,35 @@ FILES = (
     "tests/forecast-route.test.mjs", "tests/forecast-release.test.mjs", "tests/forecast-queue.test.mjs",
     "tests/queue-broker.test.mjs",
 )
-PUBLIC_SCRIPTS = ("setup", "dev", "build", "start")
-IGNORE = ".venv/\nnode_modules/\n.next/\n__pycache__/\n.pytest_cache/\n.stockpilot-data/\n.env*\n*.ubj\n"
-
-
-def json_bytes(value):
-    return (json.dumps(value, indent=2, ensure_ascii=False) + "\n").encode()
-
-
-def package_files():
-    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
-    public = {key: package[key] for key in ("name", "private", "engines", "dependencies")}
-    public["scripts"] = {key: package["scripts"][key] for key in PUBLIC_SCRIPTS}
-    lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
-    # npm marks packages exclusively reachable through a development dependency.
-    lock["packages"] = {key: pkg for key, pkg in lock["packages"].items() if not pkg.get("dev")}
-    lock["packages"][""].pop("devDependencies", None)
-    return {"package.json": json_bytes(public), "package-lock.json": json_bytes(lock)}
+SHOPIFY_FILES = (
+    ".env.example", "Gemfile", "Gemfile.lock", "Rakefile", "config.ru", "shopify.app.toml", "bin/rails",
+    "app/controllers/connections_controller.rb", "app/controllers/webhooks_controller.rb",
+    "app/jobs/inventory_sync_job.rb", "app/models/inventory_snapshot.rb", "app/models/product.rb",
+    "app/models/shop.rb", "app/models/variant.rb", "app/services/shopify/graphql_client.rb",
+    "app/services/shopify/inventory_fetcher.rb", "app/views/connections/show.html.erb",
+    "config/application.rb", "config/boot.rb", "config/database.yml", "config/environment.rb",
+    "config/initializers/credentials.rb", "config/initializers/omniauth.rb",
+    "config/initializers/sidekiq.rb", "config/puma.rb", "config/routes.rb",
+    "db/migrate/20261121000000_prepare_shopify_connector.rb",
+)
 
 
 def build(destination):
     destination.parent.mkdir(parents=True, exist_ok=True)
-    contents = {name: (ROOT / name).read_bytes() for name in FILES}
-    contents.update(package_files())
-    contents[".gitignore"] = IGNORE.encode()
+    paths = sorted([*FILES, *("shopify/" + file for file in SHOPIFY_FILES)])
     with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as tmp:
         temp_path = Path(tmp.name)
     try:
         with ZipFile(temp_path, "w") as archive:
-            for name, data in sorted(contents.items()):
+            for name in paths:
                 info = ZipInfo("StockPilot/" + name)
                 info.create_system = 3
-                info.external_attr = 0o100644 << 16
-                archive.writestr(info, data, compress_type=ZIP_DEFLATED)
+                info.external_attr = (0o100755 if name == "shopify/bin/rails" else 0o100644) << 16
+                archive.writestr(info, (ROOT / name).read_bytes(), compress_type=ZIP_DEFLATED)
         os.replace(temp_path, destination)
     finally:
         temp_path.unlink(missing_ok=True)
-    print(f"Packaged {len(contents)} source files into {destination}")
+    print(f"Packaged {len(paths)} source files into {destination}")
 
 
 if __name__ == "__main__":

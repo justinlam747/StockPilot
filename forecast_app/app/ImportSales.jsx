@@ -87,7 +87,10 @@ function UploadPanel() {
 
 export default function ImportSales() {
   return <div className="page-body" id="import-page">
-    <header className="page-head"><h1>Import sales</h1></header>
+    <header className="page-head import-heading">
+      <h1>Import sales</h1>
+      <a href={process.env.NEXT_PUBLIC_SHOPIFY_CONNECT_URL || 'http://127.0.0.1:3001/connect'}>Connect Shopify</a>
+    </header>
     <div className="import-layout">
       <UploadPanel />
       <section className="panel format-area">

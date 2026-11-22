@@ -46,7 +46,7 @@ test('forecast requests survive restart and disconnect, drain in FIFO order, and
   const config = {directory: join(dir, 'broker')};
   let broker = await startLocalBroker(config);
   const previous = {...process.env};
-  Object.assign(process.env, {STOCKPILOT_DATA_DIR:dir, STOCKPILOT_REDIS_URL:broker.url, STOCKPILOT_DISABLE_PEERS:'1'});
+  Object.assign(process.env, {STOCKPILOT_DATA_DIR:dir, STOCKPILOT_REDIS_URL:broker.url});
   try {
     const original = await submit('Current selection', 8, false);
     const service = await forecastQueue();
@@ -82,7 +82,7 @@ test('forecast requests survive restart and disconnect, drain in FIFO order, and
   } finally {
     await closeForecastQueues();
     await broker.stop();
-    for (const name of ['STOCKPILOT_DATA_DIR','STOCKPILOT_REDIS_URL','STOCKPILOT_DISABLE_PEERS']) {
+    for (const name of ['STOCKPILOT_DATA_DIR','STOCKPILOT_REDIS_URL']) {
       if (previous[name] === undefined) delete process.env[name];
       else process.env[name] = previous[name];
     }

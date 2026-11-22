@@ -1,6 +1,0 @@
-:queues:
-  - default
-  - reports
-  - webhooks
-  - maintenance
-:concurrency: 5

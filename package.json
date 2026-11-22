@@ -15,20 +15,6 @@
     "setup": "node scripts/local.mjs setup",
     "dev": "node scripts/local.mjs dev",
     "build": "node scripts/local.mjs build",
-    "start": "node scripts/local.mjs start",
-    "dev:simulator": "node scripts/local.mjs dev",
-    "build:simulator": "node scripts/local.mjs build",
-    "start:simulator": "node scripts/local.mjs start",
-    "dev:dashboard": "node scripts/local.mjs dev",
-    "dev:shopify": "npx shopify app dev",
-    "rails": "bundle exec rails server",
-    "sidekiq": "bundle exec sidekiq -C config/sidekiq.yml",
-    "console": "bundle exec rails console",
-    "test": "bundle exec rspec",
-    "lint": "bundle exec rubocop",
-    "security": "bundle exec bundler-audit check --update && bundle exec brakeman -q --no-pager"
-  },
-  "devDependencies": {
-    "puppeteer": "^24.40.0"
+    "start": "node scripts/local.mjs start"
   }
 }

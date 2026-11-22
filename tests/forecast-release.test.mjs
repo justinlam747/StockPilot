@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -64,6 +63,7 @@ async function checkWorkspacePages(origin) {
   for (const [url, activeLink, contentId] of pages) {
     const html = await (await getResponse(origin + url)).text();
     assert.ok(html.includes(`id="${contentId}"`), `${url} must serve its own page content`);
+    if (url === '/import') assert.ok(html.includes('>Connect Shopify</a>'));
     const navigation = html.match(/<nav\b[^>]*id="workspace-navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
     assert.ok(navigation, `${url} must serve the workspace navigation`);
     const links = navigation.match(/<a\s+[^>]*>/g) ?? [];
@@ -93,7 +93,7 @@ test('production workspace trains from the public template and restores its fore
     assert.deepEqual(await readdir(path.join(app, 'public')), [template]);
     const capabilities = await (await getResponse(origin + '/api/forecast?capabilities=1')).json();
     assert.ok(Array.isArray(capabilities.peerModels));
-    if (!existsSync(path.join(root, 'local_dashboard'))) assert.deepEqual(capabilities.peerModels, []);
+    assert.deepEqual(capabilities.peerModels, []);
     const empty = await (await getResponse(origin + '/api/forecast')).json();
     assert.deepEqual(empty, {projects: [], projectId: null, result: null, savedAt: null});
     const csv = await (await getResponse(origin + '/' + template)).text();

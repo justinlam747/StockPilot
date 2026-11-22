@@ -70,6 +70,8 @@ h3 { font-size: var(--type-body); }
 }
 .workspace:focus:not(:focus-visible) { outline: none; }
 .page-head { margin-bottom: clamp(1.25rem, 2.5vw, 2rem); min-width: 0; }
+.import-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--gap-3); }
+.import-heading a { font-size: var(--type-label); }
 .page-head p { margin-top: var(--gap-2); color: var(--muted); font-size: var(--type-body); overflow-wrap: anywhere; }
 .page-body, .panel, .project-identity { min-width: 0; }
 .panel, .empty-chart, .empty-state { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); }
