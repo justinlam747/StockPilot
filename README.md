@@ -4,7 +4,7 @@ Train an XGBoost sales forecast for **one item at a time**, using your own weekl
 
 ## Run locally
 
-Install **Node.js 20.9+ with npm** and **Python 3.11–3.14**. On macOS, install the OpenMP runtime with `brew install libomp`. Download and extract the StockPilot local release, or clone the repository. Open a terminal in the folder containing this README and run:
+Install **Node.js 20.9+ with npm** and **Python 3.11–3.14**. Windows setup installs a checksum-verified portable Redis queue server in the project. On macOS, install the trainer and queue dependencies with `brew install libomp valkey`. On Linux, install Valkey or Redis 6.2 or later (for example, `sudo apt install redis-server` on Ubuntu 24.04). Download and extract the StockPilot local release, or clone the repository. Open a terminal in the folder containing this README and run:
 
 ```sh
 npm run setup
