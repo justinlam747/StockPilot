@@ -59,6 +59,36 @@ def test_explicit_defaults_reuse_a_project_and_custom_settings_survive_restore(t
     assert process_request({**upload, "parameters": {}})["projectId"] == original["projectId"]
 
 
+def test_saved_rerun_does_not_need_an_upload_and_keeps_the_training_settings(tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    trained = process_request({"csv": dataset(), "item": "../../Black, cardigan", "parameters": {"max_depth": 4}})
+    rerun = {"op": "rerun", "projectId": trained["projectId"]}
+    repeated = process_request(rerun)
+    assert repeated["result"] == trained["result"] and repeated["projectId"] == trained["projectId"]
+    bounds = {"start": "2025-01-06", "end": "2025-02-24", "earliestStart": "2025-01-20"}
+    assert repeated["result"]["historyRange"] == bounds
+    assert process_request({"op": "read", "id": trained["projectId"]})["result"] == repeated["result"]
+    assert process_request({"op": "capabilities"}) == {"peerModels": []}
+    with pytest.raises(ValueError, match="Only XGBoost"):
+        process_request({**rerun, "peers": ["previous_week"]})
+    with pytest.raises(ValueError, match="invalid"):
+        process_request({"op": "rerun", "projectId": "../"})
+    with pytest.raises(store.UnknownProject):
+        process_request({"op": "rerun", "projectId": "9" * 64})
+
+
+def test_saved_project_can_change_forecast_period_and_restore_both_snapshots(tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    trained = process_request({"csv": dataset(), "item": "../../Black, cardigan"})
+    dated = process_request({"op": "rerun", "projectId": trained["projectId"],
+                             "forecastStart": "2025-02-24", "forecastEnd": "2025-03-10"})
+    assert dated["projectId"] != trained["projectId"]
+    assert dated["result"]["next"] is None
+    assert [frame["stores"][0]["actual"] for frame in dated["result"]["weeks"]] == [7, None, None]
+    assert process_request({"op": "read"})["result"] == dated["result"]
+    assert process_request({"op": "rerun", "projectId": dated["projectId"]})["result"] == trained["result"]
+
+
 @pytest.mark.parametrize("parameters,error", [
     (None, "object"), ([], "object"), ({"n_jobs": 2}, "Unknown"),
     ({"max_depth": True}, "Maximum depth"), ({"max_depth": 0}, "Maximum depth"),

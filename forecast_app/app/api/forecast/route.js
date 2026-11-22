@@ -7,7 +7,6 @@ export const dynamic = 'force-dynamic';
 
 const mib = 1024 * 1024;
 const maxRequestBytes = 2 * mib + 4096;
-const trainingTimeout = 90_000;
 let training = false;
 
 class RequestError extends Error {
@@ -41,21 +40,42 @@ async function readUpload(request) {
   } catch {
     throw new RequestError(400, 'The upload must be valid UTF-8 JSON.');
   }
+  const {projectId, peers, forecastStart, forecastEnd} = payload ?? {};
+  if (projectId !== undefined) {
+    if (payload.csv !== undefined) throw new RequestError(400, 'Choose a saved project or upload a CSV.');
+    return {op: 'rerun', projectId, peers, forecastStart, forecastEnd};
+  }
   if (typeof payload?.csv !== 'string') throw new RequestError(400, 'Missing CSV upload.');
   if (Buffer.byteLength(payload.csv) > mib) throw new RequestError(413, 'The CSV exceeds the 1 MiB upload limit.');
-  return {csv: payload.csv, item: payload.item, parameters: payload.parameters};
+  return {op: 'train', csv: payload.csv, item: payload.item, parameters: payload.parameters, peers, forecastStart, forecastEnd};
 }
 
-function runForecast(payload, signal) {
+function workerSettings() {
   const cwd = process.cwd();
   const root = existsSync(join(cwd, 'stockpilot_local', 'worker.py')) ? cwd : dirname(cwd);
   const windows = process.platform === 'win32';
-  const localPython = join(root, '.venv', windows ? 'Scripts/python.exe' : 'bin/python');
-  const python = process.env.STOCKPILOT_PYTHON || (existsSync(localPython) ? localPython : windows ? 'python' : 'python3');
+  const interpreter = windows ? 'Scripts/python.exe' : 'bin/python';
+  const localPython = join(root, '.venv', interpreter);
+  const env = {...process.env, PYTHONIOENCODING: 'utf-8'};
+  const researchPython = env.STOCKPILOT_RESEARCH_PYTHON || join(root, '.venv-dashboard', interpreter);
+  if (env.STOCKPILOT_DISABLE_PEERS !== '1' && existsSync(/* turbopackIgnore: true */ researchPython) &&
+      existsSync(join(root, 'local_dashboard', 'workspace_comparison.py'))) {
+    env.HF_HUB_OFFLINE = '1';
+    env.TRANSFORMERS_OFFLINE = '1';
+    const cache = env.BB_THREAD_STORAGE && join(env.BB_THREAD_STORAGE, 'chronos-cache');
+    if (!env.HF_HOME && !env.HF_HUB_CACHE && cache && existsSync(join(cache, 'hub'))) env.HF_HOME = cache;
+    return {root, python: researchPython, module: 'local_dashboard.workspace_comparison', env};
+  }
+  const python = env.STOCKPILOT_PYTHON || (existsSync(localPython) ? localPython : windows ? 'python' : 'python3');
+  return {root, python, module: 'stockpilot_local.worker', env};
+}
+
+function runForecast(payload, signal) {
+  const {root, python, module, env} = workerSettings();
+  const trainingTimeout = payload.peers?.length ? 300_000 : 90_000;
   return new Promise((resolve, reject) => {
-    const child = spawn(python, ['-B', '-m', 'stockpilot_local.worker'], {
-      cwd: root, windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'],
-      env: {...process.env, PYTHONIOENCODING: 'utf-8'},
+    const child = spawn(/* turbopackIgnore: true */ python, ['-B', '-m', module], {
+      cwd: root, env, windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'],
     });
     let failure;
     const stop = error => { failure = error; child.kill('SIGKILL'); };
@@ -67,7 +87,7 @@ function runForecast(payload, signal) {
     let size = 0;
     child.stdout.on('data', chunk => {
       size += chunk.length;
-      if (size > 8 * mib) stop(new RequestError(422, 'The forecast response is too large. Try fewer stores.'));
+      if (size > 16 * mib) stop(new RequestError(422, 'The forecast response is too large. Try fewer stores.'));
       else chunks.push(chunk);
     });
     child.stdin.on('error', () => {}); // Early interpreter exits close stdin; close handles the failure below.
@@ -108,7 +128,9 @@ async function respond(request, action) {
 }
 
 export function GET(request) {
-  return respond(request, () => runForecast({op: 'read', id: new URL(request.url).searchParams.get('id')}, request.signal));
+  const query = new URL(request.url).searchParams;
+  const payload = query.get('capabilities') === '1' ? {op: 'capabilities'} : {op: 'read', id: query.get('id')};
+  return respond(request, () => runForecast(payload, request.signal));
 }
 
 export function POST(request) {
@@ -117,7 +139,7 @@ export function POST(request) {
     if (training) throw new RequestError(429, 'A forecast is already running. Retry when it finishes.');
     training = true;
     try {
-      return await runForecast({...payload, op: 'train'}, request.signal);
+      return await runForecast(payload, request.signal);
     } finally {
       training = false;
     }

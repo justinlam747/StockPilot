@@ -58,6 +58,20 @@ test('local worker selects an item, trains it and restores its saved forecast in
     const restored = await GET(new Request(address, {headers}));
     assert.equal(restored.status, 200);
     assert.deepEqual((await restored.json()).result, snapshot.result);
+
+    const active = {projectId: snapshot.projectId};
+    const rerun = await POST(upload(active));
+    assert.equal(rerun.status, 200);
+    assert.deepEqual((await rerun.json()).result, snapshot.result);
+    assert.equal((await POST(upload({...active, csv: dataset.join('\n')}))).status, 400);
+    assert.equal((await POST(upload({projectId: '9'.repeat(64)}))).status, 404);
+    assert.equal((await POST(upload({...active, forecastStart: '2025-03-03'}))).status, 422);
+    const dated = await POST(upload({...active, forecastStart: '2025-03-03', forecastEnd: '2025-03-10'}));
+    assert.equal(dated.status, 200);
+    const fixed = (await dated.json()).result;
+    assert.equal(fixed.next, null);
+    assert.equal(fixed.training.parameters.max_depth, 4);
+    assert.deepEqual(fixed.weeks.map(frame => frame.week), ['2025-03-03', '2025-03-10']);
   } finally {
     if (previousDir === undefined) delete process.env.STOCKPILOT_DATA_DIR;
     else process.env.STOCKPILOT_DATA_DIR = previousDir;
