@@ -10,24 +10,26 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = (
-    "README.md", "requirements.txt", "scripts/local.mjs", "scripts/setup-redis.py", "scripts/queue-broker.mjs",
-    "forecast_app/server/redis-connection.mjs", "tests/queue-broker.test.mjs",
-    "forecast_app/instrumentation.js", "forecast_app/server/forecast-job-files.mjs",
-    "forecast_app/server/forecast-worker.mjs", "forecast_app/server/forecast-queue.mjs", "tests/forecast-queue.test.mjs",
+    "README.md", "requirements.txt", "scripts/local.mjs", "scripts/queue-broker.mjs", "scripts/setup-redis.py",
     "forecast_app/next.config.mjs", "forecast_app/package.json",
+    "forecast_app/instrumentation.js", "forecast_app/server/redis-connection.mjs",
+    "forecast_app/server/forecast-queue.mjs", "forecast_app/server/forecast-worker.mjs",
+    "forecast_app/server/forecast-job-files.mjs",
     "forecast_app/app/layout.jsx", "forecast_app/app/page.jsx",
     "forecast_app/app/forecast/page.jsx", "forecast_app/app/api/forecast/route.js",
     "forecast_app/app/evaluation/page.jsx", "forecast_app/app/import/page.jsx",
     "forecast_app/app/projects/page.jsx", "forecast_app/app/charts.css",
     "forecast_app/app/ImportSales.jsx", "forecast_app/app/Results.jsx",
-    "forecast_app/app/ForecastControls.jsx",
+    "forecast_app/app/ForecastControls.jsx", "forecast_app/app/ForecastQueue.jsx",
+    "forecast_app/app/useForecastQueue.js", "forecast_app/app/queue.css",
     "forecast_app/app/Workspace.jsx", "forecast_app/app/globals.css",
     "forecast_app/public/weekly-sales-template.csv",
     "stockpilot_local/__init__.py", "stockpilot_local/xgb.py",
     "stockpilot_local/parameters.py", "stockpilot_local/training_parameters.json", "stockpilot_local/progress.py",
     "stockpilot_local/store.py", "stockpilot_local/worker.py", "stockpilot_local/window.py",
     "tests/test_stockpilot_xgb.py", "tests/test_forecast_worker.py", "tests/test_forecast_window.py",
-    "tests/forecast-route.test.mjs", "tests/forecast-release.test.mjs",
+    "tests/forecast-route.test.mjs", "tests/forecast-release.test.mjs", "tests/forecast-queue.test.mjs",
+    "tests/queue-broker.test.mjs",
 )
 PUBLIC_SCRIPTS = ("setup", "dev", "build", "start")
 IGNORE = ".venv/\nnode_modules/\n.next/\n__pycache__/\n.pytest_cache/\n.stockpilot-data/\n.env*\n*.ubj\n"

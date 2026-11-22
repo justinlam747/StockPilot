@@ -131,3 +131,11 @@ An explicit manifest assembles the public source archive. It contains the respon
 StockPilot opens the store forecast chart at `/forecast`. The public trainer and development checkout share its import flow, saved projects, date controls and chart. The development worker can offer additional models when their code and any required weights are available locally. The source release includes the XGBoost trainer and a synthetic import template.
 
 Changing the chart window reuses existing predictions. Rerunning a saved item for a new period fits the model on sales observed before the first selected Monday. Later weeks use its own predictions as lagged inputs. This lets a retailer inspect a historical decision using the information available then, or forecast beyond the last recorded sale. Only matched in-stock observations contribute to forecast error.
+
+## TD-030: Queue model runs on the local forecasting machine
+
+**Date:** 2026-11-21
+
+BullMQ accepts a forecast once the selected item and settings are validated. A local worker processes one run at a time across server instances serving the same queue. Inside each run the Python trainer reports when each selected model starts or finishes. This keeps concurrent requests from competing for model memory and lets the browser display actual progress.
+
+Redis persists job order and status. Uploaded inputs and the exact forecast produced by each run stay in the user's data folder. A completed run can be reopened even after another comparison of the same item finishes. The queue remains independent of a browser tab, and the existing synchronous API waits for the same queued work. The local source release ships the XGBoost trainer.

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useWorkspace } from './Workspace';
+import { isActive } from './useForecastQueue';
 
 function Timeline({ dates, range, change }) {
   const options = dates.map(date => <option key={date} value={date}>{date}</option>);
@@ -53,7 +54,8 @@ function Scores({ models, points }) {
 
 export default function ForecastControls({ result, dates, range, changeRange, points }) {
   const { models, forecastRange, historyRange, modelWarnings } = result;
-  const { peerModels, busy, rerunForecast } = useWorkspace();
+  const { peerModels, busy, rerunForecast, jobs } = useWorkspace();
+  const activeCount = jobs?.filter(isActive).length ?? 0;
   const [panel, setPanel] = useState(null);
   const [peers, setPeers] = useState(() => models.filter(model => model.id !== 'xgboost').map(model => model.id));
   const [period, setPeriod] = useState(() => ({ forecastStart: forecastRange?.start ?? '', forecastEnd: forecastRange?.end ?? '' }));
@@ -75,7 +77,8 @@ export default function ForecastControls({ result, dates, range, changeRange, po
         onClick={() => togglePanel('dates')}>Timeline</button>
       {peerModels?.length > 0 && <button className="button" aria-expanded={panel === 'models'} aria-controls="forecast-model-controls"
         onClick={() => togglePanel('models')}>Compare models</button>}
-      <button className="button fc-rerun" disabled={busy || awaitingPeers} onClick={run}>Rerun forecast</button>
+      {activeCount > 0 && <a className="queue-link" href="#forecast-queue">View queue ({activeCount})</a>}
+      <button className="button fc-rerun" disabled={busy || awaitingPeers} onClick={run}>Queue forecast</button>
     </div>
     {panel === 'dates' && <div id="forecast-date-controls">
       <Timeline dates={dates} range={range} change={changeRange} />
