@@ -58,7 +58,8 @@ export default function ForecastControls({ result, dates, range, changeRange, po
   const [peers, setPeers] = useState(() => models.filter(model => model.id !== 'xgboost').map(model => model.id));
   const [period, setPeriod] = useState(() => ({ forecastStart: forecastRange?.start ?? '', forecastEnd: forecastRange?.end ?? '' }));
   const [error, setError] = useState('');
-  const availablePeers = peers.filter(id => peerModels.some(model => model.id === id && model.available !== false));
+  const availablePeers = peers.filter(id => peerModels?.some(model => model.id === id && model.available !== false));
+  const awaitingPeers = !peerModels && peers.length > 0;
   function togglePanel(name) {
     setPanel(current => current === name ? null : name);
   }
@@ -72,9 +73,9 @@ export default function ForecastControls({ result, dates, range, changeRange, po
     <div className="fc-tools-row">
       <button className="button" aria-expanded={panel === 'dates'} aria-controls="forecast-date-controls"
         onClick={() => togglePanel('dates')}>Timeline</button>
-      {peerModels.length > 0 && <button className="button" aria-expanded={panel === 'models'} aria-controls="forecast-model-controls"
+      {peerModels?.length > 0 && <button className="button" aria-expanded={panel === 'models'} aria-controls="forecast-model-controls"
         onClick={() => togglePanel('models')}>Compare models</button>}
-      <button className="button fc-rerun" disabled={busy} onClick={run}>Rerun forecast</button>
+      <button className="button fc-rerun" disabled={busy || awaitingPeers} onClick={run}>Rerun forecast</button>
     </div>
     {panel === 'dates' && <div id="forecast-date-controls">
       <Timeline dates={dates} range={range} change={changeRange} />

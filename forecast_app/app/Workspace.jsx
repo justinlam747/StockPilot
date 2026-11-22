@@ -60,7 +60,7 @@ function useLocalProject() {
   const [view, setView] = useState(emptyView);
   const [pending, setPending] = useState(null);
   const [trainingDraft, setTrainingDraft] = useState({});
-  const [peerModels, setPeerModels] = useState([]);
+  const [peerModels, setPeerModels] = useState(null);
   const [notice, setNotice] = useState(quiet);
   const [loading, setLoading] = useState(true);
 
@@ -99,7 +99,7 @@ function useLocalProject() {
     const controller = new AbortController();
     request('/api/forecast?capabilities=1', controller.signal)
       .then(data => { if (!controller.signal.aborted) setPeerModels(data.peerModels ?? []); })
-      .catch(() => {}); // XGBoost can run independently of the optional comparison service.
+      .catch(() => { if (!controller.signal.aborted) setPeerModels([]); });
     return () => controller.abort();
   }, []);
 
@@ -161,7 +161,7 @@ export default function Workspace({ children }) {
     <div className="app-shell"><Sidebar pathname={pathname}/>
       <main className="workspace" id="one-item-workbench" tabIndex={-1}>
         {notice.message && (!notice.scope || notice.scope === pathname) &&
-          <p className="notice" id={notice.error ? 'forecast-error' : 'forecast-status'}
+          <p className={notice.done ? 'sr-status' : 'notice'} id={notice.error ? 'forecast-error' : 'forecast-status'}
             role={notice.error ? 'alert' : 'status'}>{notice.message}</p>}
         {children}
       </main>
