@@ -59,6 +59,7 @@ function useLocalProject() {
   const active = useRef(null);
   const [view, setView] = useState(emptyView);
   const [pending, setPending] = useState(null);
+  const [trainingDraft, setTrainingDraft] = useState({});
   const [notice, setNotice] = useState(quiet);
   const [loading, setLoading] = useState(true);
 
@@ -94,7 +95,7 @@ function useLocalProject() {
     return () => active.current?.abort();
   }, []);
 
-  async function importSales(file, item) {
+  async function importSales(file, item, parameters) {
     const signal = begin('Training XGBoost…', '/import');
     if (file) setPending(null);
     try {
@@ -102,7 +103,7 @@ function useLocalProject() {
       const csv = file ? await file.text() : pending.csv;
       if (signal.aborted) return;
       const data = await request('/api/forecast', signal, { method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csv, item }) });
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csv, item, parameters }) });
       if (signal.aborted) return;
       setNotice(quiet);
       if (data.selectionRequired) {
@@ -119,7 +120,7 @@ function useLocalProject() {
     }
   }
   const busy = Boolean(notice.message && !notice.error);
-  return { view, pending, notice, open, importSales, loading, busy };
+  return { view, pending, notice, open, importSales, loading, busy, trainingDraft, setTrainingDraft };
 }
 
 export function EmptyState({ children }) {

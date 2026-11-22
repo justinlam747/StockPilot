@@ -8,6 +8,7 @@ import sys
 from datetime import date
 
 from . import store
+from .parameters import validate_parameters
 
 
 REQUIRED = {"week", "item", "store", "units_sold"}
@@ -75,6 +76,8 @@ def process_request(request):
         return store.restore(request.get("id"))
     if op != "train":
         raise ValueError("Unknown forecast operation.")
+    parameters = request.get("parameters", {})
+    validate_parameters(parameters)
     by_item, stock_reported = parse_csv(request.get("csv"))
     items = [{"id": item, "name": item} for item in sorted(by_item)]
     item = request.get("item")
@@ -88,7 +91,7 @@ def process_request(request):
     from .xgb import train_item
 
     rows = by_item[item]
-    result, model = train_item(rows)
+    result, model = train_item(rows, parameters=parameters)
     result["source"]["availability"] = "reported" if stock_reported else "assumed"
     return {"items": items, **store.save(rows, result, model, stock_reported)}
 

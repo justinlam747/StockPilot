@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import parameterSpecs from '../../stockpilot_local/training_parameters.json';
 import './charts.css';
 
 const numbers = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
@@ -128,6 +129,11 @@ export function Evaluation({ result }) {
   return <section id="training-details" className="fc-evaluation" aria-label="Training and evaluation">
     <dl className="fc-evaluation-summary">{metrics.map(([label, value]) =>
       <div key={label}><dt>{label}</dt><dd>{units(value)}{label === 'Mean absolute error' && value != null && ' units'}</dd></div>)}</dl>
+    <section className="fc-training" aria-labelledby="fc-training-heading">
+      <h2 id="fc-training-heading">Training settings</h2>
+      <dl>{Object.entries(parameterSpecs).map(([key, spec]) =>
+        <div key={key}><dt>{spec.label}</dt><dd>{result.training.parameters?.[key] ?? 'Unrecorded'}</dd></div>)}</dl>
+    </section>
     <div className="fc-table" role="region" aria-label="Weekly backtest observations" tabIndex={0}><table>
       <caption>Held-out weekly sales</caption>
       <thead><tr>{['Week', 'Store', 'Actual', 'XGBoost', 'Scored'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>

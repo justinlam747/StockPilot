@@ -43,7 +43,7 @@ async function readUpload(request) {
   }
   if (typeof payload?.csv !== 'string') throw new RequestError(400, 'Missing CSV upload.');
   if (Buffer.byteLength(payload.csv) > mib) throw new RequestError(413, 'The CSV exceeds the 1 MiB upload limit.');
-  return {csv: payload.csv, item: payload.item};
+  return {csv: payload.csv, item: payload.item, parameters: payload.parameters};
 }
 
 function runForecast(payload, signal) {

@@ -121,6 +121,10 @@
 .fc-evaluation { min-width: 0; }
 .fc-evaluation-summary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
 .fc-evaluation-summary > div { border-top: 1px solid var(--rule); padding-top: var(--gap-3); }
+.fc-training { margin-top: var(--gap-6); }
+.fc-training dl { display: flex; flex-wrap: wrap; gap: var(--gap-2) var(--gap-5); margin-top: var(--gap-3); font-size: var(--type-label); }
+.fc-training dl > div { display: flex; align-items: baseline; gap: var(--gap-2); }
+.fc-training dt { color: var(--muted); }
 .fc-table { margin: var(--gap-6) 0 var(--gap-4); overflow-x: auto; }
 .fc-table table { width: 100%; border-collapse: collapse; font-size: var(--type-label); }
 .fc-table caption { text-align: left; font-size: var(--type-section); padding: 0 0 var(--gap-4); }
