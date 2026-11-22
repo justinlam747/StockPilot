@@ -41,7 +41,7 @@ function setup() {
   run(python, ['-m', 'pip', 'install', '--disable-pip-version-check', '-r', 'requirements.txt']);
   if (!process.env.npm_execpath) throw new Error('Run setup through npm run setup.');
   run(process.execPath, [process.env.npm_execpath, 'ci', '--omit=dev', '--no-audit', '--no-fund']);
-  console.log('StockPilot is ready. Run npm run dev and open http://127.0.0.1:3000.');
+  console.log('StockPilot is ready. Run npm run dev and open http://127.0.0.1:3000/forecast.');
 }
 
 try {

@@ -11,7 +11,7 @@ npm run setup
 npm run dev
 ```
 
-Open **[127.0.0.1:3000](http://127.0.0.1:3000)**. Setup creates a Python environment in `.venv` and installs the JavaScript and CPU forecasting dependencies. Setup needs internet access. Importing, training, reopening a project and forecasting work offline after installation. To run a production build locally, use `npm run build` followed by `npm start`.
+Open the [StockPilot forecast](http://127.0.0.1:3000/forecast). Use its sidebar to import sales, evaluate a forecast or reopen a saved project. Setup creates a Python environment in `.venv` and installs the JavaScript and CPU forecasting dependencies. Setup needs internet access. Importing, training, reopening a project and forecasting work offline after installation. To run a production build locally, use `npm run build` followed by `npm start`.
 
 ## Bring your sales history
 
@@ -33,9 +33,13 @@ To try another XGBoost configuration, open **Training settings** before choosing
 
 ## Read the forecast
 
-Open **Forecast** and select a store to see weekly predictions alongside actual sales. The cards below the chart show that store’s next-week forecast, last observed sales and mean absolute error. Forecasts are expected units sold and can include decimals. Open **Evaluation** for the scored weeks and training details.
+Open **Forecast** and select a store to see weekly predictions alongside actual sales. Under **Timeline**, the **Chart window** sets the first and last calculated week shown. Choose **All weeks** to restore the full chart.
 
-The model learns from the selected item across its stores. Inputs include store identity, recent sales, weeks since the first observation and calendar features. For each historical prediction, it fits on earlier eligible weeks, then compares the prediction with the actual result. It tests the last half of the shortest store history, rounded down, up to eight weeks. The final fit uses all eligible history for the next-week estimate.
+Use **Forecast period** to predict a specific historical or future interval. Choose its first and last Monday, then select **Rerun forecast**. StockPilot fits the model on the saved history before the start and uses its own predictions for later weeks, including any gap after the last recorded sale. The limit is 50,000 store-weeks per run, including gap weeks. A historical period lets you compare those predictions with recorded sales. Choose **Reset period** and rerun to return to the default forecast.
+
+For the default run, the cards below the chart show that store’s next-week forecast, last observed sales and mean absolute error. Forecasts are expected units sold and can include decimals. Open **Evaluation** for the scored weeks and training details.
+
+The model learns from the selected item across its stores. Inputs include store identity, recent sales, weeks since the first observation and calendar features. The default forecast tests the last half of the shortest store history, rounded down, up to eight weeks. It refits before each of those weeks, then uses all eligible history for the next-week estimate.
 
 **Mean absolute error (MAE)** is the average distance in units between a forecast and the observed sales. An MAE of 2 means forecasts missed by two units on average. Weeks flagged out of stock are excluded as training targets and from MAE. Accuracy applies to this item, these stores and these dates. A short history may contain too little evidence to learn recurring holiday effects.
 

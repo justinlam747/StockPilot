@@ -14,7 +14,7 @@ function ProjectList({ projects, projectId, open, busy }) {
   }
   return <ul className="panel project-list" aria-label="Saved forecasts">
     {projects.map(project => {
-      const name = counts.get(project.item) > 1 ? project.item + ' · import ' + versions.get(project.id) : project.item;
+      const name = counts.get(project.item) > 1 ? project.item + ' · run ' + versions.get(project.id) : project.item;
       return <li className="project-row" key={project.id}>
         <div className="project-identity">
           <span>{name}</span>
