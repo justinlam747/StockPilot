@@ -77,7 +77,18 @@ def mark_current(root, project_id):
         os.replace(marker, root / "current")
 
 
-def restore(project_id=None):
+def saved_training_input(project_id):
+    if not isinstance(project_id, str) or not PROJECT_ID.fullmatch(project_id):
+        raise ValueError("The saved project ID is invalid.")
+    folder = data_dir() / project_id
+    if folder.is_symlink() or not folder.is_dir():
+        raise UnknownProject("The saved forecast was not found.")
+    result = read_saved_json(folder / "forecast.json")
+    history = (folder / "history.csv").read_text(encoding="utf-8")
+    return history, result["item"], result["training"].get("parameters", {})
+
+
+def restore(project_id=None, *, activate=True):
     root = data_dir()
     if project_id is not None and (not isinstance(project_id, str) or not PROJECT_ID.fullmatch(project_id)):
         raise ValueError("The saved project ID is invalid.")
@@ -93,12 +104,12 @@ def restore(project_id=None):
     elif project_id not in by_id:
         raise UnknownProject("The saved forecast was not found.")
     result = read_saved_json(root / project_id / "forecast.json")
-    if explicit_selection:
+    if explicit_selection and activate:
         mark_current(root, project_id)
     return {"projects": projects, "projectId": project_id, "savedAt": by_id[project_id]["savedAt"], "result": result}
 
 
-def save(rows, result, model, stock_reported):
+def save(rows, result, model, stock_reported, *, activate=True):
     root = data_dir()
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     history = normalized_csv(rows, stock_reported).encode("utf-8")
@@ -122,4 +133,4 @@ def save(rows, result, model, stock_reported):
                 # An identical upload can finish in another server process.
                 if target.is_symlink() or not target.is_dir():
                     raise
-    return restore(digest)
+    return restore(digest, activate=activate)

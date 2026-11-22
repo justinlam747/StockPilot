@@ -5,10 +5,10 @@ import io
 import json
 import re
 import sys
-from datetime import date
+from datetime import date, timedelta
 
 from . import store
-from .parameters import validate_parameters
+from .parameters import FIELDS, validate_parameters
 
 
 REQUIRED = {"week", "item", "store", "units_sold"}
@@ -38,10 +38,10 @@ def parse_row(raw, line, has_stock):
     return {"week": week, "item": item, "store": store, "units_sold": int(units), "in_stock": STOCK_VALUES[stock]}
 
 
-def parse_csv(text):
+def parse_csv(text, *, upload=True):
     if not isinstance(text, str) or not text.strip():
         raise ValueError("Select a CSV file containing weekly sales.")
-    if len(text.encode("utf-8")) > MAX_UPLOAD_BYTES:
+    if upload and len(text.encode("utf-8")) > MAX_UPLOAD_BYTES:
         raise ValueError("The CSV exceeds the 1 MiB upload limit.")
     reader = csv.DictReader(io.StringIO(text.removeprefix("\ufeff"), newline=""), strict=True)
     headers = [name.strip().lower() for name in (reader.fieldnames or [])]
@@ -68,19 +68,54 @@ def parse_csv(text):
     return by_item, "in_stock" in headers
 
 
-def process_request(request):
+def history_range(rows):
+    first = {}
+    for row in rows:
+        shop, week = row["store"], row["week"]
+        first[shop] = min(week, first.get(shop, week))
+    eligible = [r["week"] for r in rows if r["in_stock"] and r["week"] > first[r["store"]]]
+    earliest = date.fromisoformat(min(eligible)) + timedelta(weeks=1) if eligible else None
+    return {"start": min(first.values()), "end": max(r["week"] for r in rows),
+            "earliestStart": earliest.isoformat() if earliest else None}
+
+
+def read_project(project_id, comparisons):
+    saved = store.restore(project_id)
+    if saved["result"] and "historyRange" not in saved["result"]:
+        text, item, _ = store.saved_training_input(saved["projectId"])
+        groups, _ = parse_csv(text, upload=False)
+        saved["result"]["historyRange"] = history_range(groups[item])
+    return comparisons.restore(saved) if comparisons else saved
+
+
+def training_inputs(request, op):
+    if op == "rerun":
+        text, item, settings = store.saved_training_input(request.get("projectId"))
+        parameters = {key: settings[key] for key in FIELDS if key in settings}
+    else:
+        text, item, parameters = request.get("csv"), request.get("item"), request.get("parameters", {})
+    validate_parameters(parameters)
+    by_item, stock_reported = parse_csv(text, upload=op != "rerun")
+    return by_item, item, parameters, stock_reported
+
+
+def process_request(request, comparisons=None):
     if not isinstance(request, dict):
         raise ValueError("Expected a JSON object.")
     op = request.get("op", "train")
+    if op == "capabilities":
+        return {"peerModels": comparisons.models() if comparisons else []}
     if op == "read":
-        return store.restore(request.get("id"))
-    if op != "train":
+        return read_project(request.get("id"), comparisons)
+    if op not in ("train", "rerun"):
         raise ValueError("Unknown forecast operation.")
-    parameters = request.get("parameters", {})
-    validate_parameters(parameters)
-    by_item, stock_reported = parse_csv(request.get("csv"))
+    peers = request.get("peers", [])
+    if comparisons:
+        comparisons.validate(peers)
+    elif peers != []:
+        raise ValueError("Only XGBoost is available in this installation.")
+    by_item, item, parameters, stock_reported = training_inputs(request, op)
     items = [{"id": item, "name": item} for item in sorted(by_item)]
-    item = request.get("item")
     if item is None and len(items) > 1:
         return {"items": items, "selectionRequired": True}
     if item is None:
@@ -88,17 +123,28 @@ def process_request(request):
     if not isinstance(item, str) or item not in by_item:
         raise ValueError("The selected item does not exist in this CSV.")
     # Listing local projects and inspecting a CSV don't require loading the ML runtime.
+    from .window import parse_window, train_window
     from .xgb import train_item
 
     rows = by_item[item]
-    result, model = train_item(rows, parameters=parameters)
+    period = parse_window(request.get("forecastStart"), request.get("forecastEnd"))
+    if period:
+        result, model = train_window(rows, period, parameters=parameters)
+    else:
+        result, model = train_item(rows, parameters=parameters)
     result["source"]["availability"] = "reported" if stock_reported else "assumed"
-    return {"items": items, **store.save(rows, result, model, stock_reported)}
+    overlay = comparisons.forecast(result, rows, peers) if peers else None
+    saved = store.save(rows, result, model, stock_reported, activate=not comparisons)
+    saved["result"]["historyRange"] = history_range(rows)
+    if comparisons:
+        saved = comparisons.publish(saved, overlay)
+        store.mark_current(store.data_dir(), saved["projectId"])
+    return {"items": items, **saved}
 
 
-def main():
+def main(comparisons=None):
     try:
-        response = process_request(json.load(sys.stdin))
+        response = process_request(json.load(sys.stdin), comparisons)
     except store.UnknownProject as exc:
         response = {"status": 404, "error": str(exc)}
     except (ValueError, csv.Error) as exc:
