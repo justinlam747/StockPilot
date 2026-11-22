@@ -2,35 +2,14 @@
 
 import json
 import math
-from datetime import date
 
 from xgboost import XGBRegressor
 
-from .parameters import XGB_OPTIONS, validate_parameters
+from .parameters import ForecastRangeError, XGB_OPTIONS, parse_window, validate_parameters
 from .xgb import FEATURES, WEEK, features, group_rows, model_input, predict_frame, score_weeks, training_examples
 
 
 MAX_STORE_WEEKS = 50_000
-
-
-class ForecastRangeError(ValueError):
-    """A forecast period the local item trainer cannot use."""
-
-
-def parse_window(start, end):
-    if start is None and end is None:
-        return None
-    if start is None or end is None:
-        raise ForecastRangeError("Choose both a start week and an end week.")
-    try:
-        dates = [date.fromisoformat(value) for value in (start, end)]
-        if any(day.isoformat() != value or day.weekday() != 0 for day, value in zip(dates, (start, end))):
-            raise ValueError
-    except (TypeError, ValueError):
-        raise ForecastRangeError("Choose Mondays in YYYY-MM-DD format.") from None
-    if dates[0] > dates[1]:
-        raise ForecastRangeError("The end week must be on or after the start week.")
-    return tuple(dates)
 
 
 def fit_before(groups, start, end, options):

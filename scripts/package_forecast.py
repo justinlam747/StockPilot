@@ -21,7 +21,7 @@ FILES = (
     "forecast_app/app/Workspace.jsx", "forecast_app/app/globals.css",
     "forecast_app/public/weekly-sales-template.csv",
     "stockpilot_local/__init__.py", "stockpilot_local/xgb.py",
-    "stockpilot_local/parameters.py", "stockpilot_local/training_parameters.json",
+    "stockpilot_local/parameters.py", "stockpilot_local/training_parameters.json", "stockpilot_local/progress.py",
     "stockpilot_local/store.py", "stockpilot_local/worker.py", "stockpilot_local/window.py",
     "tests/test_stockpilot_xgb.py", "tests/test_forecast_worker.py", "tests/test_forecast_window.py",
     "tests/forecast-route.test.mjs", "tests/forecast-release.test.mjs",
