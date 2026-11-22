@@ -6,9 +6,12 @@ export default {
   devIndicators: false,
   poweredByHeader: false,
   async redirects() {
-    return ['/', '/simulation', '/retail', '/transfer', '/dashboard'].map(source => ({
-      source, destination: '/forecast', permanent: true,
-    }));
+    return [
+      { source: '/transfer', destination: '/transfers', permanent: true },
+      ...['/', '/simulation', '/retail', '/dashboard'].map(source => ({
+        source, destination: '/forecast', permanent: true,
+      })),
+    ];
   },
   async headers() {
     return [{

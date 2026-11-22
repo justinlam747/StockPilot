@@ -1,6 +1,6 @@
 # StockPilot
 
-Forecast weekly sales for one item across its stores. Import a CSV, train XGBoost on that item's history, and compare predictions with actual sales for each store. The Next.js frontend, forecast queue, model, and saved projects run on your computer.
+Forecast weekly sales for one item across its stores. Import a CSV, train XGBoost on that item's history, and compare predictions with actual sales for each store. The Next.js frontend, forecast queue, model, and saved projects run on your computer. Use the Transfers tab to place stores and simulate stock moving between them.
 
 ## Run the forecast app
 
@@ -32,3 +32,9 @@ The default run tests up to eight recent weeks and predicts the following week. 
 To build a source ZIP for distribution, run `python scripts/package_forecast.py` from the repository root.
 
 **Saved projects** reopens your history and results. Set `STOCKPILOT_DATA_DIR` to choose where projects and the queue are stored. By default they live under `%LOCALAPPDATA%\StockPilot\forecasts` on Windows, `~/Library/Application Support/StockPilot/forecasts` on macOS, or `~/.local/share/stockpilot/forecasts` on Linux (`XDG_DATA_HOME` is respected).
+
+## Simulate stock transfers
+
+Open **Transfers** to place stores on the map and send units of an item between them. Units leave the source at dispatch and reach the destination when the moving parcel arrives. Pause or replay the movement to inspect balances.
+
+An open forecast supplies the item and store names. Opening balances are simulated, and transfers are saved in this browser. A two-store demo is available before you import sales.

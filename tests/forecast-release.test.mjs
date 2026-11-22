@@ -52,10 +52,11 @@ async function checkWorkspacePages(origin) {
   for (const legacy of ['/', '/simulation', '/retail', '/transfer', '/dashboard']) {
     const response = await fetch(origin + legacy, {redirect: 'manual'});
     assert.equal(response.status, 308, legacy);
-    assert.equal(new URL(response.headers.get('location'), origin).href, origin + '/forecast');
+    assert.equal(new URL(response.headers.get('location'), origin).href, origin + (legacy === '/transfer' ? '/transfers' : '/forecast'));
   }
   const pages = [
     ['/forecast', '/forecast', 'forecast-empty'],
+    ['/transfers', '/transfers', 'transfers-page'],
     ['/evaluation', '/evaluation', 'evaluation-page'],
     ['/import', '/import', 'forecast-upload'],
     ['/projects', '/projects', 'projects-page'],
@@ -67,7 +68,7 @@ async function checkWorkspacePages(origin) {
     const navigation = html.match(/<nav\b[^>]*id="workspace-navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
     assert.ok(navigation, `${url} must serve the workspace navigation`);
     const links = navigation.match(/<a\s+[^>]*>/g) ?? [];
-    for (const href of ['/forecast', '/evaluation', '/import', '/projects']) {
+    for (const [href] of pages) {
       const link = links.find(tag => tag.includes(`href="${href}"`));
       assert.ok(link, `${url} must link to ${href}`);
       assert.equal(link.includes('aria-current="page"'), href === activeLink);
@@ -89,7 +90,7 @@ test('production workspace trains from the public template and restores its fore
     await checkWorkspacePages(origin);
     const routes = JSON.parse(await readFile(path.join(app, '.next/routes-manifest.json'), 'utf8'));
     const pages = [...routes.staticRoutes, ...routes.dynamicRoutes].map(r => r.page).filter(p => !p.startsWith('/_'));
-    assert.deepEqual(pages.sort(), ['/', '/api/forecast', '/evaluation', '/forecast', '/import', '/projects']);
+    assert.deepEqual(pages.sort(), ['/', '/api/forecast', '/evaluation', '/forecast', '/import', '/projects', '/transfers']);
     assert.deepEqual(await readdir(path.join(app, 'public')), [template]);
     const capabilities = await (await getResponse(origin + '/api/forecast?capabilities=1')).json();
     assert.ok(Array.isArray(capabilities.peerModels));

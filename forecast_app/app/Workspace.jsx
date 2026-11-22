@@ -8,6 +8,7 @@ import useForecastQueue, { displayedJob, request } from './useForecastQueue';
 const WorkspaceContext = createContext(null);
 const pages = [
   ['/forecast', 'Forecast'],
+  ['/transfers', 'Transfers'],
   ['/evaluation', 'Evaluation'],
   ['/import', 'Import sales'],
   ['/projects', 'Saved projects'],
