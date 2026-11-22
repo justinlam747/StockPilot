@@ -52,7 +52,7 @@
 .tr-map-viewport:focus-visible { outline-offset: -2px; }
 .tr-map-viewport svg { display: block; margin-inline: auto; flex-shrink: 0; max-width: none; }
 .tr-routes polyline { fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-dasharray: 5 4; }
-.tr-store-art text { font-size: 10.6px; fill: var(--accent); }
+.tr-store-art text { font-size: 12px; fill: var(--accent); }
 .tr-store-art[data-empty="true"] text { fill: var(--muted); }
 .tr-store-name, .tr-store-units { paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
 .tr-store-name { font-size: 12.5px; fill: var(--ink); }

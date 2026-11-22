@@ -12,33 +12,38 @@ const SHOP = [
   "  '------'--'-'  ",
 ];
 const units = new Intl.NumberFormat('en-US');
+const unitCount = value => units.format(value) + (value === 1 ? ' unit' : ' units');
 
-function positions(count, width) {
-  const columns = Math.max(1, Math.min(Math.ceil(Math.sqrt(count)), Math.floor(width / 153), 6));
+function positions(stocks, width, maxOnHand) {
+  const columns = Math.max(1, Math.min(Math.ceil(Math.sqrt(stocks.length)), Math.floor(width / 153), 6));
   const cell = width / columns;
-  return Array.from({ length: count }, (_, index) => ({
-    x: (index % columns + 0.5) * cell,
-    y: Math.floor(index / columns) * ROW + 96,
-    col: index % columns, row: Math.floor(index / columns),
-  }));
+  const maximum = Math.log1p(Math.max(1, maxOnHand));
+  return stocks.map(({ onHand }, index) => {
+    // A fixed log scale keeps a few units visible beside stores holding hundreds.
+    const stockSize = onHand ? 0.67 + 0.74 * Math.log1p(onHand) / maximum : 0.56;
+    const size = stockSize * Math.min(1, cell / 179);
+    return {
+      x: (index % columns + 0.5) * cell, y: Math.floor(index / columns) * ROW + 96,
+      col: index % columns, row: Math.floor(index / columns), size, port: 54 * size + 3,
+    };
+  });
 }
 
 // All paths follow the lanes between storefronts, keeping labels clear even on large maps.
 function routeBetween(a, b, cell) {
   const left = a.col <= b.col ? 1 : -1;
-  const port = Math.min(cell * 0.36, 60);
   if (a.row === b.row) return [
-    [a.x + left * port, a.y - 18], [a.x + left * cell / 2, a.y - 18],
-    [a.x + left * cell / 2, a.y - 79], [b.x - left * cell / 2, b.y - 79],
-    [b.x - left * cell / 2, b.y - 18], [b.x - left * port, b.y - 18],
+    [a.x + left * a.port, a.y - 18], [a.x + left * cell / 2, a.y - 18],
+    [a.x + left * cell / 2, a.y - 91], [b.x - left * cell / 2, b.y - 91],
+    [b.x - left * cell / 2, b.y - 18], [b.x - left * b.port, b.y - 18],
   ].filter((_, i) => Math.abs(a.col - b.col) !== 1 || i === 0 || i === 5);
-  const lane = a.col === b.col ? a.x + cell * 0.42 : a.x + left * cell / 2;
+  const lane = a.col === b.col ? a.x + cell * 0.46 : a.x + left * cell / 2;
   const arriveLane = a.col === b.col ? lane : b.x - left * cell / 2;
   const endSide = a.col === b.col ? 1 : -left;
-  const cross = a.row < b.row ? b.y - 81 : b.y + 44;
+  const cross = a.row < b.row ? b.y - 91 : b.y + 44;
   return [
-    [a.x + left * port, a.y - 18], [lane, a.y - 18], [lane, cross],
-    [arriveLane, cross], [arriveLane, b.y - 18], [b.x + endSide * port, b.y - 18],
+    [a.x + left * a.port, a.y - 18], [lane, a.y - 18], [lane, cross],
+    [arriveLane, cross], [arriveLane, b.y - 18], [b.x + endSide * b.port, b.y - 18],
   ];
 }
 
@@ -56,26 +61,25 @@ function parcelPosition(route, progress) {
   return route.at(-1);
 }
 
-const Storefront = memo(function Storefront({ store, point, maxOnHand, maxLabel }) {
+const Storefront = memo(function Storefront({ store, point, maxLabel }) {
   const { onHand, forecast, name } = store;
-  const ratio = onHand / Math.max(1, maxOnHand);
-  const size = onHand > 0 ? 0.73 + 0.65 * Math.sqrt(Math.min(1, ratio)) : 0.62;
+  const size = point.size;
   const label = name.length > maxLabel ? name.slice(0, maxLabel - 1) + '…' : name;
-  const title = name + ', ' + units.format(onHand) + ' units on hand' +
-    (forecast == null ? '' : ', weekly forecast ' + units.format(forecast) + ' units');
+  const title = name + ', ' + unitCount(onHand) + ' on hand' +
+    (forecast == null ? '' : ', weekly forecast ' + unitCount(forecast));
   return <g className="tr-shop" data-store-id={store.id} data-on-hand={onHand} role="img" aria-label={title}
     transform={'translate(' + point.x + ' ' + point.y + ')'}>
     <title>{title}</title>
     <g transform={'scale(' + size + ')'} data-stock-scale={size} className="tr-store-art" data-empty={!onHand}>
       <text textAnchor="middle" xmlSpace="preserve">{SHOP.map((line, i) =>
-        <tspan x="0" y={(i - SHOP.length + 1) * 8.5} key={i}>{line}</tspan>)}</text>
+        <tspan x="0" y={(i - SHOP.length + 1) * 10.2} key={i}>{line}</tspan>)}</text>
     </g>
     <text y="17" textAnchor="middle" className="tr-store-name">{label}</text>
     <text y="34" textAnchor="middle" className="tr-store-units">{units.format(onHand)} on hand</text>
   </g>;
 });
 
-const MapBase = memo(function MapBase({ stocks, points, width, height, cell, maxOnHand, routes }) {
+const MapBase = memo(function MapBase({ stocks, points, width, height, cell, routes }) {
   const maxLabel = Math.max(10, Math.floor((cell - 13) / 7.6));
   return <>
     <defs><pattern id="tr-dot-field" width="14" height="14" patternUnits="userSpaceOnUse">
@@ -84,7 +88,7 @@ const MapBase = memo(function MapBase({ stocks, points, width, height, cell, max
     <rect width={width} height={height} fill="url(#tr-dot-field)" />
     <g className="tr-routes" aria-hidden="true">{routes.map(({ key, route }) =>
       <polyline key={key} points={route.map(p => p.join(',')).join(' ')} />)}</g>
-    {stocks.map((store, i) => <Storefront key={store.id} store={store} point={points[i]} maxLabel={maxLabel} maxOnHand={maxOnHand} />)}
+    {stocks.map((store, i) => <Storefront key={store.id} store={store} point={points[i]} maxLabel={maxLabel} />)}
   </>;
 });
 
@@ -101,7 +105,7 @@ export default function StoreMap({ stocks, maxOnHand, moves, phase, progress }) 
     return () => observer.disconnect();
   }, []);
   const width = Math.max(160, available);
-  const points = useMemo(() => positions(stocks.length, width), [stocks.length, width]);
+  const points = useMemo(() => positions(stocks, width, maxOnHand), [stocks, width, maxOnHand]);
   const cell = points[0].x * 2;
   const height = (points.at(-1).row + 1) * ROW;
   const routes = useMemo(() => {
@@ -128,7 +132,7 @@ export default function StoreMap({ stocks, maxOnHand, moves, phase, progress }) 
     <div ref={viewport} tabIndex="0" role="region" aria-label="Store map" className="tr-map-viewport">
       <svg viewBox={'0 0 ' + width + ' ' + height} width={width * zoom} height={height * zoom}
         aria-label="Stores and transfer routes" role="group">
-        <MapBase stocks={stocks} points={points} width={width} height={height} cell={cell} maxOnHand={maxOnHand} routes={routes} />
+        <MapBase stocks={stocks} points={points} width={width} height={height} cell={cell} routes={routes} />
         {phase === 'dispatch' && routes.map(({ key, route }) => {
           const [x, y] = parcelPosition(route, progress);
           return <g key={key} className="tr-parcel" aria-hidden="true" transform={'translate(' + x + ' ' + y + ')'}>

@@ -13,6 +13,8 @@ const SOURCE_LABEL = { observed: 'Observed sales', forecast: 'Modeled demand', m
 const formatWeek = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const digits = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
 const money = value => (value < 0 ? '−$' : '$') + digits.format(Math.abs(value));
+const unitWord = value => Math.abs(value) === 1 ? 'unit' : 'units';
+const formatUnits = value => digits.format(value) + ' ' + unitWord(value);
 
 function StoreSelector({ stores, selected, apply }) {
   const [draft, setDraft] = useState(null);
@@ -86,7 +88,7 @@ function Transport({ clock, weeks, week }) {
 function Savings({ frame }) {
   return <dl className="tr-metrics">
     <div className="tr-net"><dt>Estimated money saved</dt><dd>{money(frame.saved)}</dd></div>
-    <div><dt>Net sales recovered</dt><dd>{digits.format(frame.recoveredUnits)} <small>units</small></dd></div>
+    <div><dt>Net sales recovered</dt><dd>{digits.format(frame.recoveredUnits)} <small>{unitWord(frame.recoveredUnits)}</small></dd></div>
     <div><dt>Transfer cost</dt><dd>{money(frame.transferCost)}</dd></div>
   </dl>;
 }
@@ -96,7 +98,7 @@ function Shipments({ week, names, phase }) {
     <div className="tr-section-head"><h3>Shipments this week</h3><span>{week.moves.length}</span></div>
     {week.moves.length ? <ul>{week.moves.map(move =>
       <li key={JSON.stringify([move.from, move.to])}><span><b>{names.get(move.from)}</b> → {names.get(move.to)}</span>
-        <span>{move.units} {move.units === 1 ? 'unit' : 'units'} · {phase === 'dispatch' ? 'in transit' : 'received'}</span></li>)}</ul> :
+        <span>{formatUnits(move.units)} · {phase === 'dispatch' ? 'in transit' : 'received'}</span></li>)}</ul> :
       <p className="tr-quiet">No shipments this week.</p>}
   </section>;
 }
@@ -111,7 +113,7 @@ function Replay({ network }) {
       <div className="tr-map-header"><div><h2>Store network</h2>
         <span className="tr-date">{formatWeek.format(new Date(week.date + 'T00:00:00Z'))}</span></div>
         <div className="tr-week-status"><span className="tr-phase">{clock.finished ? 'Complete' : PHASE_LABEL[clock.phase]}</span>
-          <span>{digits.format(frame.inTransit)} units in transit</span></div></div>
+          <span>{formatUnits(frame.inTransit)} in transit</span></div></div>
       <StoreMap stocks={frame.stocks} maxOnHand={network.maxOnHand} moves={week.moves}
         phase={clock.phase} progress={clock.progress} />
       <Transport clock={clock} weeks={network.weeks} week={week} />
@@ -119,8 +121,8 @@ function Replay({ network }) {
     <Savings frame={frame} />
     <div className="tr-ledger"><section className="tr-comparison">
       <div className="tr-section-head"><h3>Cumulative sales</h3><span>{SOURCE_LABEL[week.demandSource]} this week</span></div>
-      <dl><div><dt>With transfers</dt><dd>{digits.format(frame.sold)} units</dd></div>
-        <div><dt>Without transfers</dt><dd>{digits.format(frame.baselineSold)} units</dd></div></dl>
+      <dl><div><dt>With transfers</dt><dd>{formatUnits(frame.sold)}</dd></div>
+        <div><dt>Without transfers</dt><dd>{formatUnits(frame.baselineSold)}</dd></div></dl>
     </section><Shipments week={week} names={names} phase={clock.phase} /></div>
   </>;
 }
