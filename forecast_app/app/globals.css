@@ -3,12 +3,12 @@
   --paper: #fff;
   --surface: #f6f6f7;
   --pressed: #ededee;
-  --nav-active: #e7e7e9;
+  --accent: #095037;
+  --accent-surface: #e4f3ea;
   --ink: #1a1a1a;
   --muted: #5e6267;
   --line: #c9cccf;
   --rule: #e1e3e5;
-  --link: #2c6ecb;
   --danger: #a52b14;
   --gap-1: .25rem;
   --gap-2: .5rem;
@@ -38,8 +38,8 @@ button, input, select, option, textarea, code, kbd, pre, svg text { font: inheri
 button, input, select { color: inherit; }
 button, .button, .upload-button { cursor: pointer; }
 button:disabled, input:disabled { cursor: default; }
-a { color: var(--link); text-underline-offset: .22em; }
-:focus-visible, .upload-button:focus-within { outline: 2px solid var(--link); outline-offset: 3px; }
+a { color: var(--accent); text-underline-offset: .22em; }
+:focus-visible, .upload-button:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
 h1, h2, h3 { line-height: 1.18; letter-spacing: -.035em; overflow-wrap: anywhere; }
 h1 { font-size: clamp(1.8rem, 3.35vw, 2.8rem); }
 h2 { font-size: var(--type-section); }
@@ -51,18 +51,14 @@ h3 { font-size: var(--type-body); }
   overflow-y: auto; padding: 2.2rem var(--gap-4); border-right: 1px solid var(--rule);
   background: var(--surface);
 }
-.wordmark { display: inline-flex; align-items: center; gap: .65rem; margin-inline: var(--gap-3); color: var(--ink); font-size: 1.25rem; letter-spacing: -.055em; text-decoration: none; }
-.wordmark::before {
-  content: ""; width: 1.25rem; height: 1.15rem; background: currentColor;
-  clip-path: polygon(0 65%, 22% 65%, 22% 100%, 0 100%, 0 65%, 38% 65%, 38% 33%, 60% 33%, 60% 100%, 38% 100%, 38% 65%, 78% 65%, 78% 0, 100% 0, 100% 100%, 78% 100%, 78% 65%);
-}
+.wordmark { display: inline-block; margin-inline: var(--gap-3); color: var(--ink); font-size: 1.25rem; letter-spacing: -.055em; text-decoration: none; }
 .sidebar-nav { display: grid; gap: var(--gap-1); margin-top: 3.2rem; }
 .sidebar-nav a {
   display: flex; align-items: center; min-height: 2.75rem; padding: .55rem var(--gap-3);
   border-radius: var(--control-radius); color: var(--muted); text-decoration: none; font-size: var(--type-label);
 }
 .sidebar-nav a:hover { background: var(--pressed); color: var(--ink); }
-.sidebar-nav a[aria-current="page"] { background: var(--nav-active); color: var(--ink); }
+.sidebar-nav a[aria-current="page"] { background: var(--accent-surface); color: var(--accent); }
 .skip-link { position: fixed; top: var(--gap-2); left: var(--gap-2); padding: var(--gap-2); z-index: 5; transform: translateY(-180%); background: var(--paper); }
 .skip-link:focus { transform: none; }
 

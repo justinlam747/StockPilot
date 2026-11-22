@@ -30,6 +30,8 @@ A production-grade Shopify embedded app with:
 
 ## Design System — White & Grey
 
+The local forecasting app in `forecast_app/` uses a text-only StockPilot wordmark and a forest-green accent for forecasts, selections, links and keyboard focus. Its neutral surfaces and regular-weight type follow the shared design system.
+
 ### Color Palette
 
 | Token | Value | Usage |
