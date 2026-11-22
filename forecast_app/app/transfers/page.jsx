@@ -1,182 +1,156 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useWorkspace } from '../Workspace';
+import { buildReplay, DEMO_FORECAST, ECONOMICS, replayFrame } from './simulation.mjs';
 import StoreMap from './StoreMap';
-import { CELLS, coordinate, createBoard, dispatch, elapsedAt, placeStore, playback, readBoard, snapshot, TRAVEL_MS } from './simulation.mjs';
 import './transfers.css';
 
-function useBoard(key, item, names) {
-  const [board, setBoard] = useState(null);
-  const current = useRef(null);
-  const seed = useRef({ item, names });
-  const temporary = useRef(false);
-  const [now, setNow] = useState(0);
-  const [error, setError] = useState('');
-  const [saved, setSaved] = useState(true);
-  function remember(next, at) {
-    current.current = next;
-    setNow(at);
-    setBoard(next);
-  }
-  function read() {
-    if (temporary.current) return null;
-    try { return readBoard(localStorage, key); }
-    catch { temporary.current = true; setSaved(false); return null; }
-  }
-  function write(value) {
-    if (temporary.current) return;
-    try { localStorage.setItem(key, JSON.stringify(value)); setSaved(true); }
-    catch { temporary.current = true; setSaved(false); }
-  }
-  useEffect(() => {
-    function load() {
-      const at = Date.now();
-      const existing = read();
-      const value = existing ?? createBoard(seed.current.item, seed.current.names, at);
-      if (!existing) write(value);
-      remember(value, at);
-    }
-    function sync(event) { if (!temporary.current && (event.key === key || event.key === null)) load(); }
-    load();
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, [key]);
-  const running = board && board.started != null && elapsedAt(board, now) < board.moves.length * TRAVEL_MS;
-  useEffect(() => {
-    if (!running) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 100);
-    return () => window.clearInterval(timer);
-  }, [running]);
-  async function transact(update) {
-    function apply() {
-      const at = Date.now();
-      const next = update(read() ?? current.current, at);
-      write(next);
-      remember(next, at);
-      setError('');
-      return true;
-    }
-    try { return navigator.locks ? await navigator.locks.request(key, apply) : apply(); }
-    catch (e) { setError(e.message); return false; }
-  }
-  return { board, now, error, setError, saved, transact };
-}
+const PHASES = ['dispatch', 'arrival', 'sales'];
+const PHASE_MS = [2600, 1300, 1900];
+const PHASE_LABEL = { dispatch: 'Dispatch', arrival: 'Arrival', sales: 'Sales' };
+const SOURCE_LABEL = { observed: 'Observed sales', forecast: 'Modeled demand', mixed: 'Mixed demand', unknown: 'Demand unavailable' };
+const formatWeek = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const digits = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+const money = value => (value < 0 ? '−$' : '$') + digits.format(Math.abs(value));
 
-function StoreEditor({ draft, setDraft, board, names, item, submit, cancel }) {
-  const move = draft.id != null;
-  const available = names.filter(name => !board.stores.some(s => s.name.toLowerCase() === name.toLowerCase()));
-  const free = Array.from({ length: CELLS }, (_, i) => i).filter(i => !board.stores.some(s => s.cell === i && s.id !== draft.id));
-  return <form className="tr-editor" onSubmit={submit}>
-    <h3>{move ? 'Move ' + draft.name : 'New store'}</h3>
-    {!move && <><label>Store name<input autoFocus required maxLength={80} list="unplaced-stores" value={draft.name}
-      onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
-      <datalist id="unplaced-stores">{available.map(name => <option key={name} value={name} />)}</datalist>
-      <label>Opening units<input required type="number" min="0" step="1" value={draft.opening}
-        onChange={e => setDraft({ ...draft, opening: e.target.value })} title={board.items[item]} /></label></>}
-    <label>Position<select autoFocus={move} value={draft.cell} onChange={e => setDraft({ ...draft, cell: Number(e.target.value) })}>
-      {free.map(cell => <option key={cell} value={cell}>{coordinate(cell)}</option>)}</select></label>
-    <button type="submit" className="button tr-primary">{move ? 'Save position' : 'Place store'}</button>
-    <button type="button" className="settings-toggle" onClick={cancel}>Cancel</button>
-  </form>;
-}
-
-function StockList({ board, view, item }) {
-  return <section className="panel tr-section">
-    <table className="tr-stocks"><caption>Simulated stock</caption>
-      <thead><tr><th scope="col">Store</th><th scope="col">Position</th><th scope="col">On hand</th></tr></thead>
-      <tbody>{board.stores.map(store => <tr key={store.id}><th scope="row"><span className="tr-number" aria-hidden="true">[{String(store.id).padStart(2, '0')}] </span>{store.name}</th>
-        <td>{coordinate(store.cell)}</td><td>{view.stock.get(store.id)[item]}</td></tr>)}</tbody>
-    </table>
-  </section>;
-}
-
-function SendForm({ board, view, item, transact }) {
-  const [from, setFrom] = useState(board.stores[0]?.id ?? '');
-  const [to, setTo] = useState(board.stores[1]?.id ?? '');
-  const [quantity, setQuantity] = useState('1');
-  const destination = board.stores.find(s => s.id === to && s.id !== from) ?? board.stores.find(s => s.id !== from);
-  const available = view.stock.get(from)?.[item] ?? 0;
-  function send(event) {
-    event.preventDefault();
-    transact((value, at) => dispatch(value, { from, to: destination?.id, item, units: Number(quantity) }, at));
-  }
-  return <section className="panel tr-section"><h2>New transfer</h2>
-    <form onSubmit={send} className="tr-send">
-      <label>From store<select value={from} onChange={e => setFrom(Number(e.target.value))}>
-        {board.stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-      </select></label>
-      <label>To store<select value={destination?.id ?? ''} onChange={e => setTo(Number(e.target.value))}>
-        {!destination && <option value="">Place another store</option>}
-        {board.stores.filter(s => s.id !== from).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-      </select></label>
-      <label>Units<input type="number" min="1" max={available} step="1" required value={quantity}
-        onChange={e => setQuantity(e.target.value)} /></label>
-      <button type="submit" className="button tr-primary" disabled={Boolean(view.active) || !destination || available === 0}>Send transfer</button>
-    </form>
-  </section>;
-}
-
-function Board({ storageKey, itemName, names }) {
-  const { board, now, error, setError, saved, transact } = useBoard(storageKey, itemName, names);
-  const [item, setItem] = useState(0);
+function StoreSelector({ stores, selected, apply }) {
   const [draft, setDraft] = useState(null);
-  const placeButton = useRef(null);
-  if (!board) return null;
-  const view = snapshot(board, now);
-  const active = view.active;
-  const last = active ?? board.moves.findLast(move => move.item === item);
-  const source = board.stores.find(s => s.id === last?.from);
-  const dest = board.stores.find(s => s.id === last?.to);
-  const paused = active && board.started == null;
-  const free = Array.from({ length: CELLS }, (_, i) => i).find(i => !board.stores.some(store => store.cell === i));
-  function choose(cell, store) {
-    setError('');
-    if (store) setDraft({ id: store.id, name: store.name, cell });
-    else setDraft(current => current ? { ...current, cell } : { id: null, name: '', cell, opening: '0' });
+  function toggle(id) {
+    setDraft(ids => ids.includes(id) ? ids.filter(key => key !== id) : [...ids, id]);
   }
-  function closeEditor() { setDraft(null); placeButton.current?.focus(); }
-  async function save(event) {
-    event.preventDefault();
-    if (await transact(value => placeStore(value, { ...draft, opening: Number(draft.opening), item }))) closeEditor();
-  }
-  function control(action) { transact((value, at) => playback(value, action, at)); }
-  return <>
-    <div className="tr-topline"><span>Inventory simulation</span>
-      <label>Item<select value={item} onChange={e => { setItem(Number(e.target.value)); setDraft(null); }}>
-        {board.items.map((name, i) => <option key={name} value={i}>{name}</option>)}</select></label>
-    </div>
-    <section className="panel tr-map-panel">
-      <div className="tr-map-head"><h2>Store map</h2>
-        <button type="button" className="button" ref={placeButton} disabled={free == null} onClick={() => {
-          setDraft({ id: null, name: '', opening: '0', cell: free }); setError('');
-        }}>+ Place store</button>
+  return <div className="tr-store-picker">
+    <button type="button" className="button" aria-expanded={draft !== null} aria-controls="transfer-stores"
+      onClick={() => setDraft(draft === null ? selected : null)}>Choose stores ({selected.length})</button>
+    {draft && <section className="tr-picker-panel" id="transfer-stores" aria-label="Stores in replay">
+      <div className="tr-picker-actions">
+        <button type="button" className="settings-toggle" onClick={() => setDraft(stores.map(s => s.id))}>Select all</button>
+        <button type="button" className="settings-toggle" onClick={() => setDraft([])}>Clear</button>
       </div>
-      <StoreMap stores={board.stores} item={item} view={view} route={last?.item === item ? last : null} selectedCell={draft?.cell} choose={choose} />
-      {draft && <StoreEditor draft={draft} setDraft={setDraft} board={board} names={names} item={item} submit={save} cancel={closeEditor} />}
-      <div className="tr-transport"><div className="tr-movement" role="status">
-        <span className="tr-status" data-live={Boolean(active)}>{active ? (paused ? 'Paused in transit' : 'In transit') : last ? 'Delivered' : 'Ready'}</span>
-        {last && <><span>{last.units} × {board.items[last.item]}</span><span className="tr-journey">{source.name} → {dest.name}</span></>}
-      </div><div className="tr-controls">
-        {active && <button className="button" onClick={() => control(paused ? 'resume' : 'pause')}>{paused ? 'Resume' : 'Pause'}</button>}
-        {Boolean(board.moves.length) && <button className="button" onClick={() => control('replay')}>Replay</button>}
-      </div></div>
+      <div className="tr-checkboxes">{stores.map(s => <label key={s.id}><input type="checkbox"
+        checked={draft.includes(s.id)} onChange={() => toggle(s.id)} />{s.name}</label>)}</div>
+      <div className="tr-picker-actions"><button className="button" disabled={!draft.length} onClick={() => {
+        apply(stores.filter(s => draft.includes(s.id)).map(s => s.id)); setDraft(null);
+      }}>Apply stores</button><button className="settings-toggle" onClick={() => setDraft(null)}>Cancel</button></div>
+    </section>}
+  </div>;
+}
+
+function usePlayback(weekCount) {
+  const [playing, setPlaying] = useState(true);
+  const [speed, setSpeed] = useState(1);
+  const [position, setPosition] = useState({ step: 0, offset: 0 });
+  const positionRef = useRef(position);
+  const total = weekCount * PHASES.length;
+  const finished = position.step >= total;
+  function move(next) { positionRef.current = next; setPosition(next); }
+  useEffect(() => {
+    if (!playing || finished) return;
+    let previous = performance.now();
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      let { step, offset } = positionRef.current;
+      offset += (now - previous) * speed;
+      previous = now;
+      while (step < total && offset >= PHASE_MS[step % PHASES.length]) {
+        offset -= PHASE_MS[step % PHASES.length]; step++;
+      }
+      move({ step, offset: step === total ? 0 : offset });
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [playing, finished, speed, total]);
+  const step = Math.min(position.step, total - 1);
+  return { playing: playing && !finished, finished, week: Math.floor(step / 3), phase: PHASES[step % 3],
+    progress: finished ? 1 : position.offset / PHASE_MS[step % 3], speed, setSpeed, toggle: () => setPlaying(p => !p),
+    replay() { move({ step: 0, offset: 0 }); setPlaying(true); },
+    seek(week) { move({ step: week * 3, offset: 0 }); setPlaying(false); } };
+}
+
+function Transport({ clock, weeks, week }) {
+  return <div className="tr-transport">
+    <div className="tr-play">
+      {clock.finished ? <button className="button" onClick={clock.replay}>Replay</button> : <>
+        <button className="button tr-play-primary" onClick={clock.toggle}>{clock.playing ? 'Pause' : 'Resume'}</button>
+        <button className="settings-toggle" onClick={clock.replay}>Replay</button>
+      </>}
+      <label>Speed<select value={clock.speed} onChange={e => clock.setSpeed(Number(e.target.value))}>
+        {[1, 2, 4].map(v => <option key={v} value={v}>{v}×</option>)}
+      </select></label>
+    </div>
+    <label className="tr-week-slider"><span>Week {clock.week + 1} / {weeks.length}</span>
+      <input aria-label="Replay week" type="range" min="1" max={weeks.length} value={clock.week + 1}
+        onChange={e => clock.seek(Number(e.target.value) - 1)} aria-valuetext={week.date} /></label>
+  </div>;
+}
+
+function Savings({ frame }) {
+  return <dl className="tr-metrics">
+    <div className="tr-net"><dt>Estimated money saved</dt><dd>{money(frame.saved)}</dd></div>
+    <div><dt>Net sales recovered</dt><dd>{digits.format(frame.recoveredUnits)} <small>units</small></dd></div>
+    <div><dt>Transfer cost</dt><dd>{money(frame.transferCost)}</dd></div>
+  </dl>;
+}
+
+function Shipments({ week, names, phase }) {
+  return <section className="tr-shipments">
+    <div className="tr-section-head"><h3>Shipments this week</h3><span>{week.moves.length}</span></div>
+    {week.moves.length ? <ul>{week.moves.map(move =>
+      <li key={JSON.stringify([move.from, move.to])}><span><b>{names.get(move.from)}</b> → {names.get(move.to)}</span>
+        <span>{move.units} {move.units === 1 ? 'unit' : 'units'} · {phase === 'dispatch' ? 'in transit' : 'received'}</span></li>)}</ul> :
+      <p className="tr-quiet">No shipments this week.</p>}
+  </section>;
+}
+
+function Replay({ network }) {
+  const clock = usePlayback(network.weeks.length);
+  const week = network.weeks[clock.week];
+  const frame = useMemo(() => replayFrame(network, clock.week, clock.phase), [network, clock.week, clock.phase]);
+  const names = useMemo(() => new Map(network.stores.map(s => [s.id, s.name])), [network]);
+  return <>
+    <section className="panel tr-map-panel" aria-label="Store transfer replay">
+      <div className="tr-map-header"><div><h2>Store network</h2>
+        <span className="tr-date">{formatWeek.format(new Date(week.date + 'T00:00:00Z'))}</span></div>
+        <div className="tr-week-status"><span className="tr-phase">{clock.finished ? 'Complete' : PHASE_LABEL[clock.phase]}</span>
+          <span>{digits.format(frame.inTransit)} units in transit</span></div></div>
+      <StoreMap stocks={frame.stocks} maxOnHand={network.maxOnHand} moves={week.moves}
+        phase={clock.phase} progress={clock.progress} />
+      <Transport clock={clock} weeks={network.weeks} week={week} />
     </section>
-    {!saved && <p className="tr-feedback" role="status">Browser storage is unavailable. This session is temporary.</p>}
-    {error && <p className="tr-feedback" role="alert">{error}</p>}
-    <div className="tr-bottom"><StockList board={board} view={view} item={item} />
-      <SendForm board={board} view={view} item={item} transact={transact} /></div>
+    <Savings frame={frame} />
+    <div className="tr-ledger"><section className="tr-comparison">
+      <div className="tr-section-head"><h3>Cumulative sales</h3><span>{SOURCE_LABEL[week.demandSource]} this week</span></div>
+      <dl><div><dt>With transfers</dt><dd>{digits.format(frame.sold)} units</dd></div>
+        <div><dt>Without transfers</dt><dd>{digits.format(frame.baselineSold)} units</dd></div></dl>
+    </section><Shipments week={week} names={names} phase={clock.phase} /></div>
+  </>;
+}
+
+function HowItWorks() {
+  return <section className="tr-method" aria-labelledby="transfer-method"><h2 id="transfer-method">How it works</h2>
+    <p>Each week, XGBoost forecasts demand for each store. Stores keep nine days of forecast stock and offer surplus to stores below one week of demand. Shipments arrive before sales are counted.</p>
+    <p>Stores start with half to two weeks of forecast stock. Every other week they receive twice the prior weekly forecast. Both scenarios use these same supplies.</p>
+    <p>In-stock sales measure historical demand. A missing actual uses the forecast. A stockout uses the higher of recorded sales and the rounded forecast.</p><p>Estimated savings equal extra units sold versus keeping stock in place, times {money(ECONOMICS.unitMargin)} contribution per unit, less {money(ECONOMICS.unitTransferCost)} per unit moved. Storefront size shows current on-hand inventory.</p>
+  </section>;
+}
+
+function Scenario({ result, demo }) {
+  const [selected, setSelected] = useState(() => result.stores.slice(0, 4).map(store => store.id));
+  const network = useMemo(() => buildReplay(result, selected), [result, selected]);
+  return <>
+    <div className="tr-scenario"><div><span className="tr-source">{demo ? 'Demo forecast · synthetic sales' : 'Saved forecast'}</span>
+      <h2>{result.item}</h2></div><StoreSelector stores={result.stores} selected={selected} apply={setSelected} /></div>
+    {network.weeks.length && network.stores.length ? <Replay key={JSON.stringify(selected)} network={network} /> :
+      <p className="panel tr-empty">No forecast weeks are available for these stores.</p>}
+    <HowItWorks />
   </>;
 }
 
 export default function TransfersPage() {
   const { view, loading } = useWorkspace();
-  const result = view.result;
-  const storageKey = 'stockpilot-transfers-v1:' + (view.projectId ?? 'demo');
   return <div id="transfers-page" className="page-body tr-page">
     <header className="page-head"><h1>Transfers</h1></header>
-    {loading && !result ? <p role="status">Opening store map…</p> :
-      <Board key={storageKey} storageKey={storageKey} itemName={result?.item}
-        names={result?.stores.map(s => s.name) ?? []} />}
+    {loading && !view.result ? <p role="status">Opening forecast…</p> :
+      <Scenario key={JSON.stringify([view.projectId, view.jobId])}
+        result={view.result ?? DEMO_FORECAST} demo={!view.result} />}
   </div>;
 }

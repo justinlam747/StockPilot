@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { startLocalBroker } from '../scripts/queue-broker.mjs';
+import { buildReplay, replayFrame } from '../forecast_app/app/transfers/simulation.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const app = path.join(root, 'forecast_app');
@@ -130,6 +131,13 @@ test('production workspace trains from the public template and restores its fore
     assert.deepEqual(future.result.weeks.map(w => w.week), ['2025-03-10', '2025-03-17']);
     assert.ok(future.result.weeks.every(w => w.stores.every(row =>
       row.actual === null && Number.isFinite(row.forecasts.xgboost))));
+    const network = buildReplay(trained.result);
+    assert.deepEqual(network.weeks.map(w => w.date), [...trained.result.weeks, trained.result.next].map(w => w.week));
+    const interval = buildReplay(future.result);
+    assert.ok(interval.weeks.every(w => w.demandSource === 'forecast'));
+    const final = replayFrame(interval, interval.weeks.length - 1, 'sales');
+    assert.equal(final.inTransit, 0);
+    assert.equal(final.saved, (final.sold - final.baselineSold) * 12 - final.transferCost);
 
     await server.stop();
     await broker.stop();
