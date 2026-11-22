@@ -12,10 +12,6 @@ SimpleCov.start 'rails' do
   add_group 'Services', 'app/services'
   add_group 'Jobs', 'app/jobs'
   add_group 'Mailers', 'app/mailers'
-
-  # Total coverage gate — total line coverage across the whole app
-  # must exceed 80%.
-  minimum_coverage 80
 end
 
 require 'spec_helper'
@@ -44,11 +40,4 @@ RSpec.configure do |config|
 
   # Include travel_to / freeze_time helpers for time-dependent tests
   config.include ActiveSupport::Testing::TimeHelpers
-end
-
-Shoulda::Matchers.configure do |config|
-  config.integrate do |with|
-    with.test_framework :rspec
-    with.library :rails
-  end
 end

@@ -23,7 +23,7 @@
 12. [Dependency & Supply Chain Security](#12-dependency--supply-chain-security)
 13. [Container & Infrastructure Security](#13-container--infrastructure-security)
 14. [Multi-Tenancy Isolation](#14-multi-tenancy-isolation)
-15. [CI/CD Security Gates](#15-cicd-security-gates)
+15. [Local Security Checks](#15-local-security-checks)
 16. [Compliance Matrix](#16-compliance-matrix)
 
 ---
@@ -296,11 +296,11 @@ Configured in `config/initializers/filter_parameter_logging.rb`:
 
 | ID | Control | Priority |
 |----|---------|----------|
-| DEP-01 | Run `bundle-audit check --update` in CI to detect vulnerable gems | Mandatory |
-| DEP-02 | Run `brakeman` static analysis in CI for Rails security issues | Mandatory |
-| DEP-03 | Run `npm audit` in CI — fail builds on high/critical severity | Mandatory |
+| DEP-01 | Run `bundle-audit check --update` locally to detect vulnerable gems | Mandatory |
+| DEP-02 | Run `brakeman` static analysis locally for Rails security issues | Mandatory |
+| DEP-03 | Run `npm audit` locally and review high or critical findings | Mandatory |
 | DEP-04 | Always commit `Gemfile.lock` and `package-lock.json` | Mandatory |
-| DEP-05 | Use `bundle install` and `npm ci` (not `npm install`) in CI | Mandatory |
+| DEP-05 | Use `bundle install` and `npm ci` to install locked dependencies | Mandatory |
 | DEP-06 | Enable Dependabot or Renovate for automated security patches | Recommended |
 | DEP-07 | Review new packages before adding — prefer well-maintained packages | Mandatory |
 
@@ -316,7 +316,7 @@ Configured in `config/initializers/filter_parameter_logging.rb`:
 | CONT-02 | Never use `ARG` or `ENV` for secrets in Dockerfile | Mandatory |
 | CONT-03 | Move hardcoded Postgres credentials in `docker-compose.yml` to `.env` file | Mandatory |
 | CONT-04 | Run the app as a non-root user inside the container | Mandatory |
-| CONT-05 | Add container image vulnerability scanning (Trivy, Snyk) to CI | Recommended |
+| CONT-05 | Scan container images locally with Trivy or Snyk | Recommended |
 
 ---
 
@@ -333,24 +333,9 @@ Configured in `config/initializers/filter_parameter_logging.rb`:
 
 ---
 
-## 15. CI/CD Security Gates
+## 15. Local Security Checks
 
-The following security checks **must** pass before any PR can be merged:
-
-| Gate | Tool | Blocks Merge |
-|------|------|:------------:|
-| Ruby lint | RuboCop | Yes |
-| Backend tests | RSpec (259 examples) | Yes |
-| Gem vulnerability scan | `bundler-audit` | Yes |
-| Static security analysis | `brakeman` | Yes |
-
-### Pipeline Rules
-
-- CI must pass before any PR merge
-- Flaky CI stages must be fixed, not skipped
-- Never use `--no-verify` to bypass pre-commit hooks
-- Pipeline changes are reviewed like any other code change
-- Every new CI stage is documented in `CLAUDE.md` before merging
+Run `npm run security` to check the Rails dependencies and scan the application with Brakeman. Use `npm run lint` for RuboCop and `bundle exec rspec spec/security` for the security spec.
 
 ---
 
@@ -377,7 +362,7 @@ Summary of current compliance status across all controls:
 | Authorization | **Not implemented** | **Non-Compliant** | No resource-level authz (pundit) |
 | GDPR data processing | Implemented | Compliant | Jobs process data; app stores no customer PII |
 | Audit logging | Implemented | Compliant | `AuditLog` model tracks all security events |
-| `brakeman` in CI | Implemented | Compliant | Runs in test suite + CI pipeline |
+| Static security analysis | Available locally | Manual check | `npm run security` |
 | Session timeout config | Implemented | Compliant | 24-hour expiry in `session_store.rb` |
 
 ---

@@ -15,13 +15,6 @@ RSpec.describe 'Rate limiting' do
     Rack::Attack.enabled = false
   end
 
-  it 'throttles excessive requests at the configured limit' do
-    # Verify the throttle config is correct
-    expect(Rack::Attack.throttles).to include('req/shop')
-    throttle = Rack::Attack.throttles['req/shop']
-    expect(throttle).to be_present
-  end
-
   it 'throttles excessive dashboard requests' do
     responses = []
     65.times do

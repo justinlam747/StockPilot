@@ -425,8 +425,6 @@ GEM
       securerandom
       sorbet-runtime
       zeitwerk (~> 2.5)
-    shoulda-matchers (6.5.0)
-      activesupport (>= 5.2.0)
     sidekiq (7.3.9)
       base64
       connection_pool (>= 2.3.0)
@@ -518,7 +516,6 @@ DEPENDENCIES
   sentry-ruby (~> 5.0)
   sentry-sidekiq (~> 5.0)
   shopify_api (~> 14.0)
-  shoulda-matchers (~> 6.0)
   sidekiq (~> 7.0)
   sidekiq-cron (~> 1.12)
   simplecov

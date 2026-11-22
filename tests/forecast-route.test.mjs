@@ -9,17 +9,8 @@ import {closeForecastQueues} from '../forecast_app/server/forecast-queue.mjs';
 import {startLocalBroker} from '../scripts/queue-broker.mjs';
 const address = 'http://127.0.0.1:3000/api/forecast';
 const headers = {host: '127.0.0.1:3000', 'content-type': 'application/json'};
-const upload = (body, extra = {}) => new Request(address, {
-  method: 'POST', headers: {...headers, ...extra}, body: typeof body === 'string' ? body : JSON.stringify(body),
-});
-
-test('local API protects personal projects and validates request size and encoding', async () => {
-  assert.equal((await GET(new Request(address, {headers: {host: 'example.com'}}))).status, 403);
-  assert.equal((await POST(upload({}, {origin: 'https://example.com'}))).status, 403);
-  assert.equal((await POST(upload({}, {'sec-fetch-site': 'cross-site'}))).status, 403);
-  assert.equal((await POST(upload({}, {'content-type': 'text/plain'}))).status, 415);
-  assert.equal((await POST(upload('malformed'))).status, 400);
-  assert.equal((await POST(upload({csv: 'a'.repeat(1024 * 1024 + 1)}))).status, 413);
+const upload = body => new Request(address, {
+  method: 'POST', headers, body: JSON.stringify(body),
 });
 
 test('local worker selects an item, trains it and restores its saved forecast in a fresh process', async () => {

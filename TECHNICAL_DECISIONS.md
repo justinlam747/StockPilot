@@ -139,3 +139,9 @@ Changing the chart window reuses existing predictions. Rerunning a saved item fo
 BullMQ accepts a forecast once the selected item and settings are validated. A local worker processes one run at a time across server instances serving the same queue. Inside each run the Python trainer reports when each selected model starts or finishes. This keeps concurrent requests from competing for model memory and lets the browser display actual progress.
 
 Redis persists job order and status. Uploaded inputs and the exact forecast produced by each run stay in the user's data folder. A completed run can be reopened even after another comparison of the same item finishes. The queue remains independent of a browser tab, and the existing synchronous API waits for the same queued work. The local source release ships the XGBoost trainer.
+
+## TD-031: Build and package releases on demand
+
+**Date:** 2026-11-21
+
+Maintainers run the local build and source packager when preparing a release. Integration checks cover the boundaries a local installation depends on, including the Python worker, saved forecasts, Redis and the Next.js server. Model backtests still compare forecasts with historical sales.
