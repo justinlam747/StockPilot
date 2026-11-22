@@ -19,5 +19,10 @@ export default function Page() {
         </div>
       </section>}
     <ForecastQueue />
+    <section className="forecast-method" aria-labelledby="forecast-method-heading">
+      <h2 id="forecast-method-heading">How it works</h2>
+      <p>XGBoost uses earlier weekly sales of the selected item to forecast units sold at each store.
+        Compare each prediction with recorded sales where available. Future weeks show predictions only.</p>
+    </section>
   </div>;
 }

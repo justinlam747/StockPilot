@@ -52,7 +52,7 @@ function Scores({ models, points }) {
   </div>;
 }
 
-export default function ForecastControls({ result, dates, range, changeRange, points }) {
+export default function ForecastControls({ result, dates, range, changeRange, points, overlays, toggleOverlay }) {
   const { models, forecastRange, historyRange, modelWarnings } = result;
   const { peerModels, busy, rerunForecast, jobs } = useWorkspace();
   const activeCount = jobs?.filter(isActive).length ?? 0;
@@ -75,7 +75,7 @@ export default function ForecastControls({ result, dates, range, changeRange, po
     <div className="fc-tools-row">
       <button className="button" aria-expanded={panel === 'dates'} aria-controls="forecast-date-controls"
         onClick={() => togglePanel('dates')}>Timeline</button>
-      {peerModels?.length > 0 && <button className="button" aria-expanded={panel === 'models'} aria-controls="forecast-model-controls"
+      {(peerModels?.length > 0 || models.length > 1) && <button className="button" aria-expanded={panel === 'models'} aria-controls="forecast-model-controls"
         onClick={() => togglePanel('models')}>Compare models</button>}
       {activeCount > 0 && <a className="queue-link" href="#forecast-queue">View queue ({activeCount})</a>}
       <button className="button fc-rerun" disabled={busy || awaitingPeers} onClick={run}>Queue forecast</button>
@@ -85,12 +85,16 @@ export default function ForecastControls({ result, dates, range, changeRange, po
       <ForecastPeriod history={historyRange} period={period} change={value => { setPeriod(value); setError(''); }} />
     </div>}
     {panel === 'models' && <section id="forecast-model-controls" aria-label="Model comparison">
-      <fieldset disabled={busy}><legend>Include in rerun</legend>
+      {models.length > 1 && <fieldset><legend>Show on chart</legend>
+        {models.map(model => <label key={model.id}><input type="checkbox"
+          checked={overlays.includes(model.id)} onChange={() => toggleOverlay(model.id)} />{model.name}</label>)}
+      </fieldset>}
+      {peerModels?.length > 0 && <fieldset disabled={busy}><legend>Include in rerun</legend>
         {peerModels.map(model => <label key={model.id}><input type="checkbox" checked={availablePeers.includes(model.id)}
           disabled={model.available === false} onChange={event => setPeers(event.target.checked ?
             [...peers, model.id] : peers.filter(id => id !== model.id))} />
           {model.name}{model.available === false && ' (unavailable)'}</label>)}
-      </fieldset>
+      </fieldset>}
       {models.length > 1 && <Scores models={models} points={points} />}
     </section>}
     {error && <p className="fc-input-error" role="alert">{error}</p>}
