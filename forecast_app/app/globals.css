@@ -1,3 +1,5 @@
+@import '@fontsource/ibm-plex-mono/500.css';
+
 :root {
   color-scheme: light;
   --canvas: #f5f5ed;
@@ -25,7 +27,7 @@
   --type-section: 1.25rem;
   --type-metric: clamp(1.75rem, 3vw, 2.375rem);
   font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-weight: 400;
+  font-weight: 500;
   font-synthesis: none;
   font-variant-numeric: tabular-nums;
   line-height: 1.45;
