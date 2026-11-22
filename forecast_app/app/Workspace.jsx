@@ -60,6 +60,7 @@ function useLocalProject() {
   const [view, setView] = useState(emptyView);
   const [pending, setPending] = useState(null);
   const [trainingDraft, setTrainingDraft] = useState({});
+  const [peerModels, setPeerModels] = useState([]);
   const [notice, setNotice] = useState(quiet);
   const [loading, setLoading] = useState(true);
 
@@ -94,6 +95,29 @@ function useLocalProject() {
     open();
     return () => active.current?.abort();
   }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    request('/api/forecast?capabilities=1', controller.signal)
+      .then(data => { if (!controller.signal.aborted) setPeerModels(data.peerModels ?? []); })
+      .catch(() => {}); // XGBoost can run independently of the optional comparison service.
+    return () => controller.abort();
+  }, []);
+
+  async function rerunForecast(peers, period) {
+    if (!view.projectId) return;
+    const scope = window.location.pathname;
+    const signal = begin('Rerunning forecast…', scope);
+    try {
+      const body = JSON.stringify({ projectId: view.projectId, peers, ...period });
+      const data = await request('/api/forecast', signal, { method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, body });
+      if (signal.aborted) return;
+      setView(data);
+      setNotice({ message: 'Forecast updated.', scope, done: true, error: false });
+    } catch (error) {
+      fail(signal, error, scope);
+    }
+  }
 
   async function importSales(file, item, parameters) {
     const signal = begin('Training XGBoost…', '/import');
@@ -119,8 +143,8 @@ function useLocalProject() {
       if (!signal.aborted) setLoading(false);
     }
   }
-  const busy = Boolean(notice.message && !notice.error);
-  return { view, pending, notice, open, importSales, loading, busy, trainingDraft, setTrainingDraft };
+  const busy = Boolean(notice.message && !notice.error && !notice.done);
+  return { view, pending, notice, open, importSales, loading, busy, trainingDraft, setTrainingDraft, peerModels, rerunForecast };
 }
 
 export function EmptyState({ children }) {

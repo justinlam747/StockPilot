@@ -123,3 +123,11 @@ A running record of architectural and engineering decisions made in StockPilot, 
 The public app fits a weekly XGBoost model for each selected product and shares its store histories within that fit. Expanding-window predictions on recent weeks show what an operator could have known at the time. Importing an updated history produces a new saved forecast. The local API persists normalized observations, the native fitted model and results together in the operating system's user data folder.
 
 An explicit manifest assembles the public source archive. It contains the responsive Next.js workspace, Python trainer, synthetic CSV template and release tests. Research comparisons, retailer records, pretrained weights and simulated transfers stay in the development workspace. The release starts empty and uses the same weekly XGBoost implementation that powers internal evaluation.
+
+## TD-029: Use one forecast frontend for local training and model comparisons
+
+**Date:** 2026-11-21
+
+StockPilot opens the store forecast chart at `/forecast`. The public trainer and development checkout share its import flow, saved projects, date controls and chart. The development worker can offer additional models when their code and any required weights are available locally. The source release includes the XGBoost trainer and a synthetic import template.
+
+Changing the chart window reuses existing predictions. Rerunning a saved item for a new period fits the model on sales observed before the first selected Monday. Later weeks use its own predictions as lagged inputs. This lets a retailer inspect a historical decision using the information available then, or forecast beyond the last recorded sale. Only matched in-stock observations contribute to forecast error.

@@ -4,6 +4,11 @@ export default {
   turbopack: { root: fileURLToPath(new URL('../', import.meta.url)) },
   devIndicators: false,
   poweredByHeader: false,
+  async redirects() {
+    return ['/', '/simulation', '/retail', '/transfer', '/dashboard'].map(source => ({
+      source, destination: '/forecast', permanent: true,
+    }));
+  },
   async headers() {
     return [{
       source: '/:path*',

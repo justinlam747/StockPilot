@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -47,8 +48,12 @@ async function getResponse(url, options) {
 }
 
 async function checkWorkspacePages(origin) {
+  for (const legacy of ['/', '/simulation', '/retail', '/transfer', '/dashboard']) {
+    const response = await fetch(origin + legacy, {redirect: 'manual'});
+    assert.equal(response.status, 308, legacy);
+    assert.equal(new URL(response.headers.get('location'), origin).href, origin + '/forecast');
+  }
   const pages = [
-    ['/', '/forecast', 'forecast-empty'],
     ['/forecast', '/forecast', 'forecast-empty'],
     ['/evaluation', '/evaluation', 'evaluation-page'],
     ['/import', '/import', 'forecast-upload'],
@@ -82,6 +87,9 @@ test('production workspace trains from the public template and restores its fore
     const pages = [...routes.staticRoutes, ...routes.dynamicRoutes].map(r => r.page).filter(p => !p.startsWith('/_'));
     assert.deepEqual(pages.sort(), ['/', '/api/forecast', '/evaluation', '/forecast', '/import', '/projects']);
     assert.deepEqual(await readdir(path.join(app, 'public')), [template]);
+    const capabilities = await (await getResponse(origin + '/api/forecast?capabilities=1')).json();
+    assert.ok(Array.isArray(capabilities.peerModels));
+    if (!existsSync(path.join(root, 'local_dashboard'))) assert.deepEqual(capabilities.peerModels, []);
     const empty = await (await getResponse(origin + '/api/forecast')).json();
     assert.deepEqual(empty, {projects: [], projectId: null, result: null, savedAt: null});
     const csv = await (await getResponse(origin + '/' + template)).text();
@@ -104,13 +112,26 @@ test('production workspace trains from the public template and restores its fore
     }
     const project = path.join(dataDir, tuned.projectId);
     assert.deepEqual((await readdir(project)).sort(), ['forecast.json', 'history.csv', 'model.ubj', 'project.json']);
+    const rerun = await (await getResponse(origin + '/api/forecast', {
+      method: 'POST', headers: {'Content-Type': 'application/json', Origin: origin},
+      body: JSON.stringify({projectId: tuned.projectId, peers: []}),
+    })).json();
+    assert.equal(rerun.projectId, tuned.projectId);
+    assert.deepEqual(rerun.result, tuned.result);
+    const future = await (await getResponse(origin + '/api/forecast', {
+      method: 'POST', headers: {'Content-Type': 'application/json', Origin: origin},
+      body: JSON.stringify({projectId: tuned.projectId, forecastStart: '2025-03-10', forecastEnd: '2025-03-17'}),
+    })).json();
+    assert.deepEqual(future.result.weeks.map(w => w.week), ['2025-03-10', '2025-03-17']);
+    assert.ok(future.result.weeks.every(w => w.stores.every(row =>
+      row.actual === null && Number.isFinite(row.forecasts.xgboost))));
 
     await server.stop();
     server = startServer(dataDir);
     const endpoint = (await server.address) + '/api/forecast';
     const restored = await (await getResponse(endpoint)).json();
-    assert.equal(restored.projectId, tuned.projectId);
-    assert.deepEqual(restored.result, tuned.result);
+    assert.equal(restored.projectId, future.projectId);
+    assert.deepEqual(restored.result, future.result);
     const original = await (await getResponse(endpoint + '?id=' + trained.projectId)).json();
     assert.deepEqual(original.result, trained.result);
     const replay = spawnSync(python, ['-B', '-c', [
@@ -127,7 +148,7 @@ test('production workspace trains from the public template and restores its fore
     ].join('\n'), project], {cwd: root, windowsHide: true, encoding: 'utf8', timeout: 90_000});
     if (replay.error) throw replay.error;
     assert.equal(replay.status, 0, replay.stderr);
-    assert.deepEqual(JSON.parse(replay.stdout), restored.result.next);
+    assert.deepEqual(JSON.parse(replay.stdout), tuned.result.next);
   } finally {
     await server.stop();
     await rm(dataDir, {recursive: true, force: true, maxRetries: 4, retryDelay: 100});
