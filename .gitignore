@@ -8,16 +8,5 @@ dist/
 .stockpilot-data/
 *.ubj
 .env*
-!.env.example
-/shopify/.bundle/
-/shopify/vendor/bundle/
-/shopify/log/
-/shopify/tmp/
-/shopify/storage/
-/shopify/db/*.sqlite3*
-/shopify/db/schema.rb
-/shopify/config/master.key
-/shopify/config/credentials/*.key
-/shopify/.shopify/
 .DS_Store
 Thumbs.db

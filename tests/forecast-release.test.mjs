@@ -63,7 +63,7 @@ async function checkWorkspacePages(origin) {
   for (const [url, activeLink, contentId] of pages) {
     const html = await (await getResponse(origin + url)).text();
     assert.ok(html.includes(`id="${contentId}"`), `${url} must serve its own page content`);
-    if (url === '/import') assert.ok(html.includes('>Connect Shopify</a>'));
+    if (url === '/import') assert.ok(html.includes('href="/weekly-sales-template.csv"'));
     const navigation = html.match(/<nav\b[^>]*id="workspace-navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
     assert.ok(navigation, `${url} must serve the workspace navigation`);
     const links = navigation.match(/<a\s+[^>]*>/g) ?? [];
