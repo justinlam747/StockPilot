@@ -7,6 +7,8 @@ on:
       - 'stockpilot_local/**'
       - 'tests/**'
       - 'scripts/local.mjs'
+      - 'scripts/queue-broker.mjs'
+      - 'scripts/setup-redis.py'
       - 'scripts/package_forecast.py'
       - 'requirements.txt'
       - 'package*.json'
@@ -34,9 +36,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install the macOS OpenMP runtime
+      - name: Install macOS trainer and queue dependencies
         if: runner.os == 'macOS'
-        run: brew install libomp
+        run: brew install libomp valkey
+      - name: Install the Linux queue server
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y redis-server
       - run: python scripts/package_forecast.py
       - run: python -m zipfile -e dist/stockpilot-local.zip dist/verify
       - name: Install and build the exported app
@@ -51,7 +56,7 @@ jobs:
           if [ -f .venv/Scripts/python.exe ]; then py=.venv/Scripts/python.exe; else py=.venv/bin/python; fi
           "$py" -m pip install pytest
           "$py" -m pytest tests
-          node --test tests/forecast-route.test.mjs tests/forecast-release.test.mjs
+          node --test tests/*.test.mjs
       - uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest'
         with:

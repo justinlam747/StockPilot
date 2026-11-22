@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,9 +39,35 @@ function setup() {
     throw new Error('The existing .venv needs Python 3.11–3.14. Rename it and rerun setup.');
   }
   run(python, ['-m', 'pip', 'install', '--disable-pip-version-check', '-r', 'requirements.txt']);
+  if (windows) run(python, ['scripts/setup-redis.py']);
   if (!process.env.npm_execpath) throw new Error('Run setup through npm run setup.');
   run(process.execPath, [process.env.npm_execpath, 'ci', '--omit=dev', '--no-audit', '--no-fund']);
   console.log('StockPilot is ready. Run npm run dev and open http://127.0.0.1:3000/forecast.');
+}
+
+async function serve(command) {
+  const {startLocalBroker, verifyExternalBroker} = await import('./queue-broker.mjs');
+  const {getRedisConnection} = await import('../forecast_app/server/redis-connection.mjs');
+  const broker = env.STOCKPILOT_REDIS_URL ? null : await startLocalBroker();
+  try {
+    const url = broker?.url ?? env.STOCKPILOT_REDIS_URL;
+    if (!broker) await verifyExternalBroker(await getRedisConnection(url));
+    const child = spawn(process.execPath, [next, command, 'forecast_app', ...args, '--hostname', '127.0.0.1'], {
+      cwd: root, env: {...env, STOCKPILOT_REDIS_URL: url}, stdio: 'inherit', windowsHide: true,
+    });
+    const stop = () => child.kill('SIGTERM');
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+    try {
+      process.exitCode = await new Promise((resolve, reject) => {
+        child.once('error', reject);
+        child.once('close', (code, signal) => resolve(code ?? (signal ? 1 : 0)));
+      });
+    } finally {
+      process.off('SIGINT', stop);
+      process.off('SIGTERM', stop);
+    }
+  } finally { await broker?.stop(); }
 }
 
 try {
@@ -50,8 +76,8 @@ try {
   } else if (['dev', 'build', 'start'].includes(command)) {
     if (!existsSync(next)) throw new Error('Install the dependencies with npm run setup first.');
     // Bind the trainer and its locally stored projects to the loopback interface.
-    const bind = command === 'build' ? [] : ['--hostname', '127.0.0.1'];
-    run(process.execPath, [next, command, 'forecast_app', ...args, ...bind]);
+    if (command === 'build') run(process.execPath, [next, 'build', 'forecast_app', ...args]);
+    else await serve(command);
   } else {
     throw new Error('Use npm run setup, npm run dev, npm run build or npm start.');
   }
