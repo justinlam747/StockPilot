@@ -1,11 +1,11 @@
 .fc-result {
   min-width: 0;
   container: forecast / inline-size;
-  --bar-fill: #8e9394;
+  --bar-fill: #929b8e;
 }
-.fc-panel, .fc-metric {
+.fc-panel, .fc-metrics {
   background: var(--paper);
-  border: 1px solid var(--rule);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 .fc-panel { padding: clamp(1rem, 2.5vw, 2rem) clamp(1rem, 3vw, 2.5rem) 0; }
@@ -57,6 +57,9 @@
 }
 .fc-axis-title { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-2);
   margin: var(--gap-6) 0 var(--gap-3); color: var(--muted); font-size: var(--type-small); }
+.fc-axis-title > span, .fc-metric dt, .fc-evaluation-summary dt {
+  text-transform: uppercase; font-size: var(--type-small); letter-spacing: .055em;
+}
 .fc-zoom { display: flex; gap: var(--gap-1); }
 .fc-zoom .button { min-height: 2.25rem; min-width: 2.25rem; padding: var(--gap-1) var(--gap-2); font: inherit; }
 .fc-zoom .button:disabled { opacity: .45; background: var(--paper); cursor: default; }
@@ -82,25 +85,28 @@
 }
 .fc-marks { display: block; width: 100%; height: 100%; overflow: visible; }
 .fc-future { fill: var(--surface); }
-.fc-grid-line { stroke: var(--rule); }
+.fc-grid-line { stroke: var(--line); stroke-dasharray: 1 5; }
 .fc-bars { fill: var(--bar-fill); }
 .fc-line { stroke: var(--accent); stroke-width: 2.25; fill: var(--paper); }
-.fc-cursor { stroke: var(--muted); stroke-dasharray: 2 4; }
+.fc-cursor { stroke: var(--accent); stroke-dasharray: 3 4; }
 .fc-dates {
   grid-column: 2;
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
+  overflow: clip;
   text-align: center;
   color: var(--muted);
   font-size: var(--type-small);
   white-space: nowrap;
 }
+.fc-dates > span:first-child { justify-self: start; }
+.fc-dates > span:last-child { justify-self: end; }
 .fc-dates small { display: block; color: var(--ink); font: inherit; }
 .fc-readout {
   gap: var(--gap-1) var(--gap-4);
   margin-top: var(--gap-4);
-  border-top: 1px solid var(--rule);
+  border-top: 1px dashed var(--line);
   padding-block: var(--gap-3);
   color: var(--muted);
   font-size: var(--type-small);
@@ -114,7 +120,7 @@
 .fc-tools-row { align-items: center; }
 .fc-tools .button { min-height: 2.25rem; padding: var(--gap-1) var(--gap-3); font-size: var(--type-small); }
 .fc-tools .button[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
-.fc-rerun { margin-left: auto; }
+.fc-rerun { margin-left: auto; border-color: var(--accent); color: var(--accent); }
 .fc-tools .button:disabled { color: var(--muted); background: var(--surface); }
 .fc-dates-form, .fc-tools fieldset, .fc-errors { margin: var(--gap-4) 0 var(--gap-1); }
 .fc-tools fieldset { padding: 0; border: 0; }
@@ -151,10 +157,11 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--gap-3);
 }
-.fc-metrics { margin-top: var(--gap-4); }
+.fc-metrics { margin-top: var(--gap-4); gap: 0; }
 .fc-metric { padding: clamp(1rem, 2.2vw, 1.5rem); min-width: 0; }
+.fc-metric + .fc-metric { border-left: 1px dashed var(--line); }
 .fc-metric[data-kpi="next"] .fc-metric-number { color: var(--accent); }
-.fc-metric dt, .fc-evaluation-summary dt { font-size: var(--type-label); color: var(--muted); }
+.fc-metric dt, .fc-evaluation-summary dt { color: var(--muted); }
 .fc-metric-number, .fc-evaluation-summary dd {
   margin: var(--gap-2) 0;
   font-size: var(--type-metric);
@@ -165,7 +172,7 @@
 .fc-note { color: var(--muted); font-size: var(--type-small); margin: 0; }
 .fc-evaluation { min-width: 0; }
 .fc-evaluation-summary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
-.fc-evaluation-summary > div { border-top: 1px solid var(--rule); padding-top: var(--gap-3); }
+.fc-evaluation-summary > div { border-top: 1px dashed var(--line); padding-top: var(--gap-3); }
 .fc-training { margin-top: var(--gap-6); }
 .fc-training dl { display: flex; flex-wrap: wrap; gap: var(--gap-2) var(--gap-5); margin-top: var(--gap-3); font-size: var(--type-label); }
 .fc-training dl > div { display: flex; align-items: baseline; gap: var(--gap-2); }
@@ -179,15 +186,14 @@
 .fc-table td:nth-child(2) { overflow-wrap: anywhere; }
 @container forecast (max-width: 42rem) {
   .fc-dates > span:not(:first-child):not(:last-child):not([data-mid="true"]) { visibility: hidden; }
-  .fc-dates > span:first-child { justify-self: start; }
-  .fc-dates > span:last-child { justify-self: end; }
   .fc-dates > span[data-mid="true"] { justify-self: center; }
 }
 @container forecast (max-width: 30rem) {
   .fc-heading { align-items: start; flex-direction: column; }
   .fc-axis-title { margin-top: var(--gap-5); }
-  .fc-metrics { grid-template-columns: 1fr; gap: var(--gap-2); }
+  .fc-metrics { grid-template-columns: 1fr; }
   .fc-metric { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--gap-1) var(--gap-3); }
+  .fc-metric + .fc-metric { border-left: 0; border-top: 1px dashed var(--line); }
   .fc-metric-number { grid-column: 2; grid-row: 1 / 3; align-self: center; margin: 0; font-size: 1.6rem; }
   .fc-metric .fc-note { grid-column: 1; }
 }
