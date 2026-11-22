@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { startLocalBroker } from '../scripts/queue-broker.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const app = path.join(root, 'forecast_app');
@@ -13,12 +14,13 @@ const python = process.env.STOCKPILOT_PYTHON ||
   path.join(root, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
 const template = 'weekly-sales-template.csv';
 
-function startServer(dataDir) {
+function startServer(dataDir, redisUrl) {
   const next = path.join(root, 'node_modules/next/dist/bin/next');
   // Run Next directly so the process we stop owns the listening socket on every platform.
   const child = spawn(process.execPath, [next, 'start', app, '--hostname', '127.0.0.1', '--port', '0'], {
     cwd: root, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
-    env: {...process.env, NEXT_TELEMETRY_DISABLED: '1', STOCKPILOT_PYTHON: python, STOCKPILOT_DATA_DIR: dataDir},
+    env: {...process.env, NEXT_TELEMETRY_DISABLED: '1', STOCKPILOT_PYTHON: python, STOCKPILOT_DATA_DIR: dataDir,
+      STOCKPILOT_REDIS_URL: redisUrl},
   });
   const closed = new Promise(resolve => child.once('close', resolve));
   const address = new Promise((resolve, reject) => {
@@ -79,7 +81,9 @@ async function checkWorkspacePages(origin) {
 
 test('production workspace trains from the public template and restores its forecast after restart', async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), 'stockpilot-release-'));
-  let server = startServer(dataDir);
+  const brokerDirectory = path.join(dataDir, '.broker');
+  let broker = await startLocalBroker({directory: brokerDirectory});
+  let server = startServer(dataDir, broker.url);
   try {
     const origin = await server.address;
     await checkWorkspacePages(origin);
@@ -127,8 +131,12 @@ test('production workspace trains from the public template and restores its fore
       row.actual === null && Number.isFinite(row.forecasts.xgboost))));
 
     await server.stop();
-    server = startServer(dataDir);
+    await broker.stop();
+    broker = await startLocalBroker({directory: brokerDirectory});
+    server = startServer(dataDir, broker.url);
     const endpoint = (await server.address) + '/api/forecast';
+    const queue = await (await getResponse(endpoint + '?queue=1')).json();
+    assert.equal(queue.jobs.filter(job => job.status === 'completed').length, 4);
     const restored = await (await getResponse(endpoint)).json();
     assert.equal(restored.projectId, future.projectId);
     assert.deepEqual(restored.result, future.result);
@@ -151,6 +159,7 @@ test('production workspace trains from the public template and restores its fore
     assert.deepEqual(JSON.parse(replay.stdout), tuned.result.next);
   } finally {
     await server.stop();
+    await broker.stop();
     await rm(dataDir, {recursive: true, force: true, maxRetries: 4, retryDelay: 100});
   }
 });

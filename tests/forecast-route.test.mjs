@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import {mkdtemp, readFile, rm} from 'node:fs/promises';
+import {mkdtemp, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 
-// Next compiles route.js as ESM, including in checkouts whose root has no module type.
-const source = await readFile(new URL('../forecast_app/app/api/forecast/route.js', import.meta.url));
-const {GET, POST} = await import('data:text/javascript;base64,' + source.toString('base64'));
+import {GET, POST} from '../forecast_app/app/api/forecast/route.js';
+import {closeForecastQueues} from '../forecast_app/server/forecast-queue.mjs';
+import {startLocalBroker} from '../scripts/queue-broker.mjs';
 const address = 'http://127.0.0.1:3000/api/forecast';
 const headers = {host: '127.0.0.1:3000', 'content-type': 'application/json'};
 const upload = (body, extra = {}) => new Request(address, {
@@ -24,6 +24,9 @@ test('local API protects personal projects and validates request size and encodi
 
 test('local worker selects an item, trains it and restores its saved forecast in a fresh process', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'stockpilot-forecast-test-'));
+  const broker = await startLocalBroker({directory: join(dir, 'broker')});
+  const previousBroker = process.env.STOCKPILOT_REDIS_URL;
+  process.env.STOCKPILOT_REDIS_URL = broker.url;
   const previousDir = process.env.STOCKPILOT_DATA_DIR;
   process.env.STOCKPILOT_DATA_DIR = dir;
   try {
@@ -73,6 +76,10 @@ test('local worker selects an item, trains it and restores its saved forecast in
     assert.equal(fixed.training.parameters.max_depth, 4);
     assert.deepEqual(fixed.weeks.map(frame => frame.week), ['2025-03-03', '2025-03-10']);
   } finally {
+    await closeForecastQueues();
+    await broker.stop();
+    if (previousBroker === undefined) delete process.env.STOCKPILOT_REDIS_URL;
+    else process.env.STOCKPILOT_REDIS_URL = previousBroker;
     if (previousDir === undefined) delete process.env.STOCKPILOT_DATA_DIR;
     else process.env.STOCKPILOT_DATA_DIR = previousDir;
     await rm(dir, {recursive: true, force: true});

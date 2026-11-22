@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 FILES = (
     "README.md", "requirements.txt", "scripts/local.mjs", "scripts/setup-redis.py", "scripts/queue-broker.mjs",
     "forecast_app/server/redis-connection.mjs", "tests/queue-broker.test.mjs",
+    "forecast_app/instrumentation.js", "forecast_app/server/forecast-job-files.mjs",
+    "forecast_app/server/forecast-worker.mjs", "forecast_app/server/forecast-queue.mjs", "tests/forecast-queue.test.mjs",
     "forecast_app/next.config.mjs", "forecast_app/package.json",
     "forecast_app/app/layout.jsx", "forecast_app/app/page.jsx",
     "forecast_app/app/forecast/page.jsx", "forecast_app/app/api/forecast/route.js",
