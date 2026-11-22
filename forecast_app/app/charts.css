@@ -55,7 +55,13 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
-.fc-axis-title { margin: var(--gap-6) 0 var(--gap-3); color: var(--muted); font-size: var(--type-small); }
+.fc-axis-title { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-2);
+  margin: var(--gap-6) 0 var(--gap-3); color: var(--muted); font-size: var(--type-small); }
+.fc-zoom { display: flex; gap: var(--gap-1); }
+.fc-zoom .button { min-height: 2.25rem; min-width: 2.25rem; padding: var(--gap-1) var(--gap-2); font: inherit; }
+.fc-zoom .button:disabled { opacity: .45; background: var(--paper); cursor: default; }
+.fc-zoom-selection { position: absolute; inset-block: 0; pointer-events: none;
+  background: var(--accent-surface); opacity: .6; border-inline: 1px solid var(--accent); }
 .fc-grid { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--gap-3); }
 .fc-ticks {
   display: flex;
@@ -71,7 +77,8 @@
   height: clamp(13rem, 32vh, 22rem);
   min-width: 0;
   cursor: crosshair;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
 }
 .fc-marks { display: block; width: 100%; height: 100%; overflow: visible; }
 .fc-future { fill: var(--surface); }

@@ -53,23 +53,60 @@ function ChartMarks({ points, selected, step, models }) {
   </svg>;
 }
 
-function WeekPlot({ points, store, models }) {
-  const [selected, select] = useState(() => Math.max(0, points.findLastIndex(p => p.actual != null)));
+function WeekPlot({ points, dates, store, models, changeRange }) {
+  const [inspected, setInspected] = useState(null);
+  const [drag, setDrag] = useState(null);
   const step = scaleStep(points, models);
   const last = points.length - 1;
-  const point = points[selected];
+  const first = dates.indexOf(points[0].date);
   const clamp = index => Math.max(0, Math.min(last, index));
-  function inspect(event) {
+  const selected = inspected == null ? Math.max(0, points.findLastIndex(p => p.actual != null)) : clamp(inspected - first);
+  const point = points[selected];
+  const isFull = points.length === dates.length;
+
+  function zoom(size) {
+    const narrowing = size < points.length;
+    const minStart = narrowing ? first : 0;
+    const maxStart = narrowing ? first + points.length - size : dates.length - size;
+    const start = Math.max(minStart, Math.min(maxStart, first + selected - Math.floor(size / 2)));
+    setInspected(first + selected);
+    changeRange(size === dates.length ? null : { start: dates[start], end: dates[start + size - 1] });
+  }
+  function weekAt(event) {
     const box = event.currentTarget.getBoundingClientRect();
-    select(clamp(Math.floor((event.clientX - box.left) / box.width * points.length)));
+    return clamp(Math.floor((event.clientX - box.left) / box.width * points.length));
+  }
+  function startDrag(event) {
+    if (!event.isPrimary || event.button !== 0) return;
+    const week = weekAt(event);
+    setInspected(first + week);
+    setDrag({ week, x: event.clientX, pointer: event.pointerId });
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function endDrag(event) {
+    if (drag?.pointer !== event.pointerId) return;
+    const week = weekAt(event);
+    setDrag(null);
+    setInspected(first + week);
+    if (week === drag.week || Math.abs(event.clientX - drag.x) < 5) return;
+    changeRange({ start: points[Math.min(week, drag.week)].date, end: points[Math.max(week, drag.week)].date });
   }
   function navigate(event) {
     const keys = { Home: 0, End: last, ArrowLeft: selected - 1, ArrowDown: selected - 1,
       ArrowRight: selected + 1, ArrowUp: selected + 1 };
-    if (Object.hasOwn(keys, event.key)) { event.preventDefault(); select(clamp(keys[event.key])); }
+    if (Object.hasOwn(keys, event.key)) { event.preventDefault(); setInspected(first + clamp(keys[event.key])); }
   }
   return <>
-    <div className="fc-axis-title">Units sold</div>
+    <div className="fc-axis-title"><span>Units sold</span>
+      <div className="fc-zoom" role="group" aria-label="Chart zoom">
+        <button type="button" className="button" aria-label="Zoom out" title="Zoom out" disabled={isFull}
+          onClick={() => zoom(Math.min(dates.length, points.length * 2))}>−</button>
+        <button type="button" className="button" aria-label="Zoom in" title="Zoom in" disabled={last === 0}
+          onClick={() => zoom(Math.ceil(points.length / 2))}>+</button>
+        <button type="button" className="button" aria-label="Reset zoom" disabled={isFull}
+          onClick={() => changeRange(null)}>Reset</button>
+      </div>
+    </div>
     <div className="fc-grid">
       <div className="fc-ticks" aria-hidden="true">{[4, 3, 2, 1, 0].map(i =>
         <span key={i}>{step * i >= 10000 ? compact.format(step * i) : units(step * i)}</span>)}</div>
@@ -77,8 +114,14 @@ function WeekPlot({ points, store, models }) {
         aria-valuemin={1} aria-valuemax={points.length} aria-valuenow={selected + 1}
         aria-valuetext={[dateLabel(point.date, true), 'Actual ' + units(point.actual),
           ...models.map(({ id, name }) => name + ' ' + units(point.forecasts[id]))].join(', ')}
-        onKeyDown={navigate} onPointerDown={inspect} onPointerMove={inspect}>
+        onKeyDown={navigate} onPointerDown={startDrag}
+        onPointerMove={event => { if (event.isPrimary) setInspected(first + weekAt(event)); }}
+        onPointerUp={endDrag} onLostPointerCapture={() => setDrag(null)} onPointerCancel={() => setDrag(null)}>
         <ChartMarks points={points} selected={selected} step={step} models={models} />
+        {drag && selected !== drag.week && <div className="fc-zoom-selection" aria-hidden="true" style={{
+          left: 100 * Math.min(selected, drag.week) / points.length + '%',
+          width: 100 * (Math.abs(selected - drag.week) + 1) / points.length + '%',
+        }} />}
       </div>
       <div className="fc-dates" aria-hidden="true">{points.map((p, i) =>
         <span key={p.date} data-mid={i === Math.floor(last / 2)}
@@ -158,7 +201,7 @@ export default function Results({ result }) {
       <div className="fc-heading"><h2 id="fc-heading">Weekly sales</h2>
         <StorePicker stores={result.stores} current={store.id} change={setStoreId} /></div>
       <ChartLegend models={models} hidden={hidden} toggle={toggle} />
-      <WeekPlot key={[store.id, range.start, range.end].join('/')} points={visible} store={store.name} models={shown} />
+      <WeekPlot key={store.id} points={visible} dates={dates} store={store.name} models={shown} changeRange={setWindow} />
       <ForecastControls result={result} dates={dates} range={range} changeRange={setWindow} points={visible} />
     </section>
     <Indicators points={points} visible={visible} store={store} hasNext={Boolean(result.next)} />
