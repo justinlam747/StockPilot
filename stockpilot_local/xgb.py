@@ -107,7 +107,8 @@ def score_weeks(weeks, stores):
     scores = []
     for store in [None, *stores]:
         cells = [cell for cell in observed if store is None or cell["id"] == store]
-        errors = [abs(cell["forecasts"]["xgboost"] - cell["actual"]) for cell in cells if cell["available"]]
+        errors = [abs(cell["forecasts"]["xgboost"] - cell["actual"]) for cell in cells
+                  if cell["available"] and cell["actual"] is not None and cell["forecasts"]["xgboost"] is not None]
         scores.append(dict(store=store, count=len(errors), excluded=len(cells) - len(errors),
                            mae={"xgboost": round(fmean(errors), 6) if errors else None}))
     return scores
