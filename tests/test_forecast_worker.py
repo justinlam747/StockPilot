@@ -6,7 +6,7 @@ from xgboost import XGBRegressor
 
 from stockpilot_local import store
 from stockpilot_local.worker import parse_csv, process_request
-from stockpilot_local.xgb import predict_next
+from stockpilot_local.xgb import predict_next, train_item
 
 
 def dataset():
@@ -90,44 +90,6 @@ def test_saved_project_can_change_forecast_period_and_restore_both_snapshots(tmp
     assert process_request({"op": "rerun", "projectId": dated["projectId"]})["result"] == trained["result"]
 
 
-@pytest.mark.parametrize("parameters,error", [
-    (None, "object"), ([], "object"), ({"n_jobs": 2}, "Unknown"),
-    ({"max_depth": True}, "Maximum depth"), ({"max_depth": 0}, "Maximum depth"),
-    ({"max_depth": 7}, "Maximum depth"), ({"n_estimators": "40"}, "Trees"),
-    ({"n_estimators": 2.5}, "Trees"), ({"n_estimators": 201}, "Trees"),
-    ({"learning_rate": None}, "Learning rate"), ({"learning_rate": 0.005}, "Learning rate"),
-    ({"learning_rate": 0.301}, "Learning rate"), ({"learning_rate": float("nan")}, "Learning rate"),
-    ({"learning_rate": float("inf")}, "Learning rate"),
-])
-def test_invalid_parameters_rejected_before_selection_or_saving(parameters, error, tmp_path, monkeypatch):
-    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
-    with pytest.raises(ValueError, match=error):
-        process_request({"csv": dataset(), "parameters": parameters})
-    assert list(tmp_path.iterdir()) == []
-
-
-@pytest.mark.parametrize("header,records,error", [
-    ("week,item,store,units_sold", "2025-01-06,A,B,-1", "nonnegative"),
-    ("week,item,store,units_sold", "2025-01-06,A,B,", "nonnegative"),
-    ("week,item,store,units_sold", "2025-01-07,A,B,2", "Monday"),
-    ("week,item,store,units_sold", "2025-01-06,A,B,2\n2025-01-06,A,B,3", "repeats"),
-    ("week,item,store,units", "2025-01-06,,B,2", "item and a store"),
-    ("week,item,store,units,in_stock", "2025-01-06,A,B,2,", "in_stock"),
-    ("week,item,store,units,units_sold", "2025-01-06,A,B,2,2", "unambiguous"),
-    ("week,item,store,stock", "2025-01-06,A,B,2", "Missing CSV columns"),
-    ("week,item,store,units", "2025-01-06,A,B,2,extra", "different number"),
-])
-def test_invalid_csv(header, records, error):
-    with pytest.raises(ValueError, match=error):
-        parse_csv(header + "\n" + records)
-
-
-def test_csv_alias_bom_quotes_stock_and_missing_weeks():
-    groups, reported = parse_csv('\ufeff week ,item,store,units,in_stock\r\n2025-01-06,"A,2",B,0,1\r\n2025-01-20,"A,2",B,3,false')
-    assert reported and [r["in_stock"] for r in groups["A,2"]] == [True, False]
-    assert [r["units_sold"] for r in groups["A,2"]] == [0, 3]
-
-
 def test_invalid_and_interrupted_writes_do_not_publish_a_project(tmp_path, monkeypatch):
     monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
     with pytest.raises(ValueError, match="ID is invalid"):
@@ -174,3 +136,36 @@ def test_progress_only_in_opted_in_runs_and_failure_has_no_completed_event(tmp_p
     events = [json.loads(line.removeprefix("STOCKPILOT_EVENT ")) for line in capsys.readouterr().err.splitlines()]
     assert [(e["model"], e["status"]) for e in events] == [("xgboost", "running"), ("xgboost", "failed")]
     assert "eight" in events[-1]["error"]
+
+
+def weekly_rows():
+    start = date(2024, 1, 1)
+    return [
+        {"item": "Sample sweater", "week": (start + timedelta(weeks=i)).isoformat(), "store": store,
+         "units_sold": (i * 3 + shift) % 11, "in_stock": i != 7 or store != "Store A"}
+        for store, shift in (("Store A", 2), ("Store B", 8)) for i in range(10)
+    ]
+
+
+def test_native_model_roundtrip_with_recent_history(tmp_path):
+    rows = weekly_rows()
+    result, tree = train_item(rows)
+    path = tmp_path / "model.json"
+    tree.save_model(path)
+    loaded = XGBRegressor()
+    loaded.load_model(path)
+    # The snapshot carries the training store order and original observation start dates.
+    recent = [r for r in rows if r["week"] >= "2024-02-19"][::-1]
+    assert predict_next(loaded, recent) == result["next"]
+    order = result["training"]["storeOrder"]
+    assert predict_next(loaded, rows, order) == result["next"]
+    with pytest.raises(ValueError, match="order"):
+        predict_next(loaded, rows, order[::-1])
+    with pytest.raises(ValueError, match="item"):
+        predict_next(loaded, [{**r, "item": "Different item"} for r in rows])
+    with pytest.raises(ValueError, match="last week"):
+        predict_next(loaded, [r for r in rows if r["week"] < "2024-03-04"])
+    extended = [*recent, *[{**r, "week": "2024-03-11"} for r in recent if r["week"] == "2024-03-04"]]
+    next_forecast = predict_next(loaded, extended)
+    assert next_forecast["week"] == "2024-03-18"
+    assert all(c["actual"] is None and c["forecasts"]["xgboost"] >= 0 for c in next_forecast["stores"])

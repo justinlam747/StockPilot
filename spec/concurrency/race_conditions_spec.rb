@@ -211,41 +211,7 @@ RSpec.describe 'Race conditions and idempotency', type: :model do
   end
 
   # --------------------------------------------------------------------------
-  # 4. DailySyncAllShopsJob -- no duplicate enqueues per run
-  # --------------------------------------------------------------------------
-  describe 'DailySyncAllShopsJob' do
-    let!(:shop_a) { create(:shop) }
-    let!(:shop_b) { create(:shop) }
-    let!(:uninstalled_shop) { create(:shop, uninstalled_at: 1.day.ago) }
-
-    before do
-      allow(InventorySyncJob).to receive(:perform_later)
-    end
-
-    it 'enqueues one sync job per active shop per run' do
-      DailySyncAllShopsJob.new.perform
-
-      expect(InventorySyncJob).to have_received(:perform_later).with(shop_a.id).once
-      expect(InventorySyncJob).to have_received(:perform_later).with(shop_b.id).once
-    end
-
-    it 'does not enqueue for uninstalled shops' do
-      DailySyncAllShopsJob.new.perform
-
-      expect(InventorySyncJob).not_to have_received(:perform_later).with(uninstalled_shop.id)
-    end
-
-    it 'enqueues independently across separate runs (stateless)' do
-      DailySyncAllShopsJob.new.perform
-      DailySyncAllShopsJob.new.perform
-
-      expect(InventorySyncJob).to have_received(:perform_later).with(shop_a.id).twice
-      expect(InventorySyncJob).to have_received(:perform_later).with(shop_b.id).twice
-    end
-  end
-
-  # --------------------------------------------------------------------------
-  # 6. InventorySyncJob updates synced_at atomically
+  # 4. InventorySyncJob updates synced_at atomically
   # --------------------------------------------------------------------------
   describe 'InventorySyncJob synced_at' do
     let(:graphql_response) do

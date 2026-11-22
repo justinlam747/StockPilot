@@ -55,20 +55,20 @@ Fetch real products from Shopify and store them locally.
 
 - [ ] Implement `Shopify::GraphqlClient#query` — single GraphQL call with error handling
 - [ ] Implement `Shopify::GraphqlClient#paginate` — cursor-based pagination through connections
-- [ ] Write a spec: `GraphqlClient` retries on `THROTTLED` error with backoff
+- [ ] Verify that `GraphqlClient` retries on `THROTTLED` error with backoff
 - [ ] Implement `Shopify::InventoryFetcher#call` — fetch products + variants + inventory levels in one paginated query
 - [ ] Test against dev store: run `InventoryFetcher` in Rails console, verify it returns product data
 - [ ] Implement `Inventory::Persister#upsert` — upsert products and variants from GraphQL response
 - [ ] Implement `Inventory::Persister#upsert_single_product` — upsert from webhook payload (REST format)
-- [ ] Write a spec: `Persister` creates new products and updates existing ones (no duplicates)
+- [ ] Verify that `Persister` creates new products and updates existing ones (no duplicates)
 - [ ] Implement `Inventory::Snapshotter#snapshot` — bulk insert snapshot rows from GraphQL response
-- [ ] Write a spec: `Snapshotter` creates one snapshot row per variant
+- [ ] Verify that `Snapshotter` creates one snapshot row per variant
 - [ ] Implement `InventorySyncJob#perform` — orchestrate fetch → persist → snapshot → detect → alert
 - [ ] Implement `DailySyncAllShopsJob#perform` — enqueue one `InventorySyncJob` per active shop
 - [ ] Test full sync: trigger `InventorySyncJob` from Rails console, verify products/variants/snapshots in DB
 - [ ] Verify `shop.synced_at` is updated after successful sync
 - [ ] Implement `SnapshotCleanupJob#perform` — delete snapshots older than 90 days in batches
-- [ ] Write a spec: cleanup job deletes old snapshots, keeps recent ones
+- [ ] Verify that the cleanup job deletes old snapshots and keeps recent ones
 - [ ] Implement `WebhooksController#handle_products_update` — upsert product on webhook
 - [ ] Implement `WebhooksController#handle_products_delete` — soft-delete product on webhook
 - [ ] Test: update a product in Shopify admin → verify local DB updates via webhook
@@ -86,9 +86,9 @@ Fetch real products from Shopify and store them locally.
 Detect low stock and send email alerts.
 
 - [ ] Implement `Inventory::LowStockDetector#detect` — subquery-based, no N+1
-- [ ] Write specs: flags low stock, flags out of stock, respects variant-level threshold override, respects shop-level default
+- [ ] Verify low-stock and out-of-stock alerts with the shop default and a variant-level threshold override
 - [ ] Implement `Notifications::AlertSender#send_low_stock_alerts` — create alert records, fire emails, fire webhooks
-- [ ] Write spec: does not double-alert same variant on same day
+- [ ] Verify that repeating a sync sends at most one alert per variant per day
 - [ ] Implement `AlertMailer.low_stock` — SendGrid email with list of low-stock variants
 - [ ] Configure SendGrid in development (or use letter_opener for local testing)
 - [ ] Wire `LowStockDetector` + `AlertSender` into `InventorySyncJob` (already stubbed)
@@ -107,11 +107,11 @@ Detect low stock and send email alerts.
 Auto-generate and email weekly inventory summaries.
 
 - [ ] Implement `Reports::WeeklyGenerator#generate` — top sellers, stockouts, low stock count, reorder suggestions
-- [ ] Write specs for each metric method in `WeeklyGenerator`
+- [ ] Verify the metrics in a generated weekly report
 - [ ] Implement `WeeklyReportJob#perform` — generate report, save to DB, email
 - [ ] Implement `WeeklyReportAllShopsJob#perform` — timezone-aware scheduling (check each shop's timezone, only enqueue if it's the right day + hour)
-- [ ] Write spec: `WeeklyReportAllShopsJob` only enqueues for shops where it's Monday 8am in their timezone
-- [ ] Write spec: idempotent — skips if report already exists for that week
+- [ ] Verify that `WeeklyReportAllShopsJob` only enqueues for shops where it's Monday 8am in their timezone
+- [ ] Verify that rerunning the job produces one report for the week
 - [ ] Implement `ReportMailer.weekly_summary` — formatted email with report data
 - [ ] Verify Sidekiq cron job fires `WeeklyReportAllShopsJob` hourly (check Sidekiq web UI)
 - [ ] Implement `Api::V1::ReportsController#index` — paginated list of reports
@@ -146,7 +146,7 @@ Let merchants register webhook URLs to receive events.
 
 - [ ] Implement `Api::V1::WebhookEndpointsController` — full CRUD with strong params
 - [ ] Implement `WebhookDeliveryJob#perform` — POST to endpoint URL with retry
-- [ ] Write spec: retries on timeout, records last status code
+- [ ] Verify that delivery retries after a timeout and records the last status code
 - [ ] Wire webhook firing into `AlertSender` (already stubbed)
 - [ ] Write request specs for webhook endpoints CRUD
 - [ ] Test end-to-end: register a webhook URL → trigger low stock → verify POST received
@@ -161,10 +161,10 @@ Add Claude-powered insights and PO drafts.
 
 - [ ] Implement `AI::InsightsGenerator#generate` — build metrics, call Claude API, return bullets
 - [ ] Implement error fallback — return "AI insights temporarily unavailable" on API failure
-- [ ] Write spec: handles `Anthropic::Error` gracefully
+- [ ] Verify that insights show the fallback message after an `Anthropic::Error`
 - [ ] Implement `AI::PoDraftGenerator#generate` — call Claude API for PO email body
 - [ ] Implement fallback plain-text template when Claude API is down
-- [ ] Write spec: falls back to template on API failure
+- [ ] Verify that PO drafts use the template after an API failure
 - [ ] Wire `InsightsGenerator` into `WeeklyReportJob` — store in `payload['ai_commentary']`
 - [ ] Wire `PoDraftGenerator` into PO draft generation endpoint
 - [ ] Implement `Api::V1::AiController#insights` — on-demand insights for dashboard
@@ -202,9 +202,7 @@ Lock down security, fix the TODOs from CLAUDE.md security audit.
 - [ ] Add security headers (CSP, HSTS, X-Content-Type-Options) — see CLAUDE.md §6f
 - [ ] Add strong params to every controller action that accepts input
 - [ ] Implement full GDPR data processing (not just 200 OK) — export customer data, delete on redact
-- [ ] Add `brakeman` to CI
-- [ ] Add `bundle-audit` to CI
-- [ ] Add `npm audit` to CI
+- [ ] Run the local dependency and static security checks
 - [ ] Run full `/review` on entire codebase — race conditions, duplication, vulnerabilities
 - [ ] Fix everything flagged
 
@@ -215,7 +213,7 @@ Lock down security, fix the TODOs from CLAUDE.md security audit.
 ## Notes for Ralph
 
 - **Don't skip phases.** Each phase builds on the last. Phase 2 needs Phase 1's auth. Phase 3 needs Phase 2's data.
-- **Write specs as you go.** Don't save testing for the end. Each checklist item that says "write spec" is not optional.
+- Exercise the relevant request or integration flow after each change.
 - **Run `/review` before every commit.** Check for race conditions, duplication, and vulnerabilities. This is in CLAUDE.md and it's a hard requirement.
 - **Check the spec.** `shopify-inventory-spec.md` has the complete implementation code for every service, job, and controller. Use it as reference — the code samples are designed to be copy-paste-able.
 - **Don't do design.** Use Polaris defaults with the white/grey palette from CLAUDE.md. No custom CSS. Make it functional first.

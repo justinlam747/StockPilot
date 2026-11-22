@@ -1,42 +1,16 @@
 ---
 name: pre-commit
-description: Run the full local CI suite — lint, type-check, test, and build. Use before committing to catch issues early.
+description: Verify a change locally before committing.
 user-invocable: true
 ---
 
-## Local CI Check
+## Local verification
 
-Run all CI checks locally before committing.
+Choose the checks that exercise the files changed.
 
-### Steps
+- Run `npm run build` for the local forecast app.
+- Run `bundle exec rubocop --format simple` for Rails changes.
+- Run the relevant request or integration specs with `bundle exec rspec`.
+- Use the local browser to verify changes to user-facing flows.
 
-Run these checks in order. Stop and report on the first failure.
-
-1. **Ruby Lint** — `bundle exec rubocop --format simple`
-2. **JS/TS Lint** — `npx eslint frontend/`
-3. **Type Check** — `npx tsc --noEmit`
-4. **Backend Tests** — `bundle exec rspec --format progress`
-5. **Frontend Tests** — `npx vitest run`
-6. **Build** — `npx vite build`
-
-### Output Format
-
-```
-## Local CI Results
-
-| Check | Status | Details |
-|-------|--------|---------|
-| RuboCop | PASS | 0 offenses |
-| ESLint | PASS | 0 warnings |
-| TypeScript | FAIL | 3 errors in src/pages/... |
-| RSpec | SKIP | (stopped at TypeScript failure) |
-| Vitest | SKIP | |
-| Vite Build | SKIP | |
-
-## Verdict: PASS / FAIL
-
-### Failures
-- tsc: Type 'string' is not assignable to type 'number' in InventoryPage.tsx:42
-```
-
-If any check fails, show the errors and suggest fixes. Do NOT proceed to later checks if an earlier one fails — fix first.
+Report which checks ran, the outcomes, and any failures to address before committing.

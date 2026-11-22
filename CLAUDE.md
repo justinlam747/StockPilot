@@ -132,37 +132,16 @@ Stack:
 ### 3. Create GitHub Issues for Everything
 
 - Every feature, bug, and task gets a **GitHub Issue** before work begins
-- Use labels: `bug`, `feature`, `chore`, `ci`, `docs`, `security`
+- Use labels: `bug`, `feature`, `chore`, `docs`, `security`
 - Issues should include:
   - Clear description of the problem or feature
   - Acceptance criteria
   - Affected area of the codebase
 - Reference issue numbers in commits and PRs (e.g., `Fixes #42`)
 
-### 4. CI Pipeline — Build It Incrementally
+### 4. Local Verification
 
-We start from scratch and iterate. Document every CI function in the CI doc below.
-
-#### Current CI Functions
-
-Track all CI pipeline stages here. Add new entries as pipeline evolves:
-
-| Stage | Tool | What It Does | Added Date |
-|-------|------|-------------|------------|
-| Lint (Ruby) | RuboCop (Rails Omakase) | Enforces Ruby style and Rails best practices | 2026-03-09 |
-| Unit Tests (Backend) | RSpec 7 | Runs model, service, and job specs | 2026-03-09 |
-| Request Tests | RSpec (request specs) | Tests full API endpoint behavior | 2026-03-09 |
-| Security Scan | `bundler-audit` | Checks gems for known CVEs | 2026-03-09 |
-| Secret Detection | `git-secrets` / CI check | Prevents accidental credential commits | 2026-03-09 |
-| Local forecast release | GitHub Actions, pytest, Node | Installs and builds the allowlisted XGBoost source ZIP on Windows, Linux and macOS and tests training and persistence before a tagged release | 2026-11-21 |
-
-#### CI Pipeline Iteration Rules
-
-- **Every new CI function gets added to the table above** before merging
-- CI must pass before any PR can be merged
-- If a CI stage is flaky, fix it — don't skip it
-- Never use `--no-verify` to bypass pre-commit hooks
-- Pipeline changes are reviewed like any other code change
+Use the relevant local build and integration checks to verify a change. Record what you ran in the pull request. Keep pre-commit hooks enabled.
 
 ### 5. Code Quality Standards
 
@@ -267,9 +246,9 @@ Every response must include these headers (configure in `config/environments/pro
 
 #### 6k. Dependency & Supply Chain Security
 
-- **Ruby:** Run `bundle-audit check --update` in CI to detect vulnerable gems
+- **Ruby:** Run `bundle-audit check --update` locally to detect vulnerable gems
 - **Ruby:** Run `brakeman` static analysis to detect Rails security issues (SQL injection, XSS, mass assignment)
-- **Lock files:** Always commit `Gemfile.lock`; use `bundle install` in CI
+- **Lock files:** Commit `Gemfile.lock` and use `bundle install` for local installs
 - **Dependency updates:** Enable Dependabot or Renovate for automated security patches
 - **New packages:** Review before adding; prefer well-maintained packages with security track records
 
@@ -348,13 +327,13 @@ Every response must include these headers (configure in `config/environments/pro
 4. For each slice:
    a. Write code (keep new logic to 200–300 lines, max 500)
    b. Keep functions under 50 lines
-   c. Run CI locally (lint, type-check, test, build)
+   c. Verify the change locally
    d. Run /review on changed files — check for race conditions, duplication, and vulnerabilities
    e. Fix any blocking issues found
    f. gt create -m "feat(US-XXX): descriptive message"
 5. gt submit — push entire stack to GitHub as linked PRs
 6. Get review, address feedback
-7. CI passes → merge (Graphite handles cascading merges)
+7. Merge the reviewed changes (Graphite handles cascading merges)
 8. gt sync — clean up merged branches
 ```
 

@@ -65,8 +65,6 @@ RSpec/ExampleLength:
   Exclude:
     - 'spec/concurrency/**/*'
     - 'spec/integration/**/*'
-    - 'spec/services/**/*'
-    - 'spec/jobs/**/*'
 
 # allow_any_instance_of is sometimes necessary for controller stubs
 RSpec/AnyInstance:
@@ -80,7 +78,7 @@ RSpec/NamedSubject:
 RSpec/MessageSpies:
   Enabled: false
 
-# Stubbed mocks are fine for unit tests
+# Allow dependency stubs in integration checks
 RSpec/StubbedMock:
   Enabled: false
 
@@ -188,5 +186,4 @@ RSpec/MultipleExpectations:
   Exclude:
     - 'spec/concurrency/**/*'
     - 'spec/integration/**/*'
-    - 'spec/jobs/**/*'
     - 'spec/requests/demo_mode_spec.rb'

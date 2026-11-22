@@ -13,6 +13,8 @@ npm run dev
 
 Open the [StockPilot forecast](http://127.0.0.1:3000/forecast). Use its sidebar to import sales, evaluate a forecast or reopen a saved project. Setup creates a Python environment in `.venv` and installs the JavaScript and CPU forecasting dependencies. Setup needs internet access. Importing, training, reopening a project and forecasting work offline after installation. To run a production build locally, use `npm run build` followed by `npm start`.
 
+From a repository checkout, run `python scripts/package_forecast.py` to create the distributable source archive at `dist/stockpilot-local.zip`.
+
 ## Bring your sales history
 
 Download the [example CSV](forecast_app/public/weekly-sales-template.csv) from the app or this repository. It contains fictional sales you can replace. Use one row per item, store and trading week.
