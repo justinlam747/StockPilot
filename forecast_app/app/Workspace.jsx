@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import useForecastQueue, { displayedJob, request } from './useForecastQueue';
 
 const WorkspaceContext = createContext(null);
 const pages = [
@@ -16,18 +17,6 @@ const quiet = { message: '', error: false };
 
 export function useWorkspace() {
   return useContext(WorkspaceContext);
-}
-
-async function request(path, signal, options) {
-  const response = await fetch(path, { cache: 'no-store', ...options, signal });
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('The local forecast service could not read this request. Please try again.');
-  }
-  if (!response.ok) throw new Error(data.error || 'The forecast request failed. Please try again.');
-  return data;
 }
 
 function Sidebar({ pathname }) {
@@ -63,6 +52,10 @@ function useLocalProject() {
   const [peerModels, setPeerModels] = useState(null);
   const [notice, setNotice] = useState(quiet);
   const [loading, setLoading] = useState(true);
+  const queue = useForecastQueue((job, restored) => {
+    if (job.status === 'completed') openJob(job.id, false, restored);
+    else setNotice({ message: job.error || 'Forecast failed.', error: true, scope: '/forecast' });
+  });
 
   function begin(message, scope) {
     active.current?.abort();
@@ -76,13 +69,41 @@ function useLocalProject() {
   function showForecast(from) {
     if (window.location.pathname === from) router.push('/forecast');
   }
+  function showJob(snapshot, id, resetChart = false) {
+    setView(current => ({ ...snapshot, jobId: id, chartSelection: resetChart ? id : current.chartSelection }));
+    displayedJob(id);
+    setNotice(quiet);
+  }
+  async function openJob(id, explicit = true, resetChart = explicit) {
+    if (explicit) queue.forget();
+    const signal = begin('Opening forecast…', '/forecast');
+    try {
+      const { snapshot } = await request('/api/forecast?job=' + encodeURIComponent(id) + '&result=1&activate=1', signal);
+      if (signal.aborted) return;
+      showJob(snapshot, id, resetChart);
+      if (explicit) requestAnimationFrame(() => document.querySelector('#forecast-heading')?.focus());
+    } catch (error) {
+      fail(signal, error, '/forecast');
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
+  }
   async function open(id) {
+    if (id) queue.forget();
     const scope = id ? '/projects' : undefined;
     const signal = begin(id ? 'Opening project…' : '', scope);
     try {
+      const previous = !id && displayedJob();
+      if (previous) {
+        try {
+          const { snapshot } = await request('/api/forecast?job=' + encodeURIComponent(previous) + '&result=1', signal);
+          if (!signal.aborted && snapshot) { showJob(snapshot, previous); return; }
+        } catch (error) { if (error.status !== 404) throw error; }
+      }
       const data = await request('/api/forecast' + (id ? '?id=' + encodeURIComponent(id) : ''), signal);
       if (signal.aborted) return;
       setView(data);
+      displayedJob(null);
       setNotice(quiet);
       if (id) showForecast(scope);
     } catch (error) {
@@ -103,38 +124,41 @@ function useLocalProject() {
     return () => controller.abort();
   }, []);
 
+  async function enqueue(payload, signal) {
+    const data = await request('/api/forecast', signal, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Prefer: 'respond-async' }, body: JSON.stringify(payload) });
+    if (!signal.aborted && data.job) queue.accepted(data.job);
+    return data;
+  }
   async function rerunForecast(peers, period) {
     if (!view.projectId) return;
+    queue.forget();
     const scope = window.location.pathname;
-    const signal = begin('Rerunning forecast…', scope);
+    const signal = begin('Queuing forecast…', scope);
     try {
-      const body = JSON.stringify({ projectId: view.projectId, peers, ...period });
-      const data = await request('/api/forecast', signal, { method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, body });
+      await enqueue({ projectId: view.projectId, peers, ...period }, signal);
       if (signal.aborted) return;
-      setView(data);
-      setNotice({ message: 'Forecast updated.', scope, done: true, error: false });
+      setNotice({ message: 'Forecast queued.', scope, done: true, error: false });
     } catch (error) {
       fail(signal, error, scope);
     }
   }
 
   async function importSales(file, item, parameters) {
-    const signal = begin('Training XGBoost…', '/import');
+    queue.forget();
+    const signal = begin('Queuing forecast…', '/import');
     if (file) setPending(null);
     try {
       if (file && file.size > 1024 * 1024) throw new Error('Choose a CSV of 1 MiB or smaller.');
       const csv = file ? await file.text() : pending.csv;
       if (signal.aborted) return;
-      const data = await request('/api/forecast', signal, { method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csv, item, parameters }) });
+      const data = await enqueue({ csv, item, parameters }, signal);
       if (signal.aborted) return;
       setNotice(quiet);
       if (data.selectionRequired) {
         setPending({ csv, items: data.items, fileName: file.name });
         return;
       }
-      setView(data);
       setPending(null);
       showForecast('/import');
     } catch (error) {
@@ -144,7 +168,8 @@ function useLocalProject() {
     }
   }
   const busy = Boolean(notice.message && !notice.error && !notice.done);
-  return { view, pending, notice, open, importSales, loading, busy, trainingDraft, setTrainingDraft, peerModels, rerunForecast };
+  return { view, pending, notice, open, importSales, loading, busy, trainingDraft, setTrainingDraft, peerModels,
+    rerunForecast, jobs: queue.jobs, queueError: queue.queueError, openJob };
 }
 
 export function EmptyState({ children }) {
