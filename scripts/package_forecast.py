@@ -19,6 +19,8 @@ FILES = (
     "forecast_app/app/forecast/page.jsx", "forecast_app/app/api/forecast/route.js",
     "forecast_app/app/evaluation/page.jsx", "forecast_app/app/import/page.jsx",
     "forecast_app/app/projects/page.jsx", "forecast_app/app/charts.css",
+    "forecast_app/app/transfers/page.jsx", "forecast_app/app/transfers/StoreMap.jsx",
+    "forecast_app/app/transfers/simulation.mjs", "forecast_app/app/transfers/transfers.css",
     "forecast_app/app/ImportSales.jsx", "forecast_app/app/Results.jsx",
     "forecast_app/app/ForecastControls.jsx", "forecast_app/app/ForecastQueue.jsx",
     "forecast_app/app/useForecastQueue.js", "forecast_app/app/queue.css",
