@@ -28,7 +28,7 @@ FILES = (
     "forecast_app/public/weekly-sales-template.csv",
     "stockpilot_local/__init__.py", "stockpilot_local/xgb.py",
     "stockpilot_local/parameters.py", "stockpilot_local/training_parameters.json", "stockpilot_local/progress.py",
-    "stockpilot_local/store.py", "stockpilot_local/worker.py", "stockpilot_local/window.py",
+    "stockpilot_local/store.py", "stockpilot_local/worker.py", "stockpilot_local/window.py", "stockpilot_local/history.py",
     "tests/test_forecast_worker.py",
     "tests/forecast-route.test.mjs", "tests/forecast-release.test.mjs", "tests/forecast-queue.test.mjs",
     "tests/queue-broker.test.mjs",

@@ -25,9 +25,9 @@ Supply one row per item, store, and week, with at least eight consecutive comple
 | `units_sold` | Whole units sold that week. Enter `0` for confirmed zero sales. |
 | `in_stock` | Optional. Use `false` if availability constrained sales that week. The default is `true`. |
 
-Select a store on **Forecast** to compare recorded weekly sales with the XGBoost prediction in Chart.js. Weeks without recorded sales show only the forecast. Drag across weeks to zoom in, or use the **+** and **−** buttons around the inspected week. **Reset** restores all weeks. For exact dates, use **Timeline** → **Chart window**. **Forecast period** sets the weeks to predict. **Queue forecast** runs that period using only history from before its start. The queue shows waiting, running, and completed forecasts.
+Select a store on **Forecast** to compare recorded weekly sales with the XGBoost prediction in Chart.js. Drag across weeks to zoom in, or use the **+** and **−** buttons around the inspected week. **Reset** restores all weeks. Under **Timeline**, **Chart window** sets the dates to display and **Forecast period** selects recorded weeks to evaluate. The period options retain at least four earlier weeks per store for training and end at the last recorded week. The panel shows the training dates and the evaluation dates before you queue a run.
 
-The default run tests up to eight recent weeks and predicts the following week. **Evaluation** shows mean absolute error (MAE), the average miss in units, for weeks with stock available. To try a different model configuration, adjust tree count, depth, or learning rate under **Training settings** when importing.
+The default run evaluates the last four recorded weeks using earlier sales for training. If stock availability leaves fewer eligible weeks, it evaluates the remaining eligible period. The model is fitted before the evaluation starts and uses its own earlier predictions for later weeks in that period. **Queue forecast** shows waiting, running, and completed runs. **Evaluation** shows mean absolute error (MAE), the average miss in units, for weeks with stock available. To try a different model configuration, adjust tree count, depth, or learning rate under **Training settings** when importing.
 
 To build a source ZIP for distribution, run `python scripts/package_forecast.py` from the repository root.
 

@@ -163,6 +163,10 @@ export async function getJob({queue, files}, id, {result, activate} = {}) {
   if (result && response.job.status === 'completed') {
     const snapshot = await files.result(id);
     if (!snapshot) throw new RequestError(404, 'The saved result for this forecast job is unavailable.');
+    if (!Object.hasOwn(snapshot.result.historyRange ?? {}, 'recommendedStart')) {
+      const restored = await runForecast({op:'read', id:snapshot.projectId, activate:false});
+      snapshot.result.historyRange = restored.result.historyRange;
+    }
     if (activate) {
       const current = await runForecast({op:'activate', id:snapshot.projectId, comparisonResult:snapshot.result});
       snapshot.projects = current.projects;

@@ -6,6 +6,7 @@ from xgboost import XGBRegressor
 
 from stockpilot_local import store
 from stockpilot_local.worker import parse_csv, process_request
+from stockpilot_local.window import train_window
 from stockpilot_local.xgb import predict_next, train_item
 
 
@@ -36,7 +37,12 @@ def test_selected_history_and_native_model_restore(tmp_path, monkeypatch):
     assert result["source"]["availability"] == "assumed"
     model = XGBRegressor()
     model.load_model(folder / "model.ubj")
-    assert predict_next(model, groups[item]) == result["next"]
+    assert result["next"] is None
+    first = result["weeks"][0]
+    prior = [row for row in groups[item] if row["week"] < first["week"]]
+    predicted = predict_next(model, prior)
+    assert predicted["week"] == first["week"]
+    assert predicted["stores"][0]["forecasts"] == first["stores"][0]["forecasts"]
     assert process_request({"op": "read"})["result"] == result
     assert process_request({"csv": csv, "item": item})["projectId"] == project_id
     updated = process_request({"csv": csv.replace("Montréal,7", "Montréal,18"), "item": item})
@@ -66,7 +72,8 @@ def test_saved_rerun_does_not_need_an_upload_and_keeps_the_training_settings(tmp
     rerun = {"op": "rerun", "projectId": trained["projectId"]}
     repeated = process_request(rerun)
     assert repeated["result"] == trained["result"] and repeated["projectId"] == trained["projectId"]
-    bounds = {"start": "2025-01-06", "end": "2025-02-24", "earliestStart": "2025-01-20"}
+    bounds = {"start": "2025-01-06", "end": "2025-02-24", "earliestStart": "2025-02-03",
+              "recommendedStart": "2025-02-03", "recommendedEnd": "2025-02-24", "minTrainingWeeks": 4}
     assert repeated["result"]["historyRange"] == bounds
     assert process_request({"op": "read", "id": trained["projectId"]})["result"] == repeated["result"]
     assert process_request({"op": "capabilities"}) == {"peerModels": []}
@@ -82,10 +89,10 @@ def test_saved_project_can_change_forecast_period_and_restore_both_snapshots(tmp
     monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
     trained = process_request({"csv": dataset(), "item": "../../Black, cardigan"})
     dated = process_request({"op": "rerun", "projectId": trained["projectId"],
-                             "forecastStart": "2025-02-24", "forecastEnd": "2025-03-10"})
+                             "forecastStart": "2025-02-17", "forecastEnd": "2025-02-24"})
     assert dated["projectId"] != trained["projectId"]
     assert dated["result"]["next"] is None
-    assert [frame["stores"][0]["actual"] for frame in dated["result"]["weeks"]] == [7, None, None]
+    assert [frame["stores"][0]["actual"] for frame in dated["result"]["weeks"]] == [6, 7]
     assert process_request({"op": "read"})["result"] == dated["result"]
     assert process_request({"op": "rerun", "projectId": dated["projectId"]})["result"] == trained["result"]
 
@@ -118,6 +125,8 @@ def test_queue_preflight_and_explicit_activation(tmp_path, monkeypatch):
     background = process_request({"csv": csv.replace("Montréal,7", "Montréal,17"), "item": item, "activate": False})
     background_id = background["projectId"]
     assert process_request({"op": "inspect", "action": "rerun", "projectId": background_id}) == {"item": item}
+    passive = process_request({"op": "read", "id": background_id, "activate": False})
+    assert passive["projectId"] == background_id and passive["result"] == background["result"]
     assert process_request({"op": "read"})["projectId"] == first["projectId"]
     assert len(process_request({"op": "activate", "id": background_id})["projects"]) == 2
     assert process_request({"op": "read"})["projectId"] == background_id
@@ -145,6 +154,76 @@ def weekly_rows():
          "units_sold": (i * 3 + shift) % 11, "in_stock": i != 7 or store != "Store A"}
         for store, shift in (("Store A", 2), ("Store B", 8)) for i in range(10)
     ]
+
+
+def test_queue_preflight_rejects_invalid_historical_splits(tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    item = "../../Black, cardigan"
+    csv = dataset()
+    saved = process_request({"csv": csv, "item": item})
+    upload = {"op": "inspect", "action": "train", "csv": csv, "item": item}
+    rerun = {"op": "inspect", "action": "rerun", "projectId": saved["projectId"]}
+    invalid = [
+        ({"forecastStart": "2025-02-03"}, "both"),
+        ({"forecastEnd": "2025-02-24"}, "both"),
+        ({"forecastStart": "2025-02-04", "forecastEnd": "2025-02-10"}, "Mondays"),
+        ({"forecastStart": "2025-02-10", "forecastEnd": "2025-02-03"}, "on or after"),
+        ({"forecastStart": "2025-01-27", "forecastEnd": "2025-02-24"}, "four earlier weeks"),
+        ({"forecastStart": "2025-02-03", "forecastEnd": "2025-03-03"}, "last observed"),
+    ]
+    for request in [upload, rerun]:
+        for period, message in invalid:
+            with pytest.raises(ValueError, match=message):
+                process_request({**request, **period})
+    assert len(store.project_list(tmp_path)) == 1
+
+
+def test_common_history_window_and_no_holdout_leakage():
+    rows = [r for r in weekly_rows() if r["store"] == "Store A" or r["week"] >= "2024-01-15"]
+    forecast, _ = train_window(rows, None)
+    assert forecast["historyRange"] == {
+        "start": "2024-01-01", "end": "2024-03-04", "earliestStart": "2024-02-12",
+        "recommendedStart": "2024-02-12", "recommendedEnd": "2024-03-04", "minTrainingWeeks": 4}
+    assert forecast["training"]["initialRows"] == 8  # Five trainable weeks in Store A, three in Store B.
+    start = forecast["forecastRange"]["start"]
+    updated, _ = train_window([{**r, "units_sold": 1000} if r["week"] >= start else r for r in rows], None)
+    for before, after in zip(forecast["weeks"], updated["weeks"], strict=True):
+        assert all(a["forecasts"] == b["forecasts"] and a["actual"] != b["actual"]
+                   for a, b in zip(before["stores"], after["stores"], strict=True))
+    with pytest.raises(ValueError, match="four earlier weeks"):
+        train_window(rows, (date(2024, 2, 5), date(2024, 2, 19)))
+    with pytest.raises(ValueError, match="last observed"):
+        train_window(rows, (date(2024, 2, 19), date(2024, 3, 11)))
+    with pytest.raises(ValueError, match="in-stock training target"):
+        train_window([{**r, "in_stock": False} for r in rows], None)
+    late_rows = [{**r, "in_stock": r["week"] >= "2024-02-26"} for r in rows]
+    late, _ = train_window(late_rows, None)
+    assert late["forecastRange"] == {"start": "2024-03-04", "end": "2024-03-04"}
+
+
+def test_read_upgrades_legacy_history_bounds_after_restoring_a_comparison(tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    rows = weekly_rows()
+    legacy, model = train_item(rows)
+    old_bounds = {"start": "2024-01-01", "end": "2024-03-04", "earliestStart": "2024-01-15"}
+    legacy["historyRange"] = old_bounds
+    snapshot = store.save(rows, legacy, model, True)
+    saved_forecast = tmp_path / snapshot["projectId"] / "forecast.json"
+    original = saved_forecast.read_bytes()
+
+    class SavedComparison:
+        @staticmethod
+        def restore(saved):
+            return {**saved, "result": {**saved["result"], "models": [*legacy["models"], {"id": "peer"}],
+                                        "historyRange": old_bounds}}
+
+    for comparisons in (None, SavedComparison):
+        result = process_request({"op": "read"}, comparisons)["result"]
+        assert result["weeks"] == legacy["weeks"] and result["next"] == legacy["next"]
+        assert result["historyRange"]["earliestStart"] == "2024-01-29"
+        assert result["historyRange"]["recommendedStart"] == "2024-02-12"
+        assert len(result["models"]) == (2 if comparisons else 1)
+    assert saved_forecast.read_bytes() == original
 
 
 def test_native_model_roundtrip_with_recent_history(tmp_path):

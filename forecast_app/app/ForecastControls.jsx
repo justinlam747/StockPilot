@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useWorkspace } from './Workspace';
 import { isActive } from './useForecastQueue';
 
@@ -18,25 +18,57 @@ function Timeline({ dates, range, change }) {
   </div>;
 }
 
-function ForecastPeriod({ period, change, history }) {
-  return <div className="fc-dates-form" role="group" aria-label="Forecast period">
-    <h3>Forecast period</h3>
-    <label>Forecast from<input type="date" value={period.forecastStart} min={history?.earliestStart}
-      onChange={event => change({ ...period, forecastStart: event.target.value })} /></label>
-    <label>Forecast through<input type="date" value={period.forecastEnd} min={period.forecastStart || history?.earliestStart}
-      onChange={event => change({ ...period, forecastEnd: event.target.value })} /></label>
-    {(period.forecastStart || period.forecastEnd) && <button className="settings-toggle"
-      onClick={() => change({ forecastStart: '', forecastEnd: '' })}>Reset period</button>}
-  </div>;
+const WEEK_MS = 7 * 86400000;
+const isoDate = stamp => new Date(stamp).toISOString().slice(0, 10);
+const asMonday = date => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) return NaN;
+  const stamp = Date.parse(date + 'T00:00:00Z');
+  return Number.isFinite(stamp) && isoDate(stamp) === date && new Date(stamp).getUTCDay() === 1 ? stamp : NaN;
+};
+
+function forecastWeeks(history) {
+  const first = asMonday(history?.start), last = asMonday(history?.end);
+  const minimum = Math.max(4, history?.minTrainingWeeks ?? 4);
+  // Earlier snapshots reserved only two weeks. Keep the current four-week floor on restore.
+  const lower = Math.max(asMonday(history?.earliestStart), first + minimum * WEEK_MS);
+  const weeks = [];
+  for (let stamp = lower; stamp <= last; stamp += WEEK_MS) weeks.push(isoDate(stamp));
+  return weeks;
 }
 
-function periodError({ forecastStart: first, forecastEnd: last }, minimum) {
-  if (!first && !last) return '';
-  if (!first || !last) return 'Choose both forecast dates.';
-  if ([first, last].some(date => new Date(date + 'T00:00:00Z').getUTCDay() !== 1)) return 'Choose Mondays for the forecast weeks.';
-  if (last < first) return 'Choose an end week on or after the start week.';
-  if (minimum && first < minimum) return 'The first forecast week with enough training history is ' + minimum + '.';
-  return '';
+function validPeriod(period, weeks) {
+  return weeks.includes(period?.forecastStart) && weeks.includes(period?.forecastEnd) &&
+    period.forecastStart <= period.forecastEnd;
+}
+
+function recommendedPeriod(history, weeks) {
+  const recommended = { forecastStart: history?.recommendedStart, forecastEnd: history?.recommendedEnd };
+  if (validPeriod(recommended, weeks)) return recommended;
+  return { forecastStart: weeks[Math.max(0, weeks.length - 4)], forecastEnd: weeks.at(-1) };
+}
+
+function ForecastPeriod({ period, change, history, weeks, recommended }) {
+  if (!weeks.length) return <p className="fc-note">No eligible forecast weeks in the imported sales history.</p>;
+  const { forecastStart, forecastEnd } = period;
+  const options = values => values.map(week => <option key={week} value={week}>{week}</option>);
+  const weekCount = (asMonday(forecastEnd) - asMonday(forecastStart)) / WEEK_MS + 1;
+  return <section role="group" aria-label="Forecast period">
+    <div className="fc-dates-form">
+      <h3>Historical forecast period</h3>
+      <label>Forecast from<select value={forecastStart} onChange={event => {
+        const start = event.target.value;
+        change({ forecastStart: start, forecastEnd: start > forecastEnd ? start : forecastEnd });
+      }}>{options(weeks)}</select></label>
+      <label>Forecast through<select value={forecastEnd} onChange={event =>
+        change({ forecastStart, forecastEnd: event.target.value })}>
+        {options(weeks.filter(week => week >= forecastStart))}</select></label>
+      <button className="settings-toggle" onClick={() => change(recommended)}>Use recommended dates</button>
+    </div>
+    {validPeriod(period, weeks) && <>
+      <p className="fc-note">Training history · {history.start} to {isoDate(asMonday(forecastStart) - WEEK_MS)}</p>
+      <p className="fc-note">Evaluation · {forecastStart} to {forecastEnd} · {weekCount} {weekCount === 1 ? 'week' : 'weeks'}</p>
+    </>}
+  </section>;
 }
 
 function Scores({ models, points }) {
@@ -58,7 +90,14 @@ export default function ForecastControls({ result, dates, range, changeRange, po
   const activeCount = jobs?.filter(isActive).length ?? 0;
   const [panel, setPanel] = useState(null);
   const [peers, setPeers] = useState(() => models.filter(model => model.id !== 'xgboost').map(model => model.id));
-  const [period, setPeriod] = useState(() => ({ forecastStart: forecastRange?.start ?? '', forecastEnd: forecastRange?.end ?? '' }));
+  const weeks = useMemo(() => forecastWeeks(historyRange), [historyRange]);
+  const recommended = recommendedPeriod(historyRange, weeks);
+  const saved = { forecastStart: forecastRange?.start, forecastEnd: forecastRange?.end };
+  const [selection, setSelection] = useState(null);
+  const initialPeriod = validPeriod(saved, weeks) ? saved : recommended;
+  const selectionKey = JSON.stringify([result.item, historyRange?.start, weeks[0], weeks.at(-1),
+    initialPeriod.forecastStart, initialPeriod.forecastEnd]);
+  const period = selection?.key === selectionKey ? selection.period : initialPeriod;
   const [error, setError] = useState('');
   const availablePeers = peers.filter(id => peerModels?.some(model => model.id === id && model.available !== false));
   const awaitingPeers = !peerModels && peers.length > 0;
@@ -66,10 +105,13 @@ export default function ForecastControls({ result, dates, range, changeRange, po
     setPanel(current => current === name ? null : name);
   }
   function run() {
-    const message = periodError(period, historyRange?.earliestStart);
-    setError(message);
-    if (message) { setPanel('dates'); return; }
-    rerunForecast(availablePeers, period.forecastStart ? period : {});
+    if (!validPeriod(period, weeks)) {
+      setError('Choose forecast weeks within the imported sales history.');
+      setPanel('dates');
+      return;
+    }
+    setError('');
+    rerunForecast(availablePeers, period);
   }
   return <div className="fc-tools">
     <div className="fc-tools-row">
@@ -78,11 +120,12 @@ export default function ForecastControls({ result, dates, range, changeRange, po
       {(peerModels?.length > 0 || models.length > 1) && <button className="button" aria-expanded={panel === 'models'} aria-controls="forecast-model-controls"
         onClick={() => togglePanel('models')}>Compare models</button>}
       {activeCount > 0 && <a className="queue-link" href="#forecast-queue">View queue ({activeCount})</a>}
-      <button className="button fc-rerun" disabled={busy || awaitingPeers} onClick={run}>Queue forecast</button>
+      <button className="button fc-rerun" disabled={busy || awaitingPeers || !weeks.length} onClick={run}>Queue forecast</button>
     </div>
     {panel === 'dates' && <div id="forecast-date-controls">
       <Timeline dates={dates} range={range} change={changeRange} />
-      <ForecastPeriod history={historyRange} period={period} change={value => { setPeriod(value); setError(''); }} />
+      <ForecastPeriod history={historyRange} weeks={weeks} recommended={recommended} period={period}
+        change={value => { setSelection({ key: selectionKey, period: value }); setError(''); }} />
     </div>}
     {panel === 'models' && <section id="forecast-model-controls" aria-label="Model comparison">
       {models.length > 1 && <fieldset><legend>Show on chart</legend>

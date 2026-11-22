@@ -9,36 +9,11 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from xgboost import XGBRegressor
 
+from .history import WEEK, group_rows
 from .parameters import XGB_OPTIONS, validate_parameters
 
-WEEK = timedelta(days=7)
 FEATURES = ["Previous 1–3 weeks", "Up to 3-week average", "Weeks since first record",
             "Annual seasonality", "Christmas window", "Store identity"]
-
-
-def group_rows(rows):
-    if not rows or len({r["item"] for r in rows}) != 1:
-        raise ValueError("Include exactly one item per forecast.")
-    groups = {}
-    for row in rows:
-        if not all(isinstance(row[key], str) and row[key].strip() for key in ("store", "item")):
-            raise ValueError("Each observation needs an item and a store.")
-        week = date.fromisoformat(row["week"])
-        if week.isoformat() != row["week"] or week.weekday() != 0 or week > date.max - WEEK:
-            raise ValueError("Use a Monday in YYYY-MM-DD format with room for a following week.")
-        units, available = row["units_sold"], row.get("in_stock", True)
-        if type(units) is not int or not 0 <= units <= 9_999_999_999 or type(available) is not bool:
-            raise ValueError("Each observation needs nonnegative whole units (up to 10 digits) and a true/false in_stock flag.")
-        group = groups.setdefault(row["store"], {})
-        if week in group:
-            raise ValueError(f"Duplicate week for {row['store']}: {week}.")
-        group[week] = (units, available)
-    for store, group in groups.items():
-        if (max(group) - min(group)) // WEEK + 1 != len(group):
-            raise ValueError(f"Missing week for {store}. Supply every weekly observation, including genuine zeros.")
-    if len({max(group) for group in groups.values()}) != 1:
-        raise ValueError("All stores must end on the same observed week.")
-    return groups
 
 
 def features(week, age, group):
