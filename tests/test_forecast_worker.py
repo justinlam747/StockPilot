@@ -1,3 +1,4 @@
+import json
 from datetime import date, timedelta
 
 import pytest
@@ -141,3 +142,35 @@ def test_invalid_and_interrupted_writes_do_not_publish_a_project(tmp_path, monke
     with pytest.raises(OSError):
         store.save([], {"item": "Partial"}, FailedModel(), False)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_queue_preflight_and_explicit_activation(tmp_path, monkeypatch):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    csv = dataset()
+    inspect = {"op": "inspect", "action": "train", "csv": csv}
+    item = "../../Black, cardigan"
+    assert process_request(inspect) == process_request({"csv": csv})
+    assert process_request({**inspect, "item": item}) == {"item": item}
+    assert not list(tmp_path.iterdir())
+    first = process_request({"csv": csv, "item": item})
+    background = process_request({"csv": csv.replace("Montréal,7", "Montréal,17"), "item": item, "activate": False})
+    background_id = background["projectId"]
+    assert process_request({"op": "inspect", "action": "rerun", "projectId": background_id}) == {"item": item}
+    assert process_request({"op": "read"})["projectId"] == first["projectId"]
+    assert len(process_request({"op": "activate", "id": background_id})["projects"]) == 2
+    assert process_request({"op": "read"})["projectId"] == background_id
+
+
+def test_progress_only_in_opted_in_runs_and_failure_has_no_completed_event(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("STOCKPILOT_DATA_DIR", str(tmp_path))
+    upload = {"csv": dataset(), "item": "../../Black, cardigan"}
+    baseline = process_request(upload)
+    assert not capsys.readouterr().err
+    assert process_request({**upload, "progress": True}) == baseline
+    events = [json.loads(line.removeprefix("STOCKPILOT_EVENT ")) for line in capsys.readouterr().err.splitlines()]
+    assert events == [{"model": "xgboost", "status": status} for status in ["running", "completed"]]
+    with pytest.raises(ValueError, match="eight"):
+        process_request({**upload, "item": "Other", "progress": True})
+    events = [json.loads(line.removeprefix("STOCKPILOT_EVENT ")) for line in capsys.readouterr().err.splitlines()]
+    assert [(e["model"], e["status"]) for e in events] == [("xgboost", "running"), ("xgboost", "failed")]
+    assert "eight" in events[-1]["error"]

@@ -8,7 +8,8 @@ import sys
 from datetime import date, timedelta
 
 from . import store
-from .parameters import FIELDS, validate_parameters
+from .parameters import FIELDS, parse_window, validate_parameters
+from .progress import emit, model_step
 
 
 REQUIRED = {"week", "item", "store", "units_sold"}
@@ -99,6 +100,49 @@ def training_inputs(request, op):
     return by_item, item, parameters, stock_reported
 
 
+def item_choice(by_item, item):
+    items = [{"id": item, "name": item} for item in sorted(by_item)]
+    if item is None and len(items) > 1:
+        return {"items": items, "selectionRequired": True}
+    if item is None:
+        item = items[0]["id"]
+    if not isinstance(item, str) or item not in by_item:
+        raise ValueError("The selected item does not exist in this CSV.")
+    return {"item": item, "items": items}
+
+
+def fit_and_save(rows, parameters, stock_reported, period, peers, comparisons, *, activate, report):
+    with model_step("xgboost", report):
+        if period:
+            from .window import train_window
+            result, model = train_window(rows, period, parameters=parameters)
+        else:
+            from .xgb import train_item
+            result, model = train_item(rows, parameters=parameters)
+    result["source"]["availability"] = "reported" if stock_reported else "assumed"
+    overlay = comparisons.forecast(result, rows, peers, report=report) if peers else None
+    saved = store.save(rows, result, model, stock_reported, activate=activate and not comparisons)
+    saved["result"]["historyRange"] = history_range(rows)
+    if comparisons:
+        if overlay is not None:
+            overlay["historyRange"] = saved["result"]["historyRange"]
+        if activate:
+            comparisons.publish(saved["projectId"], overlay)
+            store.mark_current(store.data_dir(), saved["projectId"])
+        if overlay is not None:
+            saved["result"] = overlay
+    return saved
+
+
+def activate_snapshot(project_id, result, comparisons):
+    folder = store.project_directory(project_id)
+    if result is not None and comparisons:
+        overlay = result if len(result["models"]) > 1 or result.get("modelWarnings") else None
+        comparisons.publish(project_id, overlay)
+    store.mark_current(folder.parent, project_id)
+    return {"projects": store.project_list(folder.parent)}
+
+
 def process_request(request, comparisons=None):
     if not isinstance(request, dict):
         raise ValueError("Expected a JSON object.")
@@ -107,39 +151,29 @@ def process_request(request, comparisons=None):
         return {"peerModels": comparisons.models() if comparisons else []}
     if op == "read":
         return read_project(request.get("id"), comparisons)
-    if op not in ("train", "rerun"):
+    if op == "activate":
+        return activate_snapshot(request.get("id"), request.get("comparisonResult"), comparisons)
+    action = request.get("action") if op == "inspect" else op
+    if action not in ("train", "rerun"):
         raise ValueError("Unknown forecast operation.")
     peers = request.get("peers", [])
     if comparisons:
         comparisons.validate(peers)
     elif peers != []:
         raise ValueError("Only XGBoost is available in this installation.")
-    by_item, item, parameters, stock_reported = training_inputs(request, op)
-    items = [{"id": item, "name": item} for item in sorted(by_item)]
-    if item is None and len(items) > 1:
-        return {"items": items, "selectionRequired": True}
-    if item is None:
-        item = items[0]["id"]
-    if not isinstance(item, str) or item not in by_item:
-        raise ValueError("The selected item does not exist in this CSV.")
-    # Listing local projects and inspecting a CSV don't require loading the ML runtime.
-    from .window import parse_window, train_window
-    from .xgb import train_item
-
-    rows = by_item[item]
     period = parse_window(request.get("forecastStart"), request.get("forecastEnd"))
-    if period:
-        result, model = train_window(rows, period, parameters=parameters)
-    else:
-        result, model = train_item(rows, parameters=parameters)
-    result["source"]["availability"] = "reported" if stock_reported else "assumed"
-    overlay = comparisons.forecast(result, rows, peers) if peers else None
-    saved = store.save(rows, result, model, stock_reported, activate=not comparisons)
-    saved["result"]["historyRange"] = history_range(rows)
-    if comparisons:
-        saved = comparisons.publish(saved, overlay)
-        store.mark_current(store.data_dir(), saved["projectId"])
-    return {"items": items, **saved}
+    if op == "inspect" and action == "rerun":
+        folder = store.project_directory(request.get("projectId"))
+        return {"item": store.read_saved_json(folder / "project.json")["item"]}
+    by_item, item, parameters, stock_reported = training_inputs(request, action)
+    choice = item_choice(by_item, item)
+    if choice.get("selectionRequired"):
+        return choice
+    if op == "inspect":
+        return {"item": choice["item"]}
+    saved = fit_and_save(by_item[choice["item"]], parameters, stock_reported, period, peers, comparisons,
+                         activate=request.get("activate", True), report=emit if request.get("progress") else None)
+    return {"items": choice["items"], **saved}
 
 
 def main(comparisons=None):

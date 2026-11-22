@@ -77,12 +77,17 @@ def mark_current(root, project_id):
         os.replace(marker, root / "current")
 
 
-def saved_training_input(project_id):
+def project_directory(project_id):
     if not isinstance(project_id, str) or not PROJECT_ID.fullmatch(project_id):
         raise ValueError("The saved project ID is invalid.")
     folder = data_dir() / project_id
     if folder.is_symlink() or not folder.is_dir():
         raise UnknownProject("The saved forecast was not found.")
+    return folder
+
+
+def saved_training_input(project_id):
+    folder = project_directory(project_id)
     result = read_saved_json(folder / "forecast.json")
     history = (folder / "history.csv").read_text(encoding="utf-8")
     return history, result["item"], result["training"].get("parameters", {})
