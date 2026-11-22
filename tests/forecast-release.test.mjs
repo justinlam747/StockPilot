@@ -124,17 +124,17 @@ test('production workspace trains from the public template and restores its fore
     })).json();
     assert.equal(rerun.projectId, tuned.projectId);
     assert.deepEqual(rerun.result, tuned.result);
-    const future = await (await getResponse(origin + '/api/forecast', {
+    const historical = await (await getResponse(origin + '/api/forecast', {
       method: 'POST', headers: {'Content-Type': 'application/json', Origin: origin},
-      body: JSON.stringify({projectId: tuned.projectId, forecastStart: '2025-03-10', forecastEnd: '2025-03-17'}),
+      body: JSON.stringify({projectId: tuned.projectId, forecastStart: '2025-02-17', forecastEnd: '2025-02-24'}),
     })).json();
-    assert.deepEqual(future.result.weeks.map(w => w.week), ['2025-03-10', '2025-03-17']);
-    assert.ok(future.result.weeks.every(w => w.stores.every(row =>
-      row.actual === null && Number.isFinite(row.forecasts.xgboost))));
+    assert.deepEqual(historical.result.weeks.map(w => w.week), ['2025-02-17', '2025-02-24']);
+    assert.ok(historical.result.weeks.every(w => w.stores.every(row =>
+      Number.isFinite(row.actual) && Number.isFinite(row.forecasts.xgboost))));
     const network = buildReplay(trained.result);
-    assert.deepEqual(network.weeks.map(w => w.date), [...trained.result.weeks, trained.result.next].map(w => w.week));
-    const interval = buildReplay(future.result);
-    assert.ok(interval.weeks.every(w => w.demandSource === 'forecast'));
+    assert.deepEqual(network.weeks.map(w => w.date), trained.result.weeks.map(w => w.week));
+    const interval = buildReplay(historical.result);
+    assert.ok(interval.weeks.every(w => w.demandSource === 'observed'));
     const final = replayFrame(interval, interval.weeks.length - 1, 'sales');
     assert.equal(final.inTransit, 0);
     assert.equal(final.saved, (final.sold - final.baselineSold) * 12 - final.transferCost);
@@ -147,8 +147,8 @@ test('production workspace trains from the public template and restores its fore
     const queue = await (await getResponse(endpoint + '?queue=1')).json();
     assert.equal(queue.jobs.filter(job => job.status === 'completed').length, 4);
     const restored = await (await getResponse(endpoint)).json();
-    assert.equal(restored.projectId, future.projectId);
-    assert.deepEqual(restored.result, future.result);
+    assert.equal(restored.projectId, historical.projectId);
+    assert.deepEqual(restored.result, historical.result);
     const original = await (await getResponse(endpoint + '?id=' + trained.projectId)).json();
     assert.deepEqual(original.result, trained.result);
     const replay = spawnSync(python, ['-B', '-c', [
@@ -161,11 +161,16 @@ test('production workspace trains from the public template and restores its fore
       'groups, _ = parse_csv((folder / "history.csv").read_text(encoding="utf-8"))',
       'tree = XGBRegressor()',
       'tree.load_model(folder / "model.ubj")',
-      'print(json.dumps(predict_next(tree, next(iter(groups.values())))))',
+      'cutoff = json.loads(tree.get_booster().attr("stockpilot"))["trainedThrough"]',
+      'earlier = [row for row in next(iter(groups.values())) if row["week"] <= cutoff]',
+      'print(json.dumps(predict_next(tree, earlier)))',
     ].join('\n'), project], {cwd: root, windowsHide: true, encoding: 'utf8', timeout: 90_000});
     if (replay.error) throw replay.error;
     assert.equal(replay.status, 0, replay.stderr);
-    assert.deepEqual(JSON.parse(replay.stdout), tuned.result.next);
+    const predicted = JSON.parse(replay.stdout);
+    assert.equal(predicted.week, tuned.result.weeks[0].week);
+    assert.deepEqual(predicted.stores.map(row => [row.id, row.forecasts]),
+      tuned.result.weeks[0].stores.map(row => [row.id, row.forecasts]));
   } finally {
     await server.stop();
     await broker.stop();

@@ -5,11 +5,9 @@ import math
 
 from xgboost import XGBRegressor
 
+from .history import MAX_STORE_WEEKS, WEEK, group_rows, historical_period, history_range
 from .parameters import ForecastRangeError, XGB_OPTIONS, parse_window, validate_parameters
-from .xgb import FEATURES, WEEK, features, group_rows, model_input, predict_frame, score_weeks, training_examples
-
-
-MAX_STORE_WEEKS = 50_000
+from .xgb import FEATURES, features, model_input, predict_frame, score_weeks, training_examples
 
 
 def fit_before(groups, start, end, options):
@@ -53,15 +51,14 @@ def project(model, history, start, end):
 
 
 def train_window(rows, period, parameters=None):
-    """Issue one frozen-origin forecast across the requested weeks, including future dates."""
+    """Fit through the week before the historical evaluation period and forecast recursively."""
     if parameters is not None:
         validate_parameters(parameters)
     options = {**XGB_OPTIONS, **(parameters or {})}
     groups = group_rows(rows)
-    if min(map(len, groups.values())) < 8:
-        raise ValueError("Include at least eight consecutive weeks at each store.")
+    bounds = history_range(groups)
     stores = sorted(groups)
-    start, end = period
+    start, end = historical_period(bounds, period, len(stores))
     model, history, _ = fit_before(groups, start, end, options)
     metadata = dict(version=1, item=rows[0]["item"], stores=list(history),
                     trainedThrough=max(max(group) for group in history.values()).isoformat(),
@@ -83,7 +80,7 @@ def train_window(rows, period, parameters=None):
         "stores": [{"id": store, "name": store} for store in stores],
         "models": [{"id": "xgboost", "name": "XGBoost"}],
         "weeks": weeks, "scores": score_weeks(weeks, stores), "next": None,
-        "forecastRange": {"start": start.isoformat(), "end": end.isoformat()},
+        "historyRange": bounds, "forecastRange": {"start": start.isoformat(), "end": end.isoformat()},
         "training": {"initialRows": count, "finalRows": count, "holdoutWeeks": len(weeks),
                      "features": FEATURES, "storeOrder": list(history), "parameters": options,
                      "scope": "One fit on pre-period sales. Later weeks use the model's own predicted sales as lags."},

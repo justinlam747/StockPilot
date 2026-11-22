@@ -47,7 +47,8 @@ test('local worker selects an item, trains it and restores its saved forecast in
     assert.equal(snapshot.result.training.parameters.max_depth, 4);
     assert.equal(snapshot.result.training.parameters.n_estimators, 40);
     assert.equal(snapshot.result.scores[0].count, 3);
-    assert.equal(snapshot.result.next.week, '2025-03-03');
+    assert.equal(snapshot.result.next, null);
+    assert.deepEqual(snapshot.result.forecastRange, {start: '2025-02-03', end: '2025-02-24'});
     assert.equal(snapshot.result.source.availability, 'reported');
     const restored = await GET(new Request(address, {headers}));
     assert.equal(restored.status, 200);
@@ -60,12 +61,20 @@ test('local worker selects an item, trains it and restores its saved forecast in
     assert.equal((await POST(upload({...active, csv: dataset.join('\n')}))).status, 400);
     assert.equal((await POST(upload({projectId: '9'.repeat(64)}))).status, 404);
     assert.equal((await POST(upload({...active, forecastStart: '2025-03-03'}))).status, 422);
-    const dated = await POST(upload({...active, forecastStart: '2025-03-03', forecastEnd: '2025-03-10'}));
+    const jobsBefore = (await (await GET(new Request(address + '?queue=1', {headers}))).json()).jobs.length;
+    const outside = await POST(upload({...active, forecastStart: '2025-02-24', forecastEnd: '2025-03-03'}));
+    assert.equal(outside.status, 422);
+    const early = await POST(upload({...active, forecastStart: '2025-01-20', forecastEnd: '2025-02-03'}));
+    assert.equal(early.status, 422);
+    const jobsAfter = (await (await GET(new Request(address + '?queue=1', {headers}))).json()).jobs.length;
+    assert.equal(jobsAfter, jobsBefore, 'Invalid periods must be rejected before adding a job');
+    const dated = await POST(upload({...active, forecastStart: '2025-02-17', forecastEnd: '2025-02-24'}));
     assert.equal(dated.status, 200);
     const fixed = (await dated.json()).result;
     assert.equal(fixed.next, null);
     assert.equal(fixed.training.parameters.max_depth, 4);
-    assert.deepEqual(fixed.weeks.map(frame => frame.week), ['2025-03-03', '2025-03-10']);
+    assert.deepEqual(fixed.weeks.map(frame => frame.week), ['2025-02-17', '2025-02-24']);
+    assert.ok(fixed.weeks.every(frame => frame.stores.every(row => Number.isFinite(row.actual))));
   } finally {
     await closeForecastQueues();
     await broker.stop();

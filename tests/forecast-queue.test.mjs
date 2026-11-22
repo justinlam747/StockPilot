@@ -54,7 +54,8 @@ test('forecast requests survive restart and disconnect, drain in FIFO order, and
     const browser = new AbortController();
     const first = await submit('Blue cardigan', 8, true, browser.signal);
     browser.abort();
-    const bad = await submit('Short history', 1);
+    const bad = await submit('Interrupted input', 8);
+    await service.files.forgetInput(bad.id);
     const last = await submit('Black cardigan', 8);
     const {jobs} = await get('?queue=1');
     assert.deepEqual(jobs.filter(job => job.status === 'queued').map(job => job.id), [first.id, bad.id, last.id]);
@@ -74,8 +75,15 @@ test('forecast requests survive restart and disconnect, drain in FIFO order, and
     assert.equal(c.snapshot.result.item, 'Black cardigan');
     assert.ok(a.job.finishedAt <= b.job.startedAt && b.job.finishedAt <= c.job.startedAt);
     assert.deepEqual(a.job.models, [{id:'xgboost',status:'completed'}]);
-    assert.equal(b.job.models[0].status, 'failed');
+    assert.equal(b.job.models[0].status, 'skipped', 'Missing input prevents the model from starting');
     assert.equal((await get('')).projectId, original.projectId);
+    const legacy = structuredClone(a.snapshot);
+    legacy.result.historyRange = {start:'2025-01-06', end:'2025-02-24', earliestStart:'2025-01-20'};
+    await restarted.files.saveResult(first.id, legacy);
+    const refreshed = await get('?job=' + first.id + '&result=1');
+    assert.equal(refreshed.snapshot.result.historyRange.earliestStart, '2025-02-03');
+    assert.equal(refreshed.snapshot.result.historyRange.recommendedStart, '2025-02-03');
+    assert.equal((await get('')).projectId, original.projectId, 'Reading legacy bounds must preserve the active project');
     assert.equal((await get('?job=' + first.id + '&result=1&activate=1')).snapshot.projectId, a.job.projectId);
     assert.equal((await get('')).result.item, 'Blue cardigan');
     assert.equal((await get('?job=' + last.id + '&result=1')).snapshot.result.item, 'Black cardigan');

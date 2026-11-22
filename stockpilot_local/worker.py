@@ -5,9 +5,10 @@ import io
 import json
 import re
 import sys
-from datetime import date, timedelta
+from datetime import date
 
 from . import store
+from .history import group_rows, historical_period, history_range
 from .parameters import FIELDS, parse_window, validate_parameters
 from .progress import emit, model_step
 
@@ -69,24 +70,19 @@ def parse_csv(text, *, upload=True):
     return by_item, "in_stock" in headers
 
 
-def history_range(rows):
-    first = {}
-    for row in rows:
-        shop, week = row["store"], row["week"]
-        first[shop] = min(week, first.get(shop, week))
-    eligible = [r["week"] for r in rows if r["in_stock"] and r["week"] > first[r["store"]]]
-    earliest = date.fromisoformat(min(eligible)) + timedelta(weeks=1) if eligible else None
-    return {"start": min(first.values()), "end": max(r["week"] for r in rows),
-            "earliestStart": earliest.isoformat() if earliest else None}
-
-
-def read_project(project_id, comparisons):
-    saved = store.restore(project_id)
-    if saved["result"] and "historyRange" not in saved["result"]:
+def read_project(project_id, comparisons, *, activate=True):
+    saved = store.restore(project_id, activate=activate)
+    if not saved["result"]:
+        return saved
+    bounds = saved["result"].get("historyRange", {})
+    if "recommendedStart" not in bounds:
         text, item, _ = store.saved_training_input(saved["projectId"])
-        groups, _ = parse_csv(text, upload=False)
-        saved["result"]["historyRange"] = history_range(groups[item])
-    return comparisons.restore(saved) if comparisons else saved
+        by_item, _ = parse_csv(text, upload=False)
+        bounds = history_range(group_rows(by_item[item]))
+    if comparisons:
+        saved = comparisons.restore(saved)
+    saved["result"]["historyRange"] = bounds
+    return saved
 
 
 def training_inputs(request, op):
@@ -113,19 +109,12 @@ def item_choice(by_item, item):
 
 def fit_and_save(rows, parameters, stock_reported, period, peers, comparisons, *, activate, report):
     with model_step("xgboost", report):
-        if period:
-            from .window import train_window
-            result, model = train_window(rows, period, parameters=parameters)
-        else:
-            from .xgb import train_item
-            result, model = train_item(rows, parameters=parameters)
+        from .window import train_window
+        result, model = train_window(rows, period, parameters=parameters)
     result["source"]["availability"] = "reported" if stock_reported else "assumed"
     overlay = comparisons.forecast(result, rows, peers, report=report) if peers else None
     saved = store.save(rows, result, model, stock_reported, activate=activate and not comparisons)
-    saved["result"]["historyRange"] = history_range(rows)
     if comparisons:
-        if overlay is not None:
-            overlay["historyRange"] = saved["result"]["historyRange"]
         if activate:
             comparisons.publish(saved["projectId"], overlay)
             store.mark_current(store.data_dir(), saved["projectId"])
@@ -150,7 +139,7 @@ def process_request(request, comparisons=None):
     if op == "capabilities":
         return {"peerModels": comparisons.models() if comparisons else []}
     if op == "read":
-        return read_project(request.get("id"), comparisons)
+        return read_project(request.get("id"), comparisons, activate=request.get("activate", True))
     if op == "activate":
         return activate_snapshot(request.get("id"), request.get("comparisonResult"), comparisons)
     action = request.get("action") if op == "inspect" else op
@@ -162,16 +151,16 @@ def process_request(request, comparisons=None):
     elif peers != []:
         raise ValueError("Only XGBoost is available in this installation.")
     period = parse_window(request.get("forecastStart"), request.get("forecastEnd"))
-    if op == "inspect" and action == "rerun":
-        folder = store.project_directory(request.get("projectId"))
-        return {"item": store.read_saved_json(folder / "project.json")["item"]}
     by_item, item, parameters, stock_reported = training_inputs(request, action)
     choice = item_choice(by_item, item)
     if choice.get("selectionRequired"):
         return choice
+    rows = by_item[choice["item"]]
     if op == "inspect":
+        groups = group_rows(rows)
+        historical_period(history_range(groups), period, len(groups))
         return {"item": choice["item"]}
-    saved = fit_and_save(by_item[choice["item"]], parameters, stock_reported, period, peers, comparisons,
+    saved = fit_and_save(rows, parameters, stock_reported, period, peers, comparisons,
                          activate=request.get("activate", True), report=emit if request.get("progress") else None)
     return {"items": choice["items"], **saved}
 
